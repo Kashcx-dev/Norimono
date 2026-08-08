@@ -11,6 +11,9 @@ const {handle404, masterErrorHandler, FN_verifyTkn, API_Limiter} = require("../h
 const authRoutes = require("../routes/auth");
 const chatRoutes = require("../routes/chat");
 const feedbackRoutes = require("../routes/feedback");
+const publishRideRoutes = require("../routes/publishRide");
+const bookRideRoutes = require("../routes/bookRide");
+const pickupRideRoutes = require("../routes/pickupRide");
 const { getRouting } = require("../handlers/GPS_CalcHandler");
 const { startLiveTracking } = require("../routes/GPS_fetch");
 
@@ -33,6 +36,9 @@ app.use(express.static(path.join(__dirname, "../../react-frontend")));
 app.use("/auth", API_Limiter("strict"), authRoutes);
 app.use("/chat", FN_verifyTkn, API_Limiter("relaxed"), chatRoutes);
 app.use("/feedback", FN_verifyTkn, API_Limiter("standard"), feedbackRoutes);
+app.use("/publish-ride", FN_verifyTkn, API_Limiter("standard"), publishRideRoutes);
+app.use("/book-ride", FN_verifyTkn, API_Limiter("standard"), bookRideRoutes);
+app.use("/pickup-ride", FN_verifyTkn, API_Limiter("standard"), pickupRideRoutes);
 
 // Socket.io connection logic for GPS Tracking
 io.on("connection", (socket) => {
