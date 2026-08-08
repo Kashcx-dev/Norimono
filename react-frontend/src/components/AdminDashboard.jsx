@@ -5,47 +5,61 @@ import {
   Settings,
   LogOut,
   Search,
-  Plus,
-  X,
-  CheckCircle2,
-  AlertCircle,
-  Clock,
-  ArrowRightLeft,
-  Fuel,
-  Sparkles,
+  Activity,
   Save,
   Bell,
-  ShieldCheck,
-  MapPin,
+  User,
+  Shield,
+  CheckCircle2,
+  Clock,
+  LayoutDashboard,
+  TrendingUp,
+  Fuel,
+  ArrowRightLeft,
+  Filter,
+  Plus,
+  X,
+  Sparkles,
+  AlertTriangle,
   Building2,
+  MapPin,
   UserCheck,
+  ShieldCheck,
   ShieldAlert,
+  ChevronRight,
+  RefreshCw
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import carModels from "../data/car_models.json";
 
 function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState("employees"); // 'employees' | 'vehicles' | 'settings'
+  const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'employees' | 'vehicles' | 'settings'
   const [metrics, setMetrics] = useState({
     total_employees: 48,
     total_vehicles: 22,
     rides_this_month: 163,
-    active_rides: 0,
+    active_rides: 4,
   });
   const [employees, setEmployees] = useState([]);
   const [vehicles, setVehicles] = useState([]);
-  const [settings, setSettings] = useState({});
+  const [settings, setSettings] = useState({
+    fuel_cost_per_km: "5.50",
+    travel_cost_per_km: "2.00",
+    max_rides_per_day: "5"
+  });
   
-  // Modals & UI states
+  // UI & Search States
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterDepartment, setFilterDepartment] = useState("All");
   const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
   const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [successToast, setSuccessToast] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
 
-  // New Employee Form State
+  // New Employee State
   const [newEmp, setNewEmp] = useState({
     name: "",
     email: "",
@@ -55,7 +69,7 @@ function AdminDashboard() {
     role: "employee",
   });
 
-  // New Vehicle Form State
+  // New Vehicle State
   const [newVeh, setNewVeh] = useState({
     emp_id: "",
     vehicle_model: "Swift Dzire",
@@ -76,16 +90,20 @@ function AdminDashboard() {
     fetchData();
   }, [token, navigate]);
 
-  const fetchData = async () => {
-    fetchMetrics();
-    fetchEmployees();
-    fetchVehicles();
-    fetchSettings();
-  };
-
   const showToast = (msg) => {
     setSuccessToast(msg);
     setTimeout(() => setSuccessToast(""), 4000);
+  };
+
+  const fetchData = async () => {
+    setLoading(true);
+    await Promise.all([
+      fetchMetrics(),
+      fetchEmployees(),
+      fetchVehicles(),
+      fetchSettings()
+    ]);
+    setLoading(false);
   };
 
   const fetchMetrics = async () => {
@@ -144,7 +162,7 @@ function AdminDashboard() {
     }
   };
 
-  // Add Employee Handler
+  // Add Employee
   const handleAddEmployee = async (e) => {
     e.preventDefault();
     try {
@@ -175,7 +193,7 @@ function AdminDashboard() {
       }
     } catch (err) {
       console.error(err);
-      alert("Error creating employee");
+      alert("Error adding employee");
     }
   };
 
@@ -200,7 +218,7 @@ function AdminDashboard() {
     }
   };
 
-  // Add Vehicle Handler
+  // Add Vehicle
   const handleAddVehicle = async (e) => {
     e.preventDefault();
     try {
@@ -257,7 +275,7 @@ function AdminDashboard() {
     }
   };
 
-  // Save Settings Handler
+  // Save Settings
   const handleUpdateSettings = async (e) => {
     e.preventDefault();
     setSavingSettings(true);
@@ -272,7 +290,7 @@ function AdminDashboard() {
       });
       const data = await res.json();
       if (data.success) {
-        showToast("Organization configurations saved!");
+        showToast("Configurations saved successfully!");
         fetchSettings();
       }
     } catch (err) {
@@ -289,451 +307,744 @@ function AdminDashboard() {
     navigate("/");
   };
 
-  // Filter Employees
-  const filteredEmployees = employees.filter(
-    (emp) =>
+  // Filtering
+  const filteredEmployees = employees.filter((emp) => {
+    const matchesSearch =
       emp.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       emp.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       emp.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.location?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      emp.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.emp_id?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDept =
+      filterDepartment === "All" || emp.department === filterDepartment;
+    return matchesSearch && matchesDept;
+  });
 
-  // Filter Vehicles
-  const filteredVehicles = vehicles.filter(
-    (v) =>
+  const filteredVehicles = vehicles.filter((v) => {
+    return (
       v.veh_no?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       v.vehicle_model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      v.driver_name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      v.driver_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      v.driver_email?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex flex-col w-full text-left font-sans antialiased">
-      {/* Top Navbar Matching Wireframe Header */}
-      <header className="bg-white border-b border-gray-200/90 px-8 py-3.5 flex items-center justify-between sticky top-0 z-50 shadow-xs">
-        {/* Left: Company Logo & Active Tab Title */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-[#714B67] rounded-lg flex items-center justify-center shadow-xs">
-              <Car className="w-4.5 h-4.5 text-white" />
+    <div className="flex h-screen bg-[#F4F6F9] font-sans antialiased text-gray-900 overflow-hidden text-left">
+      {/* 1. ODOO DARK SIDEBAR */}
+      <aside className="w-64 bg-[#714B67] text-white flex flex-col justify-between shadow-xl z-30 transition-all">
+        <div>
+          {/* Brand header */}
+          <div className="p-5 border-b border-white/10 flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center backdrop-blur-xs border border-white/20 shadow-inner">
+              <Car className="w-6 h-6 text-[#E8D07A]" />
             </div>
-            <span className="text-lg font-extrabold text-gray-900 tracking-tight">
-              MakeLyft
-            </span>
+            <div>
+              <div className="font-extrabold text-lg tracking-tight flex items-center gap-1.5">
+                MakeLyft
+                <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 bg-[#00A09D] text-white rounded font-black">
+                  Admin
+                </span>
+              </div>
+              <p className="text-[11px] text-white/70">Enterprise Fleet Mgmt</p>
+            </div>
           </div>
 
-          <div className="h-5 w-px bg-gray-200"></div>
+          {/* Nav items */}
+          <div className="p-3.5 space-y-1.5">
+            <p className="px-3 py-1.5 text-[11px] font-bold text-white/50 uppercase tracking-wider">
+              Control Center
+            </p>
 
-          <span className="text-base font-bold text-[#00A09D] capitalize">
-            {activeTab === "employees"
-              ? "Employees"
-              : activeTab === "vehicles"
-              ? "Vehicles"
-              : "Settings"}
-          </span>
-        </div>
-
-        {/* Right: Admin Indicator & Profile Dropdown */}
-        <div className="flex items-center gap-3 relative">
-          <button
-            onClick={() => {
-              setNotificationsOpen(!notificationsOpen);
-              setDropdownOpen(false);
-            }}
-            className="flex items-center justify-center w-9 h-9 rounded-full bg-gray-100/80 hover:bg-gray-200/80 transition-colors border border-gray-200 cursor-pointer relative"
-          >
-            <Bell className="w-4.5 h-4.5 text-gray-600" />
-            <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-[#00A09D] rounded-full ring-2 ring-white"></span>
-          </button>
-
-          {/* Admin User Badge */}
-          <div className="relative">
             <button
-              onClick={() => {
-                setDropdownOpen(!dropdownOpen);
-                setNotificationsOpen(false);
-              }}
-              className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-gray-100/80 hover:bg-gray-200/80 transition-colors border border-gray-200 cursor-pointer"
+              onClick={() => setActiveTab("overview")}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "overview"
+                  ? "bg-white text-[#714B67] shadow-sm font-black"
+                  : "text-white/80 hover:bg-white/10 hover:text-white"
+              }`}
             >
-              <span className="text-xs font-bold text-gray-800">Admin</span>
-              <div className="w-6 h-6 rounded-full bg-[#E27D60] text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                {user.name ? user.name.charAt(0).toUpperCase() : "A"}
-              </div>
+              <LayoutDashboard className="w-4 h-4" />
+              <span>Activity & Overview</span>
             </button>
 
-            {/* Dropdown Menu */}
-            {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
-                <div className="px-4 py-2.5 border-b border-gray-100">
-                  <p className="text-xs font-bold text-gray-900 truncate">
-                    {user.name || "System Admin"}
-                  </p>
-                  <p className="text-[11px] text-gray-500 truncate">{user.email || ""}</p>
-                </div>
+            <button
+              onClick={() => setActiveTab("employees")}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "employees"
+                  ? "bg-white text-[#714B67] shadow-sm font-black"
+                  : "text-white/80 hover:bg-white/10 hover:text-white"
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span>Employees ({employees.length})</span>
+            </button>
 
-                <button
-                  onClick={() => {
-                    setDropdownOpen(false);
-                    navigate("/dashboard");
-                  }}
-                  className="w-full px-4 py-2.5 text-left text-xs font-semibold text-gray-700 hover:bg-[#714B67]/5 hover:text-[#714B67] flex items-center gap-2.5 cursor-pointer transition-colors"
-                >
-                  <ArrowRightLeft className="w-4 h-4 text-[#714B67]" />
-                  Switch to Employee Dashboard
-                </button>
+            <button
+              onClick={() => setActiveTab("vehicles")}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "vehicles"
+                  ? "bg-white text-[#714B67] shadow-sm font-black"
+                  : "text-white/80 hover:bg-white/10 hover:text-white"
+              }`}
+            >
+              <Car className="w-4 h-4" />
+              <span>Vehicles ({vehicles.length})</span>
+            </button>
 
-                <div className="h-px bg-gray-100 my-1"></div>
+            <button
+              onClick={() => setActiveTab("settings")}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "settings"
+                  ? "bg-white text-[#714B67] shadow-sm font-black"
+                  : "text-white/80 hover:bg-white/10 hover:text-white"
+              }`}
+            >
+              <Settings className="w-4 h-4" />
+              <span>Organization Settings</span>
+            </button>
+          </div>
+        </div>
 
-                <button
-                  onClick={handleLogout}
-                  className="w-full px-4 py-2.5 text-left text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2.5 cursor-pointer transition-colors"
-                >
-                  <LogOut className="w-4 h-4 text-red-500" />
-                  Logout
-                </button>
+        {/* Sidebar Footer Profile */}
+        <div className="p-4 border-t border-white/10 bg-black/10">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-[#E27D60] text-white flex items-center justify-center font-bold text-xs shadow-xs border border-white/20">
+                {user.name ? user.name.charAt(0).toUpperCase() : "A"}
+              </div>
+              <div className="text-left overflow-hidden">
+                <p className="text-xs font-bold text-white truncate w-28">
+                  {user.name || "System Admin"}
+                </p>
+                <p className="text-[10px] text-white/60 truncate w-28">
+                  {user.email || "admin@makelyft.com"}
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={handleLogout}
+              title="Logout"
+              className="p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* 2. MAIN WORKSPACE */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        {/* Top Navbar */}
+        <header className="bg-white border-b border-gray-200/90 px-8 py-3.5 flex items-center justify-between sticky top-0 z-20 shadow-2xs">
+          {/* Left: Breadcrumbs and Search */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-xs font-bold">
+              <span className="text-gray-400">MakeLyft</span>
+              <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
+              <span className="text-[#00A09D] uppercase tracking-wider">
+                {activeTab === "overview"
+                  ? "Activity & Overview"
+                  : activeTab === "employees"
+                  ? "Employees"
+                  : activeTab === "vehicles"
+                  ? "Vehicles"
+                  : "Settings"}
+              </span>
+            </div>
+
+            {/* Quick search input */}
+            {(activeTab === "employees" || activeTab === "vehicles") && (
+              <div className="relative w-64 ml-4 hidden sm:block">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder={`Search ${activeTab}...`}
+                  className="w-full pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
+                />
               </div>
             )}
           </div>
-        </div>
-      </header>
 
-      {/* Main Container */}
-      <main className="max-w-7xl w-full mx-auto p-6 md:p-8 space-y-6 flex-1">
-        {/* Toast Notification */}
-        {successToast && (
-          <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2.5 text-emerald-800 text-xs font-bold animate-in fade-in duration-150 shadow-xs">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>{successToast}</span>
-          </div>
-        )}
-
-        {/* 1. TOP METRICS BANNER (Matching Wireframe Grid) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {/* Total Employees Card */}
-          <div className="bg-white border border-gray-200/90 rounded-xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
-            <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">
-              Total Employees
-            </div>
-            <div className="text-4xl font-extrabold text-[#00A09D] tracking-tight">
-              {metrics.total_employees}
-            </div>
-          </div>
-
-          {/* Registered Vehicles Card */}
-          <div className="bg-white border border-gray-200/90 rounded-xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
-            <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">
-              Registered Vehicles
-            </div>
-            <div className="text-4xl font-extrabold text-[#00A09D] tracking-tight">
-              {metrics.total_vehicles}
-            </div>
-          </div>
-
-          {/* Rides This Month Card */}
-          <div className="bg-white border border-gray-200/90 rounded-xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
-            <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">
-              Rides This Month
-            </div>
-            <div className="text-4xl font-extrabold text-[#00A09D] tracking-tight">
-              {metrics.rides_this_month}
-            </div>
-          </div>
-        </div>
-
-        {/* 2. TAB SWITCHER BUTTONS (Matching Wireframe Layout) */}
-        <div className="flex items-center justify-between border-b border-gray-200/80 pb-4">
-          <div className="flex items-center gap-2">
+          {/* Right: Actions, Refresh, Notifications, Profile */}
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => {
-                setActiveTab("employees");
-                setSearchTerm("");
-              }}
-              className={`px-6 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                activeTab === "employees"
-                  ? "bg-white text-[#714B67] border-[#714B67] shadow-xs"
-                  : "bg-transparent text-gray-600 border-gray-200 hover:bg-gray-100 hover:text-gray-900"
-              }`}
+              onClick={fetchData}
+              title="Refresh Data"
+              className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer"
             >
-              Employees
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
             </button>
 
-            <button
-              onClick={() => {
-                setActiveTab("vehicles");
-                setSearchTerm("");
-              }}
-              className={`px-6 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                activeTab === "vehicles"
-                  ? "bg-white text-[#714B67] border-[#714B67] shadow-xs"
-                  : "bg-transparent text-gray-600 border-gray-200 hover:bg-gray-100 hover:text-gray-900"
-              }`}
-            >
-              Vehicles
-            </button>
+            {/* Notification Bell */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setNotificationsOpen(!notificationsOpen);
+                  setDropdownOpen(false);
+                }}
+                className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer relative"
+              >
+                <Bell className="w-4 h-4" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-[#00A09D] rounded-full ring-2 ring-white"></span>
+              </button>
 
-            <button
-              onClick={() => {
-                setActiveTab("settings");
-                setSearchTerm("");
-              }}
-              className={`px-6 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                activeTab === "settings"
-                  ? "bg-white text-[#714B67] border-[#714B67] shadow-xs"
-                  : "bg-transparent text-gray-600 border-gray-200 hover:bg-gray-100 hover:text-gray-900"
-              }`}
-            >
-              Settings
-            </button>
+              {notificationsOpen && (
+                <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-4 py-2 border-b border-gray-100 flex items-center justify-between">
+                    <p className="text-xs font-bold text-gray-900">System Alerts</p>
+                    <span className="text-[10px] text-[#00A09D] font-bold">2 New</span>
+                  </div>
+                  <div className="divide-y divide-gray-50 text-xs">
+                    <div className="p-3 hover:bg-gray-50 flex items-start gap-2.5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-gray-800">Database connected</p>
+                        <p className="text-[11px] text-gray-400">PostgreSQL active</p>
+                      </div>
+                    </div>
+                    <div className="p-3 hover:bg-gray-50 flex items-start gap-2.5">
+                      <Car className="w-4 h-4 text-[#714B67] shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-gray-800">Vehicles synchronized</p>
+                        <p className="text-[11px] text-gray-400">Ready for rides</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Profile Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setDropdownOpen(!dropdownOpen);
+                  setNotificationsOpen(false);
+                }}
+                className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-200 cursor-pointer"
+              >
+                <span className="text-xs font-bold text-gray-800">Admin</span>
+                <div className="w-6 h-6 rounded-full bg-[#E27D60] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                  {user.name ? user.name.charAt(0).toUpperCase() : "A"}
+                </div>
+              </button>
+
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-4 py-2.5 border-b border-gray-100">
+                    <p className="text-xs font-bold text-gray-900 truncate">
+                      {user.name || "System Admin"}
+                    </p>
+                    <p className="text-[11px] text-gray-500 truncate">
+                      {user.email || ""}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      navigate("/dashboard");
+                    }}
+                    className="w-full px-4 py-2.5 text-left text-xs font-semibold text-gray-700 hover:bg-[#714B67]/5 hover:text-[#714B67] flex items-center gap-2.5 cursor-pointer transition-colors"
+                  >
+                    <ArrowRightLeft className="w-4 h-4 text-[#714B67]" />
+                    Switch to Employee Dashboard
+                  </button>
+
+                  <div className="h-px bg-gray-100 my-1"></div>
+
+                  <button
+                    onClick={handleLogout}
+                    className="w-full px-4 py-2.5 text-left text-xs font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2.5 cursor-pointer transition-colors"
+                  >
+                    <LogOut className="w-4 h-4 text-red-500" />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
+        </header>
 
-          {/* Search Input for Employees/Vehicles */}
-          {activeTab !== "settings" && (
-            <div className="relative w-64 hidden sm:block">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={`Search ${activeTab}...`}
-                className="w-full pl-8 pr-3 py-1.5 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
-              />
+        {/* Workspace Body */}
+        <main className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+          {/* Toast Notification */}
+          {successToast && (
+            <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2.5 text-emerald-800 text-xs font-bold animate-in fade-in duration-150 shadow-xs">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>{successToast}</span>
             </div>
           )}
-        </div>
 
-        {/* 3. TAB CONTENT */}
+          {/* --- TAB 1: ACTIVITY & OVERVIEW --- */}
+          {activeTab === "overview" && (
+            <div className="space-y-6 animate-in fade-in duration-150">
+              {/* Top KPI Metrics Banner */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+                <div className="bg-white border border-gray-200/90 rounded-2xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Total Employees
+                    </span>
+                    <div className="w-8 h-8 rounded-lg bg-[#00A09D]/10 text-[#00A09D] flex items-center justify-center">
+                      <Users className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="text-3xl font-extrabold text-[#00A09D] tracking-tight">
+                    {metrics.total_employees}
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-1">
+                    Verified organization workforce
+                  </p>
+                </div>
 
-        {/* --- TAB: EMPLOYEES (Matching Image 1) --- */}
-        {activeTab === "employees" && (
-          <div className="space-y-4 animate-in fade-in duration-150">
-            <div className="bg-white border border-gray-200/90 rounded-2xl overflow-hidden shadow-2xs">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-200 bg-gray-50/50 text-xs font-bold text-[#00A09D]">
-                      <th className="py-3.5 px-6">Name</th>
-                      <th className="py-3.5 px-6">Email</th>
-                      <th className="py-3.5 px-6">Department</th>
-                      <th className="py-3.5 px-6">Manager</th>
-                      <th className="py-3.5 px-6">Location</th>
-                      <th className="py-3.5 px-6 text-right">Platform Access</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 text-xs">
-                    {filteredEmployees.length > 0 ? (
-                      filteredEmployees.map((emp) => {
-                        const isGranted =
-                          (emp.platform_access || "Granted").toLowerCase() === "granted";
-                        return (
-                          <tr
-                            key={emp.emp_id}
-                            className="hover:bg-gray-50/60 transition-colors"
-                          >
-                            <td className="py-4 px-6 font-bold text-gray-900">
-                              {emp.name}
-                            </td>
-                            <td className="py-4 px-6 font-mono text-gray-600">
-                              {emp.email}
-                            </td>
-                            <td className="py-4 px-6 text-gray-700">
-                              {emp.department || "Engineering"}
-                            </td>
-                            <td className="py-4 px-6 text-gray-700">
-                              {emp.manager || "A. Shah"}
-                            </td>
-                            <td className="py-4 px-6 text-gray-700">
-                              {emp.location || "Ahmedabad"}
-                            </td>
-                            <td className="py-4 px-6 text-right">
-                              <button
-                                onClick={() => handleToggleAccess(emp.emp_id)}
-                                title="Click to toggle access"
-                                className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
-                                  isGranted
-                                    ? "text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200"
-                                    : "text-red-700 bg-red-50 hover:bg-red-100 border border-red-200"
-                                }`}
-                              >
-                                {isGranted ? "[Granted]" : "[Revoked]"}
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan={6} className="py-8 text-center text-gray-400">
-                          No employees found.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                <div className="bg-white border border-gray-200/90 rounded-2xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Registered Vehicles
+                    </span>
+                    <div className="w-8 h-8 rounded-lg bg-[#714B67]/10 text-[#714B67] flex items-center justify-center">
+                      <Car className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="text-3xl font-extrabold text-[#714B67] tracking-tight">
+                    {metrics.total_vehicles}
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-1">
+                    Active carpooling fleet
+                  </p>
+                </div>
+
+                <div className="bg-white border border-gray-200/90 rounded-2xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Rides This Month
+                    </span>
+                    <div className="w-8 h-8 rounded-lg bg-[#E27D60]/10 text-[#E27D60] flex items-center justify-center">
+                      <TrendingUp className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="text-3xl font-extrabold text-[#E27D60] tracking-tight">
+                    {metrics.rides_this_month}
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-1">
+                    Completed commute trips
+                  </p>
+                </div>
+
+                <div className="bg-white border border-gray-200/90 rounded-2xl p-5 shadow-2xs hover:shadow-xs transition-shadow">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Active Carpools
+                    </span>
+                    <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                      <Activity className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="text-3xl font-extrabold text-emerald-600 tracking-tight">
+                    {metrics.active_rides}
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-1">
+                    Live or scheduled on route
+                  </p>
+                </div>
               </div>
-            </div>
 
-            {/* + Add Employee Button (Matching Wireframe) */}
-            <div>
-              <button
-                onClick={() => setShowAddEmployeeModal(true)}
-                className="px-5 py-2.5 bg-[#00A09D] hover:bg-[#008f8c] text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
-              >
-                <Plus className="w-4 h-4" /> Add Employee
-              </button>
-            </div>
-          </div>
-        )}
+              {/* Quick Actions & Overview Cards */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Recent Registered Vehicles */}
+                <div className="lg:col-span-2 bg-white border border-gray-200/90 rounded-2xl p-6 shadow-2xs space-y-4">
+                  <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                    <div>
+                      <h3 className="text-base font-bold text-gray-900">
+                        Fleet Highlights
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        Recently added employee vehicles
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab("vehicles")}
+                      className="text-xs font-bold text-[#00A09D] hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      View All <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
 
-        {/* --- TAB: VEHICLES (Matching Image 2) --- */}
-        {activeTab === "vehicles" && (
-          <div className="space-y-4 animate-in fade-in duration-150">
-            <div className="bg-white border border-gray-200/90 rounded-2xl overflow-hidden shadow-2xs">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-200 bg-gray-50/50 text-xs font-bold text-[#00A09D]">
-                      <th className="py-3.5 px-6">Registration Number</th>
-                      <th className="py-3.5 px-6">Model</th>
-                      <th className="py-3.5 px-6">Seating Capacity</th>
-                      <th className="py-3.5 px-6">Driver</th>
-                      <th className="py-3.5 px-6 text-right">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 text-xs">
-                    {filteredVehicles.length > 0 ? (
-                      filteredVehicles.map((v) => {
-                        const isActive =
-                          (v.status || "Active").toLowerCase() === "active";
-                        return (
-                          <tr
-                            key={v.veh_id}
-                            className="hover:bg-gray-50/60 transition-colors"
-                          >
-                            <td className="py-4 px-6 font-mono font-bold text-gray-900 uppercase">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {vehicles.slice(0, 4).map((v) => (
+                      <div
+                        key={v.veh_id}
+                        className="p-4 bg-gray-50/80 rounded-xl border border-gray-200/80 flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-lg bg-[#714B67]/10 text-[#714B67] flex items-center justify-center">
+                            <Car className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-gray-900 uppercase">
                               {v.veh_no}
-                            </td>
-                            <td className="py-4 px-6 font-semibold text-gray-800">
-                              {v.vehicle_model}
-                            </td>
-                            <td className="py-4 px-6 text-gray-700">
-                              {v.seating_capacity}
-                            </td>
-                            <td className="py-4 px-6 font-medium text-gray-900">
-                              {v.driver_name || "Unassigned"}
-                            </td>
-                            <td className="py-4 px-6 text-right">
-                              <button
-                                onClick={() => handleToggleVehicleStatus(v.veh_id)}
-                                title="Click to toggle status"
-                                className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
-                                  isActive
-                                    ? "text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200"
-                                    : "text-red-700 bg-red-50 hover:bg-red-100 border border-red-200"
-                                }`}
-                              >
-                                {isActive ? "[Active]" : "[Inactive]"}
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan={5} className="py-8 text-center text-gray-400">
-                          No vehicles registered yet.
-                        </td>
+                            </p>
+                            <p className="text-[11px] text-gray-600">
+                              {v.vehicle_model} • {v.seating_capacity} seats
+                            </p>
+                            <p className="text-[10px] text-gray-400">
+                              Owner: {v.driver_name || "Assigned"}
+                            </p>
+                          </div>
+                        </div>
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            (v.status || "Active").toLowerCase() === "active"
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : "bg-red-50 text-red-700 border border-red-200"
+                          }`}
+                        >
+                          {v.status || "Active"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quick Admin Actions Box */}
+                <div className="bg-white border border-gray-200/90 rounded-2xl p-6 shadow-2xs space-y-4">
+                  <h3 className="text-base font-bold text-gray-900 border-b border-gray-100 pb-4">
+                    Quick Operations
+                  </h3>
+                  <div className="space-y-2.5">
+                    <button
+                      onClick={() => {
+                        setActiveTab("employees");
+                        setShowAddEmployeeModal(true);
+                      }}
+                      className="w-full p-3 bg-[#00A09D]/10 hover:bg-[#00A09D]/20 text-[#00A09D] rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add New Employee
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setActiveTab("vehicles");
+                        setShowAddVehicleModal(true);
+                      }}
+                      className="w-full p-3 bg-[#714B67]/10 hover:bg-[#714B67]/20 text-[#714B67] rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Register New Vehicle
+                    </button>
+
+                    <button
+                      onClick={() => setActiveTab("settings")}
+                      className="w-full p-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 cursor-pointer"
+                    >
+                      <Settings className="w-4 h-4 text-gray-600" />
+                      Adjust Commute Subsidy
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* --- TAB 2: EMPLOYEES (Matching Image 1 Wireframe) --- */}
+          {activeTab === "employees" && (
+            <div className="space-y-5 animate-in fade-in duration-150">
+              {/* Header + Action */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-extrabold text-gray-900">
+                    Employee Directory & Access
+                  </h2>
+                  <p className="text-xs text-gray-500">
+                    Manage company members, platform access permissions, and driver statuses.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {/* Department Filter */}
+                  <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-2xs">
+                    <Filter className="w-3.5 h-3.5 text-gray-400" />
+                    <select
+                      value={filterDepartment}
+                      onChange={(e) => setFilterDepartment(e.target.value)}
+                      className="bg-transparent focus:outline-none cursor-pointer"
+                    >
+                      <option value="All">All Departments</option>
+                      <option value="Engineering">Engineering</option>
+                      <option value="Sales">Sales</option>
+                      <option value="HR">HR</option>
+                      <option value="Finance">Finance</option>
+                      <option value="Operations">Operations</option>
+                    </select>
+                  </div>
+
+                  {/* + Add Employee Button */}
+                  <button
+                    onClick={() => setShowAddEmployeeModal(true)}
+                    className="px-4 py-2 bg-[#00A09D] hover:bg-[#008f8c] text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" /> Add Employee
+                  </button>
+                </div>
+              </div>
+
+              {/* Employees Table */}
+              <div className="bg-white border border-gray-200/90 rounded-2xl overflow-hidden shadow-2xs">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-gray-200 bg-gray-50/70 text-xs font-bold text-[#00A09D]">
+                        <th className="py-3.5 px-6">Name</th>
+                        <th className="py-3.5 px-6">Email</th>
+                        <th className="py-3.5 px-6">Department</th>
+                        <th className="py-3.5 px-6">Manager</th>
+                        <th className="py-3.5 px-6">Location</th>
+                        <th className="py-3.5 px-6 text-right">Platform Access</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-xs">
+                      {filteredEmployees.length > 0 ? (
+                        filteredEmployees.map((emp) => {
+                          const isGranted =
+                            (emp.platform_access || "Granted").toLowerCase() ===
+                            "granted";
+                          return (
+                            <tr
+                              key={emp.emp_id}
+                              className="hover:bg-gray-50/60 transition-colors"
+                            >
+                              <td className="py-4 px-6 font-bold text-gray-900">
+                                {emp.name}
+                              </td>
+                              <td className="py-4 px-6 font-mono text-gray-600">
+                                {emp.email}
+                              </td>
+                              <td className="py-4 px-6 text-gray-700">
+                                {emp.department || "Engineering"}
+                              </td>
+                              <td className="py-4 px-6 text-gray-700">
+                                {emp.manager || "A. Shah"}
+                              </td>
+                              <td className="py-4 px-6 text-gray-700">
+                                {emp.location || "Ahmedabad"}
+                              </td>
+                              <td className="py-4 px-6 text-right">
+                                <button
+                                  onClick={() => handleToggleAccess(emp.emp_id)}
+                                  title="Click to toggle access"
+                                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                                    isGranted
+                                      ? "text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200"
+                                      : "text-red-700 bg-red-50 hover:bg-red-100 border border-red-200"
+                                  }`}
+                                >
+                                  {isGranted ? "[Granted]" : "[Revoked]"}
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan={6}
+                            className="py-8 text-center text-gray-400"
+                          >
+                            No employees found matching criteria.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
+          )}
 
-            {/* + Add Vehicle Button (Matching Wireframe) */}
-            <div>
-              <button
-                onClick={() => setShowAddVehicleModal(true)}
-                className="px-5 py-2.5 bg-[#00A09D] hover:bg-[#008f8c] text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
-              >
-                <Plus className="w-4 h-4" /> Add Vehicle
-              </button>
+          {/* --- TAB 3: VEHICLES (Matching Image 2 Wireframe) --- */}
+          {activeTab === "vehicles" && (
+            <div className="space-y-5 animate-in fade-in duration-150">
+              {/* Header + Action */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-extrabold text-gray-900">
+                    Carpooling Fleet & Vehicles
+                  </h2>
+                  <p className="text-xs text-gray-500">
+                    View registered employee vehicles, seating limits, and verification status.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setShowAddVehicleModal(true)}
+                    className="px-4 py-2 bg-[#00A09D] hover:bg-[#008f8c] text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" /> Add Vehicle
+                  </button>
+                </div>
+              </div>
+
+              {/* Vehicles Table */}
+              <div className="bg-white border border-gray-200/90 rounded-2xl overflow-hidden shadow-2xs">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-gray-200 bg-gray-50/70 text-xs font-bold text-[#00A09D]">
+                        <th className="py-3.5 px-6">Registration Number</th>
+                        <th className="py-3.5 px-6">Model</th>
+                        <th className="py-3.5 px-6">Seating Capacity</th>
+                        <th className="py-3.5 px-6">Driver</th>
+                        <th className="py-3.5 px-6 text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-xs">
+                      {filteredVehicles.length > 0 ? (
+                        filteredVehicles.map((v) => {
+                          const isActive =
+                            (v.status || "Active").toLowerCase() === "active";
+                          return (
+                            <tr
+                              key={v.veh_id}
+                              className="hover:bg-gray-50/60 transition-colors"
+                            >
+                              <td className="py-4 px-6 font-mono font-bold text-gray-900 uppercase">
+                                {v.veh_no}
+                              </td>
+                              <td className="py-4 px-6 font-semibold text-gray-800">
+                                {v.vehicle_model}
+                              </td>
+                              <td className="py-4 px-6 text-gray-700">
+                                {v.seating_capacity}
+                              </td>
+                              <td className="py-4 px-6 font-medium text-gray-900">
+                                {v.driver_name || "Unassigned"}
+                              </td>
+                              <td className="py-4 px-6 text-right">
+                                <button
+                                  onClick={() =>
+                                    handleToggleVehicleStatus(v.veh_id)
+                                  }
+                                  title="Click to toggle status"
+                                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                                    isActive
+                                      ? "text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200"
+                                      : "text-red-700 bg-red-50 hover:bg-red-100 border border-red-200"
+                                  }`}
+                                >
+                                  {isActive ? "[Active]" : "[Inactive]"}
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="py-8 text-center text-gray-400"
+                          >
+                            No vehicles registered yet.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* --- TAB: SETTINGS --- */}
-        {activeTab === "settings" && (
-          <div className="max-w-2xl bg-white border border-gray-200/90 rounded-2xl p-6 shadow-2xs space-y-6 animate-in fade-in duration-150">
-            <div>
-              <h3 className="text-lg font-bold text-gray-900">
-                Organization Configurations
-              </h3>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Manage fuel cost calculations, employee commute subsidy, and daily ride limits.
-              </p>
+          {/* --- TAB 4: SETTINGS --- */}
+          {activeTab === "settings" && (
+            <div className="max-w-2xl bg-white border border-gray-200/90 rounded-2xl p-6 shadow-2xs space-y-6 animate-in fade-in duration-150">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">
+                  Organization Configurations
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Manage fuel reimbursement rules, corporate commute subsidy, and daily driver limits.
+                </p>
+              </div>
+
+              <form onSubmit={handleUpdateSettings} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">
+                    Fuel Cost per Km (₹)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={settings.fuel_cost_per_km || ""}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        fuel_cost_per_km: e.target.value,
+                      })
+                    }
+                    placeholder="5.50"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">
+                    Travel Cost per Km Subsidy (₹)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={settings.travel_cost_per_km || ""}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        travel_cost_per_km: e.target.value,
+                      })
+                    }
+                    placeholder="2.00"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">
+                    Max Rides Publishable per Day (Per Driver)
+                  </label>
+                  <input
+                    type="number"
+                    value={settings.max_rides_per_day || ""}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        max_rides_per_day: e.target.value,
+                      })
+                    }
+                    placeholder="5"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
+                  />
+                </div>
+
+                <div className="pt-4 border-t border-gray-100 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={savingSettings}
+                    className="px-6 py-2.5 bg-[#714B67] hover:bg-[#5c3c54] text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-2"
+                  >
+                    <Save className="w-4 h-4" />
+                    {savingSettings ? "Saving..." : "Save Configurations"}
+                  </button>
+                </div>
+              </form>
             </div>
-
-            <form onSubmit={handleUpdateSettings} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">
-                  Fuel Cost per Km (₹)
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={settings.fuel_cost_per_km || ""}
-                  onChange={(e) =>
-                    setSettings({ ...settings, fuel_cost_per_km: e.target.value })
-                  }
-                  placeholder="5.50"
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">
-                  Travel Cost per Km Subsidy (₹)
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={settings.travel_cost_per_km || ""}
-                  onChange={(e) =>
-                    setSettings({ ...settings, travel_cost_per_km: e.target.value })
-                  }
-                  placeholder="2.00"
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">
-                  Max Rides Publishable per Day (Per Driver)
-                </label>
-                <input
-                  type="number"
-                  value={settings.max_rides_per_day || ""}
-                  onChange={(e) =>
-                    setSettings({ ...settings, max_rides_per_day: e.target.value })
-                  }
-                  placeholder="5"
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
-                />
-              </div>
-
-              <div className="pt-4 border-t border-gray-100 flex justify-end">
-                <button
-                  type="submit"
-                  disabled={savingSettings}
-                  className="px-6 py-2.5 bg-[#714B67] hover:bg-[#5c3c54] text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-2"
-                >
-                  <Save className="w-4 h-4" />
-                  {savingSettings ? "Saving..." : "Save Configurations"}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-      </main>
+          )}
+        </main>
+      </div>
 
       {/* MODAL 1: ADD EMPLOYEE */}
       {showAddEmployeeModal && (
@@ -744,7 +1055,9 @@ function AdminDashboard() {
                 <div className="w-8 h-8 bg-[#00A09D]/10 rounded-lg flex items-center justify-center text-[#00A09D]">
                   <Users className="w-4 h-4" />
                 </div>
-                <h3 className="text-base font-bold text-gray-900">Add Employee</h3>
+                <h3 className="text-base font-bold text-gray-900">
+                  Add Employee
+                </h3>
               </div>
               <button
                 onClick={() => setShowAddEmployeeModal(false)}
@@ -763,7 +1076,9 @@ function AdminDashboard() {
                   required
                   type="text"
                   value={newEmp.name}
-                  onChange={(e) => setNewEmp({ ...newEmp, name: e.target.value })}
+                  onChange={(e) =>
+                    setNewEmp({ ...newEmp, name: e.target.value })
+                  }
                   placeholder="e.g. Raj Patel"
                   className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#00A09D]/20 focus:border-[#00A09D]"
                 />
@@ -777,7 +1092,9 @@ function AdminDashboard() {
                   required
                   type="email"
                   value={newEmp.email}
-                  onChange={(e) => setNewEmp({ ...newEmp, email: e.target.value })}
+                  onChange={(e) =>
+                    setNewEmp({ ...newEmp, email: e.target.value })
+                  }
                   placeholder="raj.patel@co.com"
                   className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#00A09D]/20 focus:border-[#00A09D]"
                 />
@@ -863,7 +1180,9 @@ function AdminDashboard() {
                 <div className="w-8 h-8 bg-[#714B67]/10 rounded-lg flex items-center justify-center text-[#714B67]">
                   <Car className="w-4 h-4" />
                 </div>
-                <h3 className="text-base font-bold text-gray-900">Add Vehicle</h3>
+                <h3 className="text-base font-bold text-gray-900">
+                  Add Vehicle
+                </h3>
               </div>
               <button
                 onClick={() => setShowAddVehicleModal(false)}
@@ -881,7 +1200,9 @@ function AdminDashboard() {
                 <select
                   required
                   value={newVeh.emp_id}
-                  onChange={(e) => setNewVeh({ ...newVeh, emp_id: e.target.value })}
+                  onChange={(e) =>
+                    setNewVeh({ ...newVeh, emp_id: e.target.value })
+                  }
                   className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
                 >
                   <option value="" disabled>
@@ -924,7 +1245,10 @@ function AdminDashboard() {
                   type="text"
                   value={newVeh.veh_no}
                   onChange={(e) =>
-                    setNewVeh({ ...newVeh, veh_no: e.target.value.toUpperCase() })
+                    setNewVeh({
+                      ...newVeh,
+                      veh_no: e.target.value.toUpperCase(),
+                    })
                   }
                   placeholder="GJ01AB1234"
                   className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs uppercase focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
@@ -943,7 +1267,10 @@ function AdminDashboard() {
                     max="8"
                     value={newVeh.seating_capacity}
                     onChange={(e) =>
-                      setNewVeh({ ...newVeh, seating_capacity: e.target.value })
+                      setNewVeh({
+                        ...newVeh,
+                        seating_capacity: e.target.value,
+                      })
                     }
                     className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
                   />
