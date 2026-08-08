@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { X, Car } from "lucide-react";
+import carModels from "../../data/car_models.json";
 
 function VehicleRegistrationModal({ onClose, onRegister }) {
 	const [vehicle_model, setVehicleModel] = useState("");
@@ -48,14 +49,17 @@ function VehicleRegistrationModal({ onClose, onRegister }) {
 								<label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
 									Vehicle Make & Model
 								</label>
-								<input
+								<select
 									required
-									type="text"
 									value={vehicle_model}
 									onChange={(e) => setVehicleModel(e.target.value)}
-									placeholder="e.g. Toyota Prius"
 									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
-								/>
+								>
+									<option value="" disabled>Select a vehicle model</option>
+									{carModels.map(model => (
+										<option key={model} value={model}>{model}</option>
+									))}
+								</select>
 							</div>
 
 							<div className="space-y-1.5">
