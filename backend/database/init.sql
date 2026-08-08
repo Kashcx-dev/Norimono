@@ -5,6 +5,19 @@ DROP TABLE IF EXISTS trips CASCADE;
 DROP TABLE IF EXISTS wallets CASCADE;
 DROP TABLE IF EXISTS vehicles CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS org_settings CASCADE;
+
+-- Organization Settings (Admin configuration)
+CREATE TABLE org_settings (
+    id SERIAL PRIMARY KEY,
+    fuel_cost_per_km DECIMAL(5, 2) DEFAULT 0.00,
+    travel_cost_per_km DECIMAL(5, 2) DEFAULT 0.00,
+    max_rides_per_day INT DEFAULT 5,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insert default settings
+INSERT INTO org_settings (fuel_cost_per_km, travel_cost_per_km) VALUES (5.50, 2.00);
 
 -- Users Table (Profile)
 CREATE TABLE users (
@@ -12,6 +25,7 @@ CREATE TABLE users (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     phone VARCHAR(20),
+    role VARCHAR(30) NOT NULL DEFAULT 'employee',
     password_hash VARCHAR(255) NOT NULL,
     address TEXT,
     is_vehicle_registered BOOLEAN DEFAULT FALSE,

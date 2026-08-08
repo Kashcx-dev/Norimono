@@ -43,6 +43,18 @@ const FN_verifyTkn = (req, res, next) =>{
     
 };
 
+const FN_verifyAdmin = (req, res, next) => {
+    FN_verifyTkn(req, res, (err) => {
+        if (err) return next(err);
+        if (req.user && req.user.role === 'admin') {
+            next();
+        } else {
+            res.status(403);
+            return next(new Error("Forbidden: Administrator access required."));
+        }
+    });
+};
+
 
 const handle404 = (req, res, next) => {
     res.status(404);
@@ -62,4 +74,4 @@ const masterErrorHandler = (err, req, res, next) => {
     });
 };
 
-module.exports = {handle404, masterErrorHandler, FN_verifyTkn, API_Limiter}
+module.exports = {handle404, masterErrorHandler, FN_verifyTkn, FN_verifyAdmin, API_Limiter}

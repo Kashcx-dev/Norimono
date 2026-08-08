@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import AuthPortal from "./components/AuthPortal";
 import Dashboard from "./components/Dashboard/Dashboard";
+import AdminDashboard from "./components/AdminDashboard";
 import "./App.css";
 
 // We extract the routes into a separate component so we can use the `useNavigate` hook 
@@ -10,9 +11,12 @@ function AppRoutes() {
   const navigate = useNavigate();
 
   const handleLoginSuccess = (profile) => {
-    // User is logged in, redirect them to the dashboard
     console.log("Logged in:", profile);
-    navigate("/dashboard");
+    if (profile.role === 'admin') {
+      navigate("/admin");
+    } else {
+      navigate("/dashboard");
+    }
   };
 
   return (
@@ -20,6 +24,7 @@ function AppRoutes() {
       <Route path="/" element={<Navigate to="/auth" replace />} />
       <Route path="/auth" element={<div className="flex items-center justify-center min-h-screen w-full"><AuthPortal onLoginSuccess={handleLoginSuccess} /></div>} />
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/admin" element={<AdminDashboard />} />
     </Routes>
   );
 }

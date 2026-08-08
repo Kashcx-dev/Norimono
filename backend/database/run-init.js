@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const db = require('../handlers/dbHandler');
+const bcrypt = require('bcrypt');
 
 async function runInit() {
     try {
@@ -10,6 +11,17 @@ async function runInit() {
         
         await db.query(sql);
         console.log('Database schema initialized successfully!');
+        
+        // Seed default Admin user
+        const adminEmail = 'admin@makelyft.com';
+        const salt = await bcrypt.genSalt(10);
+        const adminHash = await bcrypt.hash('admin123', salt);
+        await db.query(
+            `INSERT INTO users (emp_id, name, email, phone, role, password_hash) 
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            ['EMP-ADMIN', 'System Admin', adminEmail, '0000000000', 'admin', adminHash]
+        );
+        console.log('Default Admin user created (admin@makelyft.com / admin123)');
         
         // Let's verify the tables exist
         const result = await db.query(`

@@ -100,14 +100,14 @@ router.post("/verify-signup-otp", async (req, res, next) => {
             const emp_id = "EMP-" + crypto.randomBytes(3).toString("hex").toUpperCase();
             
             await db.query(
-                `INSERT INTO users (emp_id, name, email, phone, password_hash) 
-                 VALUES ($1, $2, $3, $4, $5)`, 
-                [emp_id, record.name, email, record.phone || null, record.hashedPassword]
+                `INSERT INTO users (emp_id, name, email, phone, role, password_hash) 
+                 VALUES ($1, $2, $3, $4, $5, $6)`, 
+                [emp_id, record.name, email, record.phone || null, 'employee', record.hashedPassword]
             );
 
             signupStore.delete(email);
 
-            const user_data = { emp_id, email, name: record.name };
+            const user_data = { emp_id, email, name: record.name, role: 'employee' };
             const token = jwt.sign(user_data, process.env.JWT_SECRET || 'secret', { expiresIn: "7d" });
 
             return res.json({ 
@@ -147,7 +147,8 @@ router.post("/login", async (req, res, next) => {
                     code: otp, 
                     expiresAt, 
                     emp_id: user.emp_id,
-                    name: user.name
+                    name: user.name,
+                    role: user.role
                 });
 
                 try {
@@ -195,7 +196,7 @@ router.post("/verify-otp", (req, res, next) => {
     if (record.code === otp) {
         otpStore.delete(email); 
         
-        const user_data = { emp_id: record.emp_id, email, name: record.name };
+        const user_data = { emp_id: record.emp_id, email, name: record.name, role: record.role };
         const token = jwt.sign(user_data, process.env.JWT_SECRET || 'secret', { expiresIn: "7d" });
         
         return res.json({ 
