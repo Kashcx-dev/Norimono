@@ -68,10 +68,10 @@ function RideActions({
   const [loadingSource, setLoadingSource] = useState(false);
   const [loadingDest, setLoadingDest] = useState(false);
 
-  const [showSourceDropdown, setShowSourceDropdown] = useState(false);
   const [showDestDropdown, setShowDestDropdown] = useState(false);
 
   const [searchingRoute, setSearchingRoute] = useState(false);
+  const [tripSummary, setTripSummary] = useState(null);
 
   const sourceRef = useRef(null);
   const destRef = useRef(null);
@@ -140,12 +140,14 @@ function RideActions({
     setSource(item.title);
     onLocationUpdate("source", item.coords);
     setShowSourceDropdown(false);
+    setTripSummary(null);
   };
 
   const handleSelectDest = (item) => {
     setDestination(item.title);
     onLocationUpdate("destination", item.coords);
     setShowDestDropdown(false);
+    setTripSummary(null);
   };
 
   const handleUseCurrentLocation = () => {
@@ -153,6 +155,7 @@ function RideActions({
       setSource("Your Current Location");
       onLocationUpdate("source", userLocation);
       setShowSourceDropdown(false);
+      setTripSummary(null);
     } else if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -221,8 +224,15 @@ function RideActions({
       const data = await res.json();
 
       if (data.routes && data.routes.length > 0) {
+        const route = data.routes[0];
         // Convert [lon, lat] points to [lat, lon] for Leaflet
-        const routeCoords = data.routes[0].geometry.coordinates.map(([lon, lat]) => [lat, lon]);
+        const routeCoords = route.geometry.coordinates.map(([lon, lat]) => [lat, lon]);
+        
+        // Calculate Distance and ETA
+        const distanceKm = (route.distance / 1000).toFixed(1);
+        const durationMins = Math.round(route.duration / 60);
+        
+        setTripSummary({ distance: distanceKm, duration: durationMins });
         onSearchRoute(routeCoords);
       } else {
         alert("No drivable road route found between these locations.");
@@ -281,6 +291,7 @@ function RideActions({
                 onChange={(e) => {
                   setSource(e.target.value);
                   if (pickupCoords) onLocationUpdate("source", null);
+                  setTripSummary(null);
                 }}
                 onFocus={() => {
                   if (sourceSuggestions.length > 0) setShowSourceDropdown(true);
@@ -343,6 +354,7 @@ function RideActions({
                 onChange={(e) => {
                   setDestination(e.target.value);
                   if (dropoffCoords) onLocationUpdate("destination", null);
+                  setTripSummary(null);
                 }}
                 onFocus={() => {
                   if (destSuggestions.length > 0) setShowDestDropdown(true);
@@ -410,6 +422,20 @@ function RideActions({
               </>
             )}
           </button>
+
+          {tripSummary && (
+            <div className="bg-teal-50 border border-teal-100 rounded-xl p-4 mt-2 flex items-center justify-between shadow-sm animate-in fade-in zoom-in-95 duration-300">
+              <div className="flex flex-col">
+                <span className="text-xs text-teal-700 font-semibold uppercase tracking-wider">Est. Trip Time</span>
+                <span className="text-xl font-bold text-teal-900">{tripSummary.duration} mins</span>
+              </div>
+              <div className="h-8 w-px bg-teal-200"></div>
+              <div className="flex flex-col items-end">
+                <span className="text-xs text-teal-700 font-semibold uppercase tracking-wider">Distance</span>
+                <span className="text-xl font-bold text-teal-900">{tripSummary.distance} km</span>
+              </div>
+            </div>
+          )}
 
           <button
             onClick={() => alert("Browsing Nearest Rides (Coming Soon!)")}

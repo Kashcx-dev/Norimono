@@ -7,7 +7,7 @@ const getBotAnswer = async (message) => {
         const response = await ollama.chat({
             model: 'gemma2:2b',
             messages: [
-                { role: 'system', content: 'You are a professional, technical, and friendly travel assistant. You help users with trip planning, calculating travel times, finding accommodation, suggesting itineraries, and providing general travel tips. Be concise, clear, and always helpful. Avoid unnecessary small talk or emotional language.' },
+                { role: 'system', content: 'You are a professional, technical, and friendly travel assistant. You help users with trip planning, calculating travel times, finding accommodation, suggesting itineraries, and providing general travel tips. Be concise, clear, and always helpful. Avoid unnecessary small talk or emotional language. DONT use Emojies unless nessessary' },
                 { role: 'user', content: message }
             ],
         });
