@@ -47,6 +47,27 @@ function AdminDashboard() {
     } catch (err) { console.error("Error fetching vehicles", err); }
   };
 
+  const handleApproveVehicle = async (veh_id) => {
+    try {
+      const res = await fetch("/admin/vehicles/approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ veh_id })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Vehicle approved successfully!");
+        fetchVehicles();
+        fetchEmployees(); // Refresh employees to show updated status
+      } else {
+        alert("Failed to approve vehicle: " + data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error approving vehicle");
+    }
+  };
+
   const fetchSettings = async () => {
     try {
       const res = await fetch("/admin/settings", { headers: { Authorization: `Bearer ${token}` } });
@@ -172,8 +193,10 @@ function AdminDashboard() {
                           </span>
                         </td>
                         <td className="p-4">
-                          {emp.is_vehicle_registered ? (
+                          {emp.is_vehicle_registered === '2' ? (
                             <span className="text-teal-600 font-semibold flex items-center gap-1"><Car className="w-4 h-4"/> Registered</span>
+                          ) : emp.is_vehicle_registered === '1' ? (
+                            <span className="text-yellow-600 font-semibold">Pending Approval</span>
                           ) : (
                             <span className="text-gray-400">Passenger only</span>
                           )}
@@ -193,11 +216,17 @@ function AdminDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {vehicles.map((v) => (
                   <div key={v.veh_id} className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow relative">
-                    <div className="absolute top-4 right-4 bg-gray-100 text-gray-700 text-xs font-bold px-2 py-1 rounded">
-                      {v.veh_no}
-                    </div>
+                    {v.is_vehicle_registered === '1' ? (
+                      <div className="absolute top-4 right-4 bg-yellow-100 text-yellow-700 text-xs font-bold px-2 py-1 rounded">
+                        PENDING
+                      </div>
+                    ) : (
+                      <div className="absolute top-4 right-4 bg-gray-100 text-gray-700 text-xs font-bold px-2 py-1 rounded">
+                        {v.veh_no}
+                      </div>
+                    )}
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 bg-teal-100 text-teal-700 rounded-full flex items-center justify-center">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${v.is_vehicle_registered === '1' ? 'bg-yellow-100 text-yellow-700' : 'bg-teal-100 text-teal-700'}`}>
                         <Car className="w-5 h-5" />
                       </div>
                       <div>
@@ -210,6 +239,16 @@ function AdminDashboard() {
                       <div className="text-sm text-gray-900 font-medium">{v.driver_name}</div>
                       <div className="text-xs text-gray-500">{v.driver_email}</div>
                     </div>
+                    {v.is_vehicle_registered === '1' && (
+                      <div className="pt-4 mt-2">
+                        <button 
+                          onClick={() => handleApproveVehicle(v.veh_id)}
+                          className="w-full py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer shadow-sm"
+                        >
+                          Approve Vehicle
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
                 {vehicles.length === 0 && <div className="text-gray-500">No vehicles registered yet.</div>}

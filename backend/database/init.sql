@@ -28,7 +28,7 @@ CREATE TABLE users (
     role VARCHAR(30) NOT NULL DEFAULT 'employee',
     password_hash VARCHAR(255) NOT NULL,
     address TEXT,
-    is_vehicle_registered BOOLEAN DEFAULT FALSE,
+    is_vehicle_registered VARCHAR(1) DEFAULT '0',
     passenger_rating DECIMAL(3, 2) DEFAULT 5.00,
     driving_rating DECIMAL(3, 2) DEFAULT 5.00,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

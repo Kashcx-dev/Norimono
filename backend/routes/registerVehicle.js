@@ -46,10 +46,10 @@ router.post('/', async (req, res, next) => {
             ]
         );
 
-        // Update user profile
+        // Update user profile to pending status
         await db.query(
-            'UPDATE users SET is_vehicle_registered = TRUE WHERE emp_id = $1',
-            [driver_id]
+            'UPDATE users SET is_vehicle_registered = $1 WHERE emp_id = $2',
+            ['1', driver_id]
         );
 
         await db.query('COMMIT');

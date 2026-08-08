@@ -25,12 +25,33 @@ router.get('/vehicles', async (req, res, next) => {
     try {
         const result = await db.query(
             `SELECT v.veh_id, v.veh_no, v.vehicle_model, v.seating_capacity, v.fuel_consumption_ratio, 
-                    u.name as driver_name, u.email as driver_email 
+                    u.name as driver_name, u.email as driver_email, u.is_vehicle_registered 
              FROM vehicles v
              JOIN users u ON v.emp_id = u.emp_id
              ORDER BY v.created_at DESC`
         );
         res.json({ success: true, vehicles: result.rows });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// 2.5 Approve a vehicle
+router.post('/vehicles/approve', async (req, res, next) => {
+    try {
+        const { veh_id } = req.body;
+        if (!veh_id) return res.status(400).json({ success: false, message: "veh_id is required" });
+
+        // Find the owner of this vehicle
+        const vehRes = await db.query('SELECT emp_id FROM vehicles WHERE veh_id = $1', [veh_id]);
+        if (vehRes.rows.length === 0) return res.status(404).json({ success: false, message: "Vehicle not found" });
+
+        const emp_id = vehRes.rows[0].emp_id;
+
+        // Update the owner's status to '2' (Approved)
+        await db.query("UPDATE users SET is_vehicle_registered = '2' WHERE emp_id = $1", [emp_id]);
+
+        res.json({ success: true, message: "Vehicle approved successfully" });
     } catch (err) {
         next(err);
     }

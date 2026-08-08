@@ -19,14 +19,29 @@ router.post('/', async (req, res, next) => {
             return res.status(400).json({ message: "Missing required fields (origin, destination, departure_time, fare_per_seat)" });
         }
 
-        // Checking if the user has a registered vehicle
-        const vehicleResult = await db.query('SELECT veh_no, seating_capacity FROM vehicles WHERE emp_id = $1', [driver_EMP_ID]);
+        // Checking if the user has a registered and approved vehicle
+        const vehicleResult = await db.query(
+            `SELECT v.veh_no, v.seating_capacity, u.is_vehicle_registered 
+             FROM vehicles v 
+             JOIN users u ON v.emp_id = u.emp_id 
+             WHERE v.emp_id = $1`, 
+            [driver_EMP_ID]
+        );
 
         if (!vehicleResult.rows || vehicleResult.rows.length === 0) {
             return res.status(400).json({ message: "Vehicle is not registered. Please register a vehicle first." });
         }
 
         const vehicle = vehicleResult.rows[0];
+        
+        if (vehicle.is_vehicle_registered === '0') {
+            return res.status(400).json({ message: "Vehicle is not registered." });
+        } else if (vehicle.is_vehicle_registered === '1') {
+            return res.status(400).json({ message: "Your vehicle registration is pending Admin approval." });
+        } else if (vehicle.is_vehicle_registered !== '2') {
+            return res.status(400).json({ message: "Invalid vehicle registration status." });
+        }
+
         const veh_no = vehicle.veh_no;
         const total_seats = vehicle.seating_capacity;
 
