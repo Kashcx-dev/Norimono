@@ -58,8 +58,8 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 			if (data.requires2FA) {
 				setShowOtp(true);
 			} else if (data.token) {
-				localStorage.setItem("token", data.token);
-				localStorage.setItem("user", JSON.stringify(data.user));
+				sessionStorage.setItem("token", data.token);
+				sessionStorage.setItem("user", JSON.stringify(data.user));
 				onSignupSuccess?.({ ...data.user, organization });
 			}
 		})
@@ -92,8 +92,8 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 		.then(data => {
 			setIsLoading(false);
 			if (data.token) {
-				localStorage.setItem("token", data.token);
-				localStorage.setItem("user", JSON.stringify(data.user));
+				sessionStorage.setItem("token", data.token);
+				sessionStorage.setItem("user", JSON.stringify(data.user));
 				onSignupSuccess?.({ ...data.user, organization });
 			}
 		})

@@ -6,8 +6,8 @@ function Header({ onOpenVehicleModal }) {
 	const [notificationsOpen, setNotificationsOpen] = useState(false);
 
 	const handleLogout = () => {
-		localStorage.removeItem("token");
-		localStorage.removeItem("user");
+		sessionStorage.removeItem("token");
+		sessionStorage.removeItem("user");
 		window.location.href = "/";
 	};
 
