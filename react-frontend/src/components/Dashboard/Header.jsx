@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Bell, ChevronDown, LogOut, Wallet, Car, Settings, User, Clock, Phone, MessageSquare, MessageSquareHeart } from "lucide-react";
+import { Bell, ChevronDown, LogOut, Wallet, Car, Settings, User, Clock, Phone, MessageSquare, MessageSquareHeart, Plus, Calendar, MapPin } from "lucide-react";
 import WalletModal from "./WalletModal";
 import { getWalletData, subscribeToWallet } from "../../utils/walletService";
 
