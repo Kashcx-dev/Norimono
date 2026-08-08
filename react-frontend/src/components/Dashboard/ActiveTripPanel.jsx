@@ -16,9 +16,64 @@ import {
 	Check,
 	Sparkles,
 	Phone,
+	Star,
 } from "lucide-react";
 import ChatModal from "./ChatModal";
 import VoiceCallModal from "./VoiceCallModal";
+
+const InlineStarRating = ({ targetEmpId, type, onRated }) => {
+	const [hover, setHover] = useState(0);
+	const [rating, setRating] = useState(0);
+	const [submitted, setSubmitted] = useState(false);
+
+	const handleRate = async (val) => {
+		setRating(val);
+		try {
+			const token = localStorage.getItem("token");
+			await fetch("/rate", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`
+				},
+				body: JSON.stringify({ target_emp_id: targetEmpId, type, rating: val })
+			});
+			setSubmitted(true);
+			if (onRated) onRated(val);
+		} catch (error) {
+			console.error("Error rating:", error);
+		}
+	};
+
+	if (submitted) {
+		return (
+			<div className="flex items-center gap-1.5 text-[10px] text-amber-600 bg-amber-50 px-2 py-1 rounded-md font-bold border border-amber-200 mt-2 w-fit">
+				<Star className="w-3 h-3 fill-amber-500" /> Rated {rating}/5
+			</div>
+		);
+	}
+
+	return (
+		<div className="mt-2 p-2 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-between gap-2">
+			<span className="text-[10px] font-bold text-gray-500 uppercase">Rate {type}</span>
+			<div className="flex gap-1">
+				{[1, 2, 3, 4, 5].map((star) => (
+					<button
+						key={star}
+						onMouseEnter={() => setHover(star)}
+						onMouseLeave={() => setHover(0)}
+						onClick={() => handleRate(star)}
+						className="transition-transform hover:scale-110 cursor-pointer"
+					>
+						<Star 
+							className={`w-4 h-4 ${(hover || rating) >= star ? "fill-amber-400 text-amber-400" : "fill-transparent text-gray-300"}`} 
+						/>
+					</button>
+				))}
+			</div>
+		</div>
+	);
+};
 
 // Helper to load Razorpay Checkout SDK dynamically
 const loadRazorpaySDK = () => {
@@ -1057,6 +1112,11 @@ export default function ActiveTripPanel({
 								))}
 							</div>
 						</div>
+
+						{/* Passenger Rating Driver */}
+						{paymentStatus === "completed" && activeTrip.ride?.driver_id && (
+							<InlineStarRating targetEmpId={activeTrip.ride.driver_id} type="driver" />
+						)}
 					</div>
 				)}
 
@@ -1240,14 +1300,19 @@ export default function ActiveTripPanel({
 									{booking.booking_status === "completed" && (
 										<div className="pt-2 border-t border-gray-100">
 											{booking.payment_status === "completed" ? (
-												<div className="p-2 bg-emerald-50 rounded-lg border border-emerald-200 flex items-center justify-between text-xs text-emerald-800 font-bold">
-													<span className="flex items-center gap-1.5">
-														<CheckCircle2 className="w-4 h-4 text-emerald-600" />
-														Payment Confirmed
-													</span>
-													<span className="font-extrabold text-emerald-950">
-														+₹{bookingFare}
-													</span>
+												<div>
+													<div className="p-2 bg-emerald-50 rounded-lg border border-emerald-200 flex items-center justify-between text-xs text-emerald-800 font-bold">
+														<span className="flex items-center gap-1.5">
+															<CheckCircle2 className="w-4 h-4 text-emerald-600" />
+															Payment Confirmed
+														</span>
+														<span className="font-extrabold text-emerald-950">
+															+₹{bookingFare}
+														</span>
+													</div>
+													{booking.passenger_id && (
+														<InlineStarRating targetEmpId={booking.passenger_id} type="passenger" />
+													)}
 												</div>
 											) : booking.payment_status ===
 											  "paid_pending_confirmation" ? (
