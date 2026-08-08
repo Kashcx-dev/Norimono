@@ -26,6 +26,7 @@ export default function BrowseRidesPanel({
 	const [searchTerm, setSearchTerm] = useState("");
 	const [filterType, setFilterType] = useState("all"); // 'all' | 'under5km' | 'seats' | 'fare'
 	const [bookingModalRide, setBookingModalRide] = useState(null);
+	const [selectedSeatPref, setSelectedSeatPref] = useState("Seat 1 (Front Window)");
 	const [bookingLoading, setBookingLoading] = useState(false);
 	const [bookingSuccess, setBookingSuccess] = useState(null); // { otp, booking_id }
 
@@ -92,7 +93,7 @@ export default function BrowseRidesPanel({
 					console.warn("Wallet deduction:", wErr.message);
 				}
 
-				const seatNo = data.seat_no || `Seat #${Math.floor(Math.random() * 3) + 1} (Window)`;
+				const seatNo = selectedSeatPref || `Seat #${Math.floor(Math.random() * 3) + 1} (Window)`;
 				const bookingObj = {
 					otp: data.pickup_otp || Math.floor(1000 + Math.random() * 9000),
 					booking_id:
@@ -101,6 +102,7 @@ export default function BrowseRidesPanel({
 					ride: ride,
 					fare: fare,
 					seat_no: seatNo,
+					status: "requested",
 				};
 				setBookingSuccess(bookingObj);
 				if (onRideBooked) onRideBooked(bookingObj);
@@ -120,7 +122,8 @@ export default function BrowseRidesPanel({
 				booking_id: "BK-" + Math.floor(10000 + Math.random() * 90000),
 				ride: ride,
 				fare: fare,
-				seat_no: `Seat #${Math.floor(Math.random() * 3) + 1} (Front Left)`,
+				seat_no: selectedSeatPref || "Seat 1 (Front Window)",
+				status: "requested",
 			};
 			setBookingSuccess(fallbackObj);
 			if (onRideBooked) onRideBooked(fallbackObj);
@@ -374,19 +377,19 @@ export default function BrowseRidesPanel({
 											<button
 												onClick={(e) => {
 													e.stopPropagation();
-													if (onRideBooked) onRideBooked(activeTrip);
+													if (onBack) onBack();
 												}}
-												className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-lg shadow-xs transition-all flex items-center gap-1 cursor-pointer"
+												className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-extrabold rounded-lg shadow-xs transition-all flex items-center gap-1 cursor-pointer"
 											>
-												✓ Booking Confirmed (View Active Ride)
+												⏳ Seat Requested (View Request)
 											</button>
 										) : activeTrip ? (
 											<button
 												disabled
 												className="px-3.5 py-1.5 bg-gray-100 border border-gray-200 text-gray-400 text-xs font-bold rounded-lg cursor-not-allowed flex items-center gap-1"
-												title="You already have an active ride booked for this time slot!"
+												title="You already have an active seat request in this time slot!"
 											>
-												Slot Booked
+												Slot Requested
 											</button>
 										) : (
 											<button
@@ -396,7 +399,7 @@ export default function BrowseRidesPanel({
 												}}
 												className="px-3.5 py-1.5 bg-[#00A09D] hover:bg-[#008f8c] text-white text-xs font-bold rounded-lg shadow-xs transition-all flex items-center gap-1 cursor-pointer"
 											>
-												Book Seat
+												Request Seat
 											</button>
 										)}
 									</div>
@@ -440,7 +443,7 @@ export default function BrowseRidesPanel({
 									<Car className="w-4 h-4" />
 								</div>
 								<h3 className="text-base font-bold text-gray-900">
-									Confirm Seat Booking
+									Request a Seat
 								</h3>
 							</div>
 							<button
@@ -493,11 +496,27 @@ export default function BrowseRidesPanel({
 										</span>
 									</div>
 								</div>
+
+								{/* Seat Selection */}
+								<div className="pt-2 border-t border-teal-100">
+									<label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+										Choose Preferred Seat
+									</label>
+									<select
+										value={selectedSeatPref}
+										onChange={(e) => setSelectedSeatPref(e.target.value)}
+										className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#00A09D]"
+									>
+										<option value="Seat 1 (Front Window)">Seat 1 (Front Window)</option>
+										<option value="Seat 2 (Rear Left Window)">Seat 2 (Rear Left Window)</option>
+										<option value="Seat 3 (Rear Right Window)">Seat 3 (Rear Right Window)</option>
+										<option value="Seat 4 (Rear Middle)">Seat 4 (Rear Middle)</option>
+									</select>
+								</div>
 							</div>
 
 							<p className="text-xs text-gray-500">
-								By booking, a pickup verification code (OTP) will be
-								generated for your driver upon arrival.
+								Requesting this seat notifies the driver for approval. Once confirmed by the driver, your seat is locked!
 							</p>
 
 							<div className="flex items-center gap-3 pt-2">
@@ -515,7 +534,7 @@ export default function BrowseRidesPanel({
 									disabled={bookingLoading}
 									className="flex-1 py-2.5 bg-[#00A09D] hover:bg-[#008f8c] text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
 								>
-									{bookingLoading ? "Booking..." : "Confirm & Book"}
+									{bookingLoading ? "Sending..." : "Send Seat Request"}
 								</button>
 							</div>
 						</div>

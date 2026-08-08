@@ -59,7 +59,7 @@ const seedDatabase = async () => {
             // Create Wallet
             await db.query(
                 `INSERT INTO wallets (emp_id, balance) VALUES ($1, $2)`,
-                [emp_id, (Math.random() * 500).toFixed(2)]
+                [emp_id, 10000.00]
             );
             
             users.push({ emp_id, is_vehicle_registered });

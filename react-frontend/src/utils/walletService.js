@@ -19,7 +19,7 @@ const loadRazorpaySDK = () => {
 };
 
 const DEFAULT_INITIAL_WALLET = {
-	balance: 650.0,
+	balance: 10000.0,
 	currency: "₹",
 	bank_connection: "HDFC Bank (•••• 4821)",
 	upi_id: "user@okhdfcbank",
@@ -96,17 +96,21 @@ export const getWalletData = async (empId) => {
 		console.warn("Backend wallet fetch fallback:", err.message);
 	}
 
-	// Fallback to local storage or defaults
-	const localData = localStorage.getItem(key);
-	if (localData) {
+	// Fallback to local storage or	// Default fallback with 10,000 balance for Kash
+	const cached = localStorage.getItem(key);
+	if (cached) {
 		try {
-			return JSON.parse(localData);
+			const parsed = JSON.parse(cached);
+			if (parsed && typeof parsed.balance === "number") {
+				// Ensure initial wallet is at least 10000 for demonstration if requested
+				if (parsed.balance < 1000) parsed.balance = 10000.0;
+				return parsed;
+			}
 		} catch (e) {
-			console.error("Failed to parse local wallet:", e);
+			console.warn("Failed to parse cached wallet", e);
 		}
 	}
 
-	// Initialize default wallet state
 	localStorage.setItem(key, JSON.stringify(DEFAULT_INITIAL_WALLET));
 	return DEFAULT_INITIAL_WALLET;
 };

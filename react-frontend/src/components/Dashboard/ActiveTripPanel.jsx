@@ -139,12 +139,15 @@ export default function ActiveTripPanel({
 
 	return (
 		<div className="flex flex-col h-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden text-left">
-			<div className="p-5 border-b border-gray-100 bg-[#00A09D]/5 flex items-center justify-between">
+			<div className="p-5 border-b border-gray-100 bg-amber-50/60 flex items-center justify-between">
 				<div>
-					<h2 className="text-lg font-extrabold text-[#00A09D]">
-						{isDriver ? "Active Drive" : "Active Ride"}
+					<h2 className="text-lg font-extrabold text-amber-900 flex items-center gap-2">
+						{isDriver ? "Active Drive" : "Seat Request Pending"}
+						<span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+							Awaiting Driver Confirmation
+						</span>
 					</h2>
-					<p className="text-xs text-gray-500">
+					<p className="text-xs text-amber-700/80 mt-0.5">
 						{phase} {liveLocation ? `(Live: ${liveLocation[0].toFixed(3)}, ${liveLocation[1].toFixed(3)})` : ""}
 					</p>
 				</div>
