@@ -177,6 +177,9 @@ export default function ActiveTripPanel({
 							<p className="text-xs text-gray-500">
 								{activeTrip.ride?.vehicle_model || "Car"} • {activeTrip.ride?.veh_no || "Registration"}
 							</p>
+							<div className="inline-flex items-center gap-1 mt-1.5 px-2.5 py-0.5 rounded-md bg-teal-50 border border-teal-200 text-[#00A09D] text-[11px] font-extrabold">
+								💺 {activeTrip.seat_no || "Seat #2 (Front Left)"}
+							</div>
 						</div>
 					</div>
 

@@ -168,6 +168,7 @@ function Dashboard() {
 									onSelectRide={setSelectedRide}
 									onBack={handleBackToSearch}
 									userLocation={userLocation}
+									activeTrip={activeTrip}
 									onRideBooked={(bookingData) => {
 										setViewMode("default");
 										handleRideBooked(bookingData);

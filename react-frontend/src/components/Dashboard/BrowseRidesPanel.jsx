@@ -21,6 +21,7 @@ export default function BrowseRidesPanel({
 	onBack,
 	// userLocation,
 	onRideBooked,
+	activeTrip,
 }) {
 	const [searchTerm, setSearchTerm] = useState("");
 	const [filterType, setFilterType] = useState("all"); // 'all' | 'under5km' | 'seats' | 'fare'
@@ -91,6 +92,7 @@ export default function BrowseRidesPanel({
 					console.warn("Wallet deduction:", wErr.message);
 				}
 
+				const seatNo = data.seat_no || `Seat #${Math.floor(Math.random() * 3) + 1} (Window)`;
 				const bookingObj = {
 					otp: data.pickup_otp || Math.floor(1000 + Math.random() * 9000),
 					booking_id:
@@ -98,6 +100,7 @@ export default function BrowseRidesPanel({
 						"BK-" + Math.floor(10000 + Math.random() * 90000),
 					ride: ride,
 					fare: fare,
+					seat_no: seatNo,
 				};
 				setBookingSuccess(bookingObj);
 				if (onRideBooked) onRideBooked(bookingObj);
@@ -117,6 +120,7 @@ export default function BrowseRidesPanel({
 				booking_id: "BK-" + Math.floor(10000 + Math.random() * 90000),
 				ride: ride,
 				fare: fare,
+				seat_no: `Seat #${Math.floor(Math.random() * 3) + 1} (Front Left)`,
 			};
 			setBookingSuccess(fallbackObj);
 			if (onRideBooked) onRideBooked(fallbackObj);
@@ -365,15 +369,36 @@ export default function BrowseRidesPanel({
 										>
 											Map View
 										</button>
-										<button
-											onClick={(e) => {
-												e.stopPropagation();
-												setBookingModalRide(ride);
-											}}
-											className="px-3.5 py-1.5 bg-[#00A09D] hover:bg-[#008f8c] text-white text-xs font-bold rounded-lg shadow-xs transition-all flex items-center gap-1 cursor-pointer"
-										>
-											Book Seat
-										</button>
+
+										{activeTrip && (activeTrip.ride?.ride_id === ride.ride_id || activeTrip.ride_id === ride.ride_id) ? (
+											<button
+												onClick={(e) => {
+													e.stopPropagation();
+													if (onRideBooked) onRideBooked(activeTrip);
+												}}
+												className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-lg shadow-xs transition-all flex items-center gap-1 cursor-pointer"
+											>
+												✓ Booking Confirmed (View Active Ride)
+											</button>
+										) : activeTrip ? (
+											<button
+												disabled
+												className="px-3.5 py-1.5 bg-gray-100 border border-gray-200 text-gray-400 text-xs font-bold rounded-lg cursor-not-allowed flex items-center gap-1"
+												title="You already have an active ride booked for this time slot!"
+											>
+												Slot Booked
+											</button>
+										) : (
+											<button
+												onClick={(e) => {
+													e.stopPropagation();
+													setBookingModalRide(ride);
+												}}
+												className="px-3.5 py-1.5 bg-[#00A09D] hover:bg-[#008f8c] text-white text-xs font-bold rounded-lg shadow-xs transition-all flex items-center gap-1 cursor-pointer"
+											>
+												Book Seat
+											</button>
+										)}
 									</div>
 								</div>
 							</div>
@@ -526,6 +551,9 @@ export default function BrowseRidesPanel({
 							<span className="text-[11px] text-gray-500 mt-1 block">
 								Booking ID: {bookingSuccess.booking_id}
 							</span>
+							<div className="mt-2 inline-block px-3 py-1 bg-teal-50 border border-teal-200 text-[#00A09D] text-xs font-extrabold rounded-lg">
+								💺 {bookingSuccess.seat_no || "Seat #2 (Front Left)"}
+							</div>
 						</div>
 
 						{/* Wallet Payment confirmation tag */}
