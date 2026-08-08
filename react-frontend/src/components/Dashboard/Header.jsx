@@ -8,7 +8,7 @@ function Header({ onOpenVehicleModal }) {
 	const handleLogout = () => {
 		localStorage.removeItem("token");
 		localStorage.removeItem("user");
-		window.location.href = "/auth";
+		window.location.href = "/";
 	};
 
 	return (

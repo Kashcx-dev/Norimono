@@ -74,3 +74,5 @@ router.post('/', async (req, res, next) => {
 });
 
 module.exports = router;
+
+//fare = approx milage * total distance + (approx_milage*total distance ) * 0.15 + offset

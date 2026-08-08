@@ -14,7 +14,7 @@ function AdminDashboard() {
 
   useEffect(() => {
     if (!token) {
-      navigate("/auth");
+      navigate("/");
       return;
     }
     fetchMetrics();
@@ -76,7 +76,7 @@ function AdminDashboard() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    navigate("/auth");
+    navigate("/");
   };
 
   return (
