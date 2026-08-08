@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Mail, Lock, ArrowRight, Car, Eye, EyeOff, Shield } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 
 function Login({ onSwitchToSignup, onLoginSuccess }) {
 	const [email, setEmail] = useState("");
@@ -9,7 +9,7 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
 	const [showPassword, setShowPassword] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState("");
-	
+
 	// OTP State
 	const [showOtp, setShowOtp] = useState(false);
 	const [otp, setOtp] = useState("");
@@ -33,29 +33,33 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
 		fetch("/auth/login", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ email, password })
+			body: JSON.stringify({ email, password }),
 		})
-		.then(res => {
-			if (!res.ok) {
-				return res.json().then(data => { throw new Error(data.message || data.error || "Failed to log in") });
-			}
-			return res.json();
-		})
-		.then(data => {
-			setIsLoading(false);
-			if (data.requires2FA) {
-				setShowOtp(true);
-				setResolvedEmail(data.resolvedEmail || email);
-			} else if (data.token) {
-				localStorage.setItem("token", data.token);
-				localStorage.setItem("user", JSON.stringify(data.user));
-				onLoginSuccess?.({ ...data.user, organization });
-			}
-		})
-		.catch(err => {
-			setIsLoading(false);
-			setError(err.message || "Something went wrong. Please try again.");
-		});
+			.then((res) => {
+				if (!res.ok) {
+					return res.json().then((data) => {
+						throw new Error(
+							data.message || data.error || "Failed to log in",
+						);
+					});
+				}
+				return res.json();
+			})
+			.then((data) => {
+				setIsLoading(false);
+				if (data.requires2FA) {
+					setShowOtp(true);
+					setResolvedEmail(data.resolvedEmail || email);
+				} else if (data.token) {
+					localStorage.setItem("token", data.token);
+					localStorage.setItem("user", JSON.stringify(data.user));
+					onLoginSuccess?.({ ...data.user, organization });
+				}
+			})
+			.catch((err) => {
+				setIsLoading(false);
+				setError(err.message || "Something went wrong. Please try again.");
+			});
 	};
 
 	const handleOtpSubmit = (e) => {
@@ -70,26 +74,28 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
 		fetch("/auth/verify-otp", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ email: resolvedEmail, otp })
+			body: JSON.stringify({ email: resolvedEmail, otp }),
 		})
-		.then(res => {
-			if (!res.ok) {
-				return res.json().then(data => { throw new Error(data.message || "Invalid OTP") });
-			}
-			return res.json();
-		})
-		.then(data => {
-			setIsLoading(false);
-			if (data.token) {
-				localStorage.setItem("token", data.token);
-				localStorage.setItem("user", JSON.stringify(data.user));
-				onLoginSuccess?.({ ...data.user, organization });
-			}
-		})
-		.catch(err => {
-			setIsLoading(false);
-			setError(err.message || "Invalid OTP. Please try again.");
-		});
+			.then((res) => {
+				if (!res.ok) {
+					return res.json().then((data) => {
+						throw new Error(data.message || "Invalid OTP");
+					});
+				}
+				return res.json();
+			})
+			.then((data) => {
+				setIsLoading(false);
+				if (data.token) {
+					localStorage.setItem("token", data.token);
+					localStorage.setItem("user", JSON.stringify(data.user));
+					onLoginSuccess?.({ ...data.user, organization });
+				}
+			})
+			.catch((err) => {
+				setIsLoading(false);
+				setError(err.message || "Invalid OTP. Please try again.");
+			});
 	};
 
 	return (
@@ -162,9 +168,9 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
 								<label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
 									Password
 								</label>
-								<a href="#forgot" className="text-xs font-semibold text-[#00A09D] hover:underline">
+								{/* <a href="#forgot" className="text-xs font-semibold text-[#00A09D] hover:underline">
 									Forgot password?
-								</a>
+								</a> */}
 							</div>
 							<div className="relative">
 								<input
@@ -182,7 +188,11 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
 									onClick={() => setShowPassword(!showPassword)}
 									className="cursor-pointer absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
 								>
-									{showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+									{showPassword ? (
+										<EyeOff className="w-5 h-5" />
+									) : (
+										<Eye className="w-5 h-5" />
+									)}
 								</button>
 							</div>
 						</div>
@@ -195,15 +205,24 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
 							{isLoading ? (
 								<div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
 							) : (
-								<>Sign In <ArrowRight className="w-4 h-4" /></>
+								<>
+									Sign In <ArrowRight className="w-4 h-4" />
+								</>
 							)}
 						</button>
 					</form>
 				) : (
-					<form onSubmit={handleOtpSubmit} className="space-y-5 animate-fade-in">
+					<form
+						onSubmit={handleOtpSubmit}
+						className="space-y-5 animate-fade-in"
+					>
 						<div className="text-center mb-6">
-							<h3 className="text-lg font-bold text-gray-900">Check your email</h3>
-							<p className="text-sm text-gray-500 mt-1">We sent a 6-digit code to {resolvedEmail}</p>
+							<h3 className="text-lg font-bold text-gray-900">
+								Check your email
+							</h3>
+							<p className="text-sm text-gray-500 mt-1">
+								We sent a 6-digit code to {resolvedEmail}
+							</p>
 						</div>
 
 						{error && (
@@ -235,10 +254,12 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
 							{isLoading ? (
 								<div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
 							) : (
-								<>Verify & Continue <ArrowRight className="w-4 h-4" /></>
+								<>
+									Verify & Continue <ArrowRight className="w-4 h-4" />
+								</>
 							)}
 						</button>
-						
+
 						<button
 							type="button"
 							onClick={() => setShowOtp(false)}
