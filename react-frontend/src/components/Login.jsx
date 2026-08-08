@@ -33,7 +33,7 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
 		fetch("/auth/login", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ email, password }),
+			body: JSON.stringify({ email, password, organization }),
 		})
 			.then((res) => {
 				if (!res.ok) {

@@ -143,8 +143,8 @@ router.post("/verify-signup-otp", async (req, res, next) => {
 router.post("/login", async (req, res, next) => {
     const { email, password, organization } = req.body;
 
-    if (!email || !password || !organization) {
-        return res.status(400).json({ message: "Email, password, and organization are required." });
+    if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required." });
     }
 
     try {
