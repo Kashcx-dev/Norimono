@@ -141,7 +141,7 @@ function VehicleRegistrationModal({ onClose, onRegister }) {
 								type="submit"
 								className="w-full py-3 px-4 bg-[#714B67] hover:bg-[#5c3c54] text-white font-semibold rounded-xl transition-all shadow-sm"
 							>
-								Submit Application
+								Complete Registration
 							</button>
 						</div>
 					</form>
