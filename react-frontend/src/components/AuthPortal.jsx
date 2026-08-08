@@ -16,6 +16,7 @@ function AuthPortal({ onLoginSuccess }) {
 	const handleSignup = (profile) => {
 		setUserProfile(profile);
 		setCurrentView("success");
+		onLoginSuccess?.(profile);
 	};
 
 	return (

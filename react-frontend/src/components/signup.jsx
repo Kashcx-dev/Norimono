@@ -6,6 +6,7 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 	const [email, setEmail] = useState("");
 	const [phone, setPhone] = useState("");
 	const [organization, setOrganization] = useState("Odoo");
+	const [role, setRole] = useState("employee"); // 'employee' or 'admin'
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
@@ -45,7 +46,7 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 		fetch("/auth/signup", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ name, email, phone, organization, password })
+			body: JSON.stringify({ name, email, phone, organization, role, password })
 		})
 		.then(res => {
 			if (!res.ok) {
@@ -161,6 +162,34 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 								<div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
 									<Shield className="w-4 h-4" />
 								</div>
+							</div>
+						</div>
+
+						<div className="space-y-1">
+							<label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Role</label>
+							<div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl">
+								<button
+									type="button"
+									onClick={() => setRole("employee")}
+									className={`py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+										role === "employee"
+											? "bg-white text-[#714B67] shadow-sm border border-gray-200/60"
+											: "text-gray-500 hover:text-gray-800"
+									}`}
+								>
+									👤 Employee
+								</button>
+								<button
+									type="button"
+									onClick={() => setRole("admin")}
+									className={`py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+										role === "admin"
+											? "bg-[#714B67] text-white shadow-sm"
+											: "text-gray-500 hover:text-gray-800"
+									}`}
+								>
+									⚡ Admin
+								</button>
 							</div>
 						</div>
 

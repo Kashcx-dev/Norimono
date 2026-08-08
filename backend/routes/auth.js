@@ -35,11 +35,13 @@ const transporter = nodemailer.createTransport({
 
 // --- SIGNUP FLOW ---
 router.post("/signup", async (req, res, next) => {
-    const { name, email, phone, password } = req.body;
+    const { name, email, phone, password, role } = req.body;
 
     if (!name || !email || !password) {
         return res.status(400).json({ message: "Name, email, and password are required." });
     }
+
+    const selectedRole = (role === 'admin') ? 'admin' : 'employee';
 
     try {
         const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -54,6 +56,7 @@ router.post("/signup", async (req, res, next) => {
         signupStore.set(email, { 
             name, 
             phone, 
+            role: selectedRole,
             hashedPassword, 
             code: otp, 
             expiresAt 
@@ -98,16 +101,17 @@ router.post("/verify-signup-otp", async (req, res, next) => {
     if (record.code === otp) {
         try {
             const emp_id = "EMP-" + crypto.randomBytes(3).toString("hex").toUpperCase();
+            const userRole = record.role || 'employee';
             
             await db.query(
                 `INSERT INTO users (emp_id, name, email, phone, role, password_hash) 
                  VALUES ($1, $2, $3, $4, $5, $6)`, 
-                [emp_id, record.name, email, record.phone || null, 'employee', record.hashedPassword]
+                [emp_id, record.name, email, record.phone || null, userRole, record.hashedPassword]
             );
 
             signupStore.delete(email);
 
-            const user_data = { emp_id, email, name: record.name, role: 'employee' };
+            const user_data = { emp_id, email, name: record.name, role: userRole };
             const token = jwt.sign(user_data, process.env.JWT_SECRET || 'secret', { expiresIn: "7d" });
 
             return res.json({ 
