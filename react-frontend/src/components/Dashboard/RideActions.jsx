@@ -410,6 +410,14 @@ function RideActions({
               </>
             )}
           </button>
+
+          <button
+            onClick={() => alert("Browsing Nearest Rides (Coming Soon!)")}
+            className="w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+          >
+            <Navigation className="w-4 h-4" />
+            Browse Nearest Rides
+          </button>
         </div>
       </div>
     </div>
