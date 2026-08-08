@@ -183,11 +183,19 @@ export default function ActiveTripPanel({
 					<div className="space-y-2 text-xs text-gray-700">
 						<div className="flex items-center gap-2">
 							<MapPin className="w-4 h-4 text-[#00A09D]" />
-							<span className="font-semibold truncate">Pickup: {activeTrip.ride?.origin?.name || activeTrip.ride?.origin || "Pickup Point"}</span>
+							<span className="font-semibold truncate">
+								Pickup: {typeof activeTrip.ride?.origin === 'string' 
+									? activeTrip.ride.origin 
+									: (activeTrip.ride?.origin?.name || activeTrip.ride?.origin?.address || "Pickup Point")}
+							</span>
 						</div>
 						<div className="flex items-center gap-2">
 							<MapPin className="w-4 h-4 text-[#EF4444]" />
-							<span className="font-semibold truncate">Dropoff: {activeTrip.ride?.destination?.name || activeTrip.ride?.destination || "Destination Point"}</span>
+							<span className="font-semibold truncate">
+								Dropoff: {typeof activeTrip.ride?.destination === 'string' 
+									? activeTrip.ride.destination 
+									: (activeTrip.ride?.destination?.name || activeTrip.ride?.destination?.address || "Destination Point")}
+							</span>
 						</div>
 					</div>
 				</div>
