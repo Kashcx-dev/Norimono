@@ -136,11 +136,13 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 
 	// Broadcast public key when joining chat
 	useEffect(() => {
-		if (isOpen && socket && publicKey && activeTrip?.ride?.ride_id) {
+		const rideId = activeTrip?.ride?.ride_id || activeTrip?.ride_id || activeTrip?.booking_id || "DEMO_RIDE_1";
+
+		if (isOpen && socket && publicKey && rideId) {
 			socket.emit("send_chat_message", {
-				ride_id: activeTrip.ride.ride_id,
+				ride_id: rideId,
 				type: "KEY_EXCHANGE",
-				sender_id: user.emp_id,
+				sender_id: user.emp_id || "USER_1",
 				public_key: publicKey.toString()
 			});
 		}
@@ -148,8 +150,9 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 
 	const handleSend = (e) => {
 		e.preventDefault();
-		if (!inputText.trim() || !socket || !activeTrip?.ride?.ride_id) return;
+		if (!inputText.trim()) return;
 		
+		const rideId = activeTrip?.ride?.ride_id || activeTrip?.ride_id || activeTrip?.booking_id || "DEMO_RIDE_1";
 		let textToSend;
 		
 		if (sharedSecret) {
@@ -161,16 +164,27 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 		}
 
 		const msg = {
-			ride_id: activeTrip.ride.ride_id,
+			ride_id: rideId,
 			type: "CHAT",
-			sender_id: user.emp_id,
-			sender_name: user.name,
+			sender_id: user.emp_id || "USER_1",
+			sender_name: user.name || "You",
 			text: textToSend,
 			originalText: inputText, // Just for local echo
 			timestamp: new Date().toISOString()
 		};
 		
-		socket.emit("send_chat_message", msg);
+		if (socket && socket.connected) {
+			socket.emit("send_chat_message", msg);
+		} else {
+			// Local echo fallback when socket server is disconnected
+			setMessages(prev => [...prev, {
+				...msg,
+				text: inputText,
+				isMine: true,
+				isSecure: false
+			}]);
+		}
+
 		setInputText("");
 	};
 

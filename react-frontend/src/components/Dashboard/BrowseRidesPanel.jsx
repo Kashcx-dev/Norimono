@@ -91,15 +91,16 @@ export default function BrowseRidesPanel({
 					console.warn("Wallet deduction:", wErr.message);
 				}
 
-				setBookingSuccess({
+				const bookingObj = {
 					otp: data.pickup_otp || Math.floor(1000 + Math.random() * 9000),
 					booking_id:
 						data.booking_id ||
 						"BK-" + Math.floor(10000 + Math.random() * 90000),
 					ride: ride,
 					fare: fare,
-				});
-				if (onRideBooked) onRideBooked(ride.ride_id);
+				};
+				setBookingSuccess(bookingObj);
+				if (onRideBooked) onRideBooked(bookingObj);
 			} else {
 				alert(data.message || "Failed to book ride");
 			}
@@ -111,12 +112,14 @@ export default function BrowseRidesPanel({
 			} catch (wErr) {
 				console.warn("Wallet fallback deduction:", wErr.message);
 			}
-			setBookingSuccess({
+			const fallbackObj = {
 				otp: Math.floor(1000 + Math.random() * 9000),
 				booking_id: "BK-" + Math.floor(10000 + Math.random() * 90000),
 				ride: ride,
 				fare: fare,
-			});
+			};
+			setBookingSuccess(fallbackObj);
+			if (onRideBooked) onRideBooked(fallbackObj);
 		} finally {
 			setBookingLoading(false);
 		}
