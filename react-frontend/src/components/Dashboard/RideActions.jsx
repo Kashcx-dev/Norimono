@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { showAlert } from "../../utils/alertService";
 import {
 	Search,
 	MapPin,
@@ -186,8 +187,10 @@ function RideActions({
 					setShowSourceDropdown(false);
 				},
 				(err) => {
-					alert(
+					showAlert(
 						"Could not access your location. Please enable location permissions.",
+						"Location Error",
+						"error"
 					);
 				},
 			);
@@ -196,7 +199,7 @@ function RideActions({
 
 	const handleSearch = async () => {
 		if (!source.trim() || !destination.trim()) {
-			alert("Please enter both a Source and a Destination!");
+			showAlert("Please enter both a Source and a Destination!", "Missing Fields", "error");
 			return;
 		}
 
@@ -227,7 +230,7 @@ function RideActions({
 			}
 
 			if (!startCoords || !endCoords) {
-				alert("Could not locate the addresses entered. Please pick from the dropdown.");
+				showAlert("Could not locate the addresses entered. Please pick from the dropdown.", "Location Not Found", "error");
 				return;
 			}
 

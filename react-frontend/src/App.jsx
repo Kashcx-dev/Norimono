@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "r
 import AuthPortal from "./components/AuthPortal";
 import Dashboard from "./components/Dashboard/Dashboard";
 import AdminDashboard from "./components/AdminDashboard";
+import AlertModal from "./components/Dashboard/AlertModal";
 import "./App.css";
 
 // We extract the routes into a separate component so we can use the `useNavigate` hook 
@@ -34,6 +35,7 @@ function App() {
     <Router>
       <div className="min-h-screen bg-gray-50 w-full">
         <AppRoutes />
+        <AlertModal />
       </div>
     </Router>
   );

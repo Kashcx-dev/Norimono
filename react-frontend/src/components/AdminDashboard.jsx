@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { showAlert } from "../utils/alertService";
 import {
 	Users,
 	Car,
@@ -209,11 +210,11 @@ function AdminDashboard() {
 				fetchEmployees();
 				fetchMetrics();
 			} else {
-				alert(data.message || "Failed to add employee");
+				showAlert(data.message || "Failed to add employee", "Admin Error", "error");
 			}
 		} catch (err) {
 			console.error(err);
-			alert("Error adding employee");
+			showAlert("Error adding employee", "Admin Error", "error");
 		}
 	};
 
@@ -265,11 +266,11 @@ function AdminDashboard() {
 				fetchEmployees();
 				fetchMetrics();
 			} else {
-				alert(data.message || "Failed to add vehicle");
+				showAlert(data.message || "Failed to add vehicle", "Admin Error", "error");
 			}
 		} catch (err) {
 			console.error(err);
-			alert("Error adding vehicle");
+			showAlert("Error adding vehicle", "Admin Error", "error");
 		}
 	};
 
@@ -312,7 +313,7 @@ function AdminDashboard() {
 				fetchVehicles();
 				fetchEmployees();
 			} else {
-				alert(data.message || "Failed to approve vehicle");
+				showAlert(data.message || "Failed to approve vehicle", "Admin Error", "error");
 			}
 		} catch (err) {
 			console.error(err);
@@ -339,7 +340,7 @@ function AdminDashboard() {
 			}
 		} catch (err) {
 			console.error(err);
-			alert("Error saving settings");
+			showAlert("Error saving settings", "Admin Error", "error");
 		} finally {
 			setSavingSettings(false);
 		}

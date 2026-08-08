@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { showAlert } from "../../utils/alertService";
 import {
 	ArrowLeft,
 	Car,
@@ -107,7 +108,7 @@ export default function BrowseRidesPanel({
 				setBookingSuccess(bookingObj);
 				if (onRideBooked) onRideBooked(bookingObj);
 			} else {
-				alert(data.message || "Failed to book ride");
+				showAlert(data.message || "Failed to book ride", "Booking Failed", "error");
 			}
 		} catch (err) {
 			console.error("Booking error:", err);

@@ -1,3 +1,5 @@
+import { showAlert } from "./alertService";
+
 // MakeLyft Corporate Wallet Service
 // Connects with backend /wallet endpoints with persistent client caching and real-time event broadcasting
 
@@ -244,9 +246,9 @@ export const addMoneyToWallet = async (empId, amount, paymentMethod = "UPI") => 
 						})
 					);
 
-					alert(`Payment successful! Added ₹${numAmount} to your wallet.`);
+					showAlert(`Payment successful! Added ₹${numAmount} to your wallet.`, "Payment Complete", "success");
 				} else {
-					alert("Payment verification failed.");
+					showAlert("Payment verification failed.", "Payment Error", "error");
 				}
 			},
 			prefill: {

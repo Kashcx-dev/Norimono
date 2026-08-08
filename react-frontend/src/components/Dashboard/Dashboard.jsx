@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { showAlert } from "../../utils/alertService";
 import { io } from "socket.io-client";
 import Header from "./Header";
 import MapPlaceholder from "./MapPlaceholder";
@@ -136,7 +137,7 @@ function Dashboard() {
 		if (hasVehicle === "0" || !hasVehicle) {
 			setShowVehicleModal(true);
 		} else if (hasVehicle === "1") {
-			alert("Your vehicle registration is pending Admin approval.");
+			showAlert("Your vehicle registration is pending Admin approval.", "Pending Approval", "info");
 		} else if (hasVehicle === "2") {
 			setShowPublishModal(true);
 		}
@@ -144,8 +145,10 @@ function Dashboard() {
 
 	const handleRidePublished = (publishData) => {
 		setShowPublishModal(false);
-		alert(
+		showAlert(
 			"Your ride has been successfully published! Passengers will now be able to search and book seats on your route.",
+			"Ride Published",
+			"success"
 		);
 		fetchDriverActiveRide();
 	};
@@ -168,18 +171,22 @@ function Dashboard() {
 				const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
 				storedUser.is_vehicle_registered = "1";
 				localStorage.setItem("user", JSON.stringify(storedUser));
-				alert(
+				showAlert(
 					"Vehicle registered successfully! It is now pending Admin approval.",
+					"Registration Submitted",
+					"success"
 				);
 			} else {
-				alert(
+				showAlert(
 					"Vehicle registration failed: " +
 						(data.message || "Please check details"),
+					"Registration Error",
+					"error"
 				);
 			}
 		} catch (err) {
 			console.error("Error registering vehicle:", err);
-			alert("Error registering vehicle. Please try again.");
+			showAlert("Error registering vehicle. Please try again.", "Network Error", "error");
 		}
 	};
 

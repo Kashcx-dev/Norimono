@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { showAlert } from "../../utils/alertService";
 import {
 	Car,
 	MapPin,
@@ -298,7 +299,7 @@ export default function ActiveTripPanel({
 					setStatus("picked_up");
 					setPassengerStatus("in_progress");
 				}
-				alert("Passenger Verified! Starting navigation.");
+				showAlert("Passenger Verified! Starting navigation.", "OTP Verified", "success");
 
 				if (socket && activeTrip.ride) {
 					const start = activeTrip.ride.origin?.coords || [
@@ -314,11 +315,11 @@ export default function ActiveTripPanel({
 					});
 				}
 			} else {
-				alert(data.message || "Invalid OTP");
+				showAlert(data.message || "Invalid OTP", "OTP Error", "error");
 			}
 		} catch (err) {
 			console.error(err);
-			alert("Error verifying OTP");
+			showAlert("Error verifying OTP", "Verification Error", "error");
 		} finally {
 			setLoading(false);
 		}
@@ -357,11 +358,13 @@ export default function ActiveTripPanel({
 					setPassengerStatus("completed");
 					setPaymentStatus("pending");
 				}
-				alert(
+				showAlert(
 					"Passenger dropped off successfully! Passenger will now see payment options.",
+					"Passenger Dropped Off",
+					"success"
 				);
 			} else {
-				alert(data.message || "Error dropping off");
+				showAlert(data.message || "Error dropping off", "Dropoff Error", "error");
 			}
 		} catch (err) {
 			console.error(err);
@@ -399,7 +402,7 @@ export default function ActiveTripPanel({
 
 			if (data.success) {
 				setPaymentStatus("paid_pending_confirmation");
-				alert(`Payment of ₹${fareAmount} completed via MakeLyft Wallet! Awaiting driver confirmation.`);
+				showAlert(`Payment of ₹${fareAmount} completed via MakeLyft Wallet! Awaiting driver confirmation.`, "Payment Complete", "success");
 				fetchWalletBalance();
 				if (onRefreshPassenger) onRefreshPassenger();
 			} else if (data.insufficient_balance) {
@@ -408,11 +411,11 @@ export default function ActiveTripPanel({
 					setWalletBalance(data.current_balance);
 				}
 			} else {
-				alert(data.message || "Payment failed");
+				showAlert(data.message || "Payment failed", "Payment Failed", "error");
 			}
 		} catch (err) {
 			console.error("Wallet payment error:", err);
-			alert("Network error processing wallet payment.");
+			showAlert("Network error processing wallet payment.", "Network Error", "error");
 		} finally {
 			setLoading(false);
 		}
@@ -428,8 +431,10 @@ export default function ActiveTripPanel({
 			// 1. Ensure Razorpay SDK is loaded
 			const sdkLoaded = await loadRazorpaySDK();
 			if (!sdkLoaded) {
-				alert(
+				showAlert(
 					"Razorpay payment gateway failed to load. Please check your internet connection.",
+					"Gateway Error",
+					"error"
 				);
 				setLoading(false);
 				return;
@@ -512,8 +517,10 @@ export default function ActiveTripPanel({
 
 						if (payData.success) {
 							setPaymentStatus("paid_pending_confirmation");
-							alert(
+							showAlert(
 								`Payment of ₹${fareAmount} completed via Razorpay! Awaiting driver confirmation.`,
+								"Payment Complete",
+								"success"
 							);
 							if (onRefreshPassenger) onRefreshPassenger();
 						} else {
@@ -532,16 +539,20 @@ export default function ActiveTripPanel({
 
 			const rzp = new window.Razorpay(options);
 			rzp.on("payment.failed", function (response) {
-				alert(
+				showAlert(
 					`Payment failed: ${response.error?.description || "Transaction declined"}`,
+					"Payment Failed",
+					"error"
 				);
 				setLoading(false);
 			});
 			rzp.open();
 		} catch (err) {
 			console.error("Razorpay initiation error:", err);
-			alert(
+			showAlert(
 				`Could not open Razorpay: ${err.message || "Please try again."}`,
+				"Razorpay Error",
+				"error"
 			);
 			setLoading(false);
 		}
@@ -568,16 +579,18 @@ export default function ActiveTripPanel({
 							: b,
 					),
 				);
-				alert(
+				showAlert(
 					data.message ||
 						"Payment confirmed and credited to your commute wallet!",
+					"Payment Confirmed",
+					"success"
 				);
 			} else {
-				alert(data.message || "Error confirming payment");
+				showAlert(data.message || "Error confirming payment", "Confirmation Error", "error");
 			}
 		} catch (err) {
 			console.error(err);
-			alert("Network error confirming payment.");
+			showAlert("Network error confirming payment.", "Network Error", "error");
 		} finally {
 			setLoading(false);
 		}
@@ -605,7 +618,7 @@ export default function ActiveTripPanel({
 					),
 				);
 			} else {
-				alert(data.message || "Error accepting booking");
+				showAlert(data.message || "Error accepting booking", "Error", "error");
 			}
 		} catch (err) {
 			console.error(err);
@@ -636,7 +649,7 @@ export default function ActiveTripPanel({
 					),
 				);
 			} else {
-				alert(data.message || "Error declining booking");
+				showAlert(data.message || "Error declining booking", "Error", "error");
 			}
 		} catch (err) {
 			console.error(err);
@@ -659,10 +672,10 @@ export default function ActiveTripPanel({
 			});
 			const data = await res.json();
 			if (data.success) {
-				alert(`Trip finished! Total earnings processed: ₹${data.earnings}`);
+				showAlert(`Trip finished! Total earnings processed: ₹${data.earnings}`, "Trip Finished", "success");
 				onTripEnded();
 			} else {
-				alert(data.message || "Error finishing trip");
+				showAlert(data.message || "Error finishing trip", "Error", "error");
 			}
 		} catch (err) {
 			console.error(err);
