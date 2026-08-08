@@ -88,8 +88,28 @@ export const getWalletData = async (empId) => {
 		if (response.ok) {
 			const data = await response.json();
 			if (data && data.success && data.wallet) {
-				localStorage.setItem(key, JSON.stringify(data.wallet));
-				return data.wallet;
+				// Preserve existing transaction history from local storage if available
+				const existingLocal = localStorage.getItem(key);
+				let existingTxns = DEFAULT_INITIAL_WALLET.transactions;
+				if (existingLocal) {
+					try {
+						const parsedLocal = JSON.parse(existingLocal);
+						if (parsedLocal && Array.isArray(parsedLocal.transactions)) {
+							existingTxns = parsedLocal.transactions;
+						}
+					} catch (e) {
+						console.warn("Error parsing local txns", e);
+					}
+				}
+
+				const mergedWallet = {
+					...DEFAULT_INITIAL_WALLET,
+					...data.wallet,
+					transactions: existingTxns
+				};
+
+				localStorage.setItem(key, JSON.stringify(mergedWallet));
+				return mergedWallet;
 			}
 		}
 	} catch (err) {
@@ -190,9 +210,41 @@ export const addMoneyToWallet = async (empId, amount, paymentMethod = "UPI") => 
 						}),
 					});
 					
-					// Force reload of page or dispatch success
-					alert("Payment successful! Wallet balance updated.");
-					window.location.reload();
+					// 5. Update Local Wallet & History
+					const currentWallet = await getWalletData(empId);
+					const newBalance = parseFloat((currentWallet.balance + numAmount).toFixed(2));
+					const newTransaction = {
+						id: `TXN-${Math.floor(100000 + Math.random() * 900000)}`,
+						type: "credit",
+						title: `Razorpay Top-Up (${paymentMethod})`,
+						amount: numAmount,
+						date: new Date().toISOString(),
+						status: "Success",
+						category: "Top-Up",
+						method: paymentMethod || "Razorpay / UPI",
+					};
+
+					const updatedWallet = {
+						...currentWallet,
+						balance: newBalance,
+						transactions: [newTransaction, ...(currentWallet.transactions || [])],
+					};
+
+					const key = getStorageKey(empId);
+					localStorage.setItem(key, JSON.stringify(updatedWallet));
+
+					window.dispatchEvent(
+						new CustomEvent(WALLET_EVENT, {
+							detail: {
+								empId,
+								wallet: updatedWallet,
+								balance: newBalance,
+								transaction: newTransaction,
+							},
+						})
+					);
+
+					alert(`Payment successful! Added ₹${numAmount} to your wallet.`);
 				} else {
 					alert("Payment verification failed.");
 				}

@@ -6,9 +6,10 @@ const getWallet = async (req, res, next) =>{
 
     try {
         const {emp_id} = req.user;
-        const result = await db.query(`SELECT wallet_id, balance, bank_connection, updated_at FROM wallets WHERE emp_id = $1`, [emp_id]);
+        let result = await db.query(`SELECT wallet_id, balance, bank_connection, updated_at FROM wallets WHERE emp_id = $1`, [emp_id]);
         if(result.rows.length === 0){
-            return res.status(404).json({message: "Wallet not found"});
+            await db.query(`INSERT INTO wallets (emp_id, balance) VALUES ($1, $2)`, [emp_id, 10000.00]);
+            result = await db.query(`SELECT wallet_id, balance, bank_connection, updated_at FROM wallets WHERE emp_id = $1`, [emp_id]);
         }
         const {wallet_id, balance, bank_connection, updated_at} = result.rows[0];
         return res.json({
@@ -39,7 +40,10 @@ const addMoney = async (req, res, next) => {
             return res.status(400).json({ success: false, message: "Invalid amount" });
         }
         
-        await db.query(`UPDATE wallets SET balance = balance + $1 WHERE emp_id = $2`, [amount, emp_id]);
+        const result = await db.query(`UPDATE wallets SET balance = balance + $1 WHERE emp_id = $2 RETURNING balance`, [parseFloat(amount), emp_id]);
+        if (result.rows.length === 0) {
+            await db.query(`INSERT INTO wallets (emp_id, balance) VALUES ($1, $2)`, [emp_id, 10000.00 + parseFloat(amount)]);
+        }
         
         return res.json({ success: true, message: "Money added successfully" });
     } catch (error) {
