@@ -36,8 +36,6 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 			return;
 		}
 
-		//await db.query(`UPDATE )
-
 		if (!agreeTerms) {
 			setError("You must agree to the Terms of Service & Privacy Policy");
 			return;
@@ -64,7 +62,6 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 				localStorage.setItem("user", JSON.stringify(data.user));
 				onSignupSuccess?.({ ...data.user, organization });
 			}
-			//
 		})
 		.catch(err => {
 			setIsLoading(false);
