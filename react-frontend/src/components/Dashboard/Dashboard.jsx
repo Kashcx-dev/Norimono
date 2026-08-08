@@ -8,6 +8,7 @@ import VehicleRegistrationModal from "./VehicleRegistrationModal";
 import AIAssistant from "./AIAssistant";
 import ActiveTripPanel from "./ActiveTripPanel";
 import ChatModal from "./ChatModal";
+import VoiceCallModal from "./VoiceCallModal";
 import PublishRideModal from "./PublishRideModal";
 
 // Initialize socket connection (connects to the same origin by default)
@@ -30,6 +31,8 @@ function Dashboard() {
 	const [selectedRide, setSelectedRide] = useState(null);
 	const [activeTrip, setActiveTrip] = useState(null);
 	const [showGlobalChat, setShowGlobalChat] = useState(false);
+	const [showGlobalVoiceCall, setShowGlobalVoiceCall] = useState(false);
+	const [isIncomingCall, setIsIncomingCall] = useState(false);
 
 	const user = JSON.parse(localStorage.getItem("user") || "{}");
 
@@ -112,6 +115,15 @@ function Dashboard() {
 		setHasVehicle(user.is_vehicle_registered || "0");
 		fetchDriverActiveRide();
 		fetchPassengerActiveRide();
+		
+		// Listen for incoming voice calls
+		socket.on("voice_signal", (data) => {
+			if (data.type === "offer") {
+				setIsIncomingCall(true);
+				setShowGlobalVoiceCall(true);
+			}
+		});
+		return () => socket.off("voice_signal");
 	}, []);
 
 	const handlePublishRide = () => {
@@ -215,6 +227,10 @@ function Dashboard() {
 			<Header
 				onOpenVehicleModal={() => setShowVehicleModal(true)}
 				onOpenChat={() => setShowGlobalChat(true)}
+				onOpenVoiceCall={() => {
+					setIsIncomingCall(false);
+					setShowGlobalVoiceCall(true);
+				}}
 			/>
 
 			{/* Main Content Area */}
@@ -331,6 +347,19 @@ function Dashboard() {
 					onClose={() => setShowPublishModal(false)}
 					onPublish={handleRidePublished}
 					userLocation={userLocation}
+				/>
+			)}
+			{showGlobalVoiceCall && (
+				<VoiceCallModal
+					isOpen={showGlobalVoiceCall}
+					onClose={() => {
+						setShowGlobalVoiceCall(false);
+						setIsIncomingCall(false);
+					}}
+					socket={socket}
+					activeTrip={activeTrip || { ride: { ride_id: "DEMO_RIDE_1", driver_name: "Rahul M." } }}
+					user={user}
+					isCaller={!isIncomingCall}
 				/>
 			)}
 		</div>

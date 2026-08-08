@@ -81,6 +81,13 @@ io.on("connection", (socket) => {
         io.to(roomName).emit('new_chat_message', messageData);
     });
 
+    // WebRTC Voice Call Signaling
+    socket.on('voice_signal', (data) => {
+        const { ride_id, ...signalData } = data;
+        const roomName = `ride_${ride_id}`;
+        socket.to(roomName).emit('voice_signal', signalData);
+    });
+
 	socket.on("disconnect", () => {
 		console.log(`[Socket.io] Client disconnected: ${socket.id}`);
 	});

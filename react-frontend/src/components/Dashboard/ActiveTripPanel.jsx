@@ -15,8 +15,10 @@ import {
 	DollarSign,
 	Check,
 	Sparkles,
+	Phone,
 } from "lucide-react";
 import ChatModal from "./ChatModal";
+import VoiceCallModal from "./VoiceCallModal";
 
 // Helper to load Razorpay Checkout SDK dynamically
 const loadRazorpaySDK = () => {
@@ -63,6 +65,7 @@ export default function ActiveTripPanel({
 	const [liveLocation, setLiveLocation] = useState(null);
 	const [phase, setPhase] = useState("Waiting for pickup");
 	const [isChatOpen, setIsChatOpen] = useState(false);
+	const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
 
 	const user = JSON.parse(localStorage.getItem("user") || "{}");
 	const fareAmount = parseFloat(activeTrip.ride?.fare_per_seat || activeTrip.fare || 45);
@@ -715,13 +718,22 @@ export default function ActiveTripPanel({
 			<div className="flex-1 overflow-y-auto p-4 space-y-4">
 				{/* Ride Details Card */}
 				<div className="p-4 rounded-xl border border-gray-200 bg-gray-50/70 relative">
-					<button
-						onClick={() => setIsChatOpen(true)}
-						className="absolute top-3.5 right-3.5 bg-white border border-gray-200 hover:border-[#714B67] hover:text-[#714B67] text-gray-700 px-2.5 py-1.5 rounded-lg shadow-2xs flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer"
-					>
-						<MessageSquare className="w-3.5 h-3.5 text-[#00A09D]" />
-						<span>Chat</span>
-					</button>
+					<div className="absolute top-3.5 right-3.5 flex items-center gap-2">
+						<button
+							onClick={() => setIsVoiceCallOpen(true)}
+							className="bg-white border border-gray-200 hover:border-[#714B67] hover:text-[#714B67] text-gray-700 px-2.5 py-1.5 rounded-lg shadow-2xs flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer"
+						>
+							<Phone className="w-3.5 h-3.5 text-[#714B67]" />
+							<span>Call</span>
+						</button>
+						<button
+							onClick={() => setIsChatOpen(true)}
+							className="bg-white border border-gray-200 hover:border-[#714B67] hover:text-[#714B67] text-gray-700 px-2.5 py-1.5 rounded-lg shadow-2xs flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer"
+						>
+							<MessageSquare className="w-3.5 h-3.5 text-[#00A09D]" />
+							<span>Chat</span>
+						</button>
+					</div>
 
 					<div className="flex items-center gap-3 mb-3 pr-20">
 						<div className="w-10 h-10 rounded-xl bg-[#714B67]/10 text-[#714B67] flex items-center justify-center font-bold text-base shrink-0 border border-[#714B67]/20">
@@ -1301,6 +1313,15 @@ export default function ActiveTripPanel({
 				socket={socket}
 				activeTrip={activeTrip}
 				user={user}
+			/>
+
+			<VoiceCallModal
+				isOpen={isVoiceCallOpen}
+				onClose={() => setIsVoiceCallOpen(false)}
+				socket={socket}
+				activeTrip={activeTrip}
+				user={user}
+				isCaller={true}
 			/>
 		</div>
 	);
