@@ -68,6 +68,7 @@ function RideActions({
   const [loadingSource, setLoadingSource] = useState(false);
   const [loadingDest, setLoadingDest] = useState(false);
 
+  const [showSourceDropdown, setShowSourceDropdown] = useState(false);
   const [showDestDropdown, setShowDestDropdown] = useState(false);
 
   const [searchingRoute, setSearchingRoute] = useState(false);
