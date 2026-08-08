@@ -54,25 +54,26 @@ app.use("/rides", FN_verifyTkn, API_Limiter("standard"), ridesRoutes);
 
 // Socket.io connection logic for GPS Tracking
 io.on("connection", (socket) => {
-    console.log(`[Socket] Client connected: ${socket.id}`);
-    
-    socket.on("simulate_trip", async (data) => {
-        const { startCoords, endCoords, tripPhase } = data;
-        
-        console.log(`[GPS] Fetching route from OSRM...`);
-        const routeCoords = await getRouting(startCoords, endCoords);
-        
-        if (routeCoords) {
-            console.log(`[GPS] Route fetched (${routeCoords.length} points). Starting simulation...`);
-            startLiveTracking(socket, routeCoords, tripPhase || "active");
-        } else {
-            socket.emit("error", { message: "Failed to fetch route from OSRM" });
-        }
-    });
+	console.log(`[Socket.io] Client connected: ${socket.id}`);
+	
+	socket.on("join_ride_room", (data) => {
+		if (data && data.ride_id) {
+			socket.join(`ride_${data.ride_id}`);
+			console.log(`[Socket.io] Client ${socket.id} joined room ride_${data.ride_id}`);
+		}
+	});
 
-    socket.on("disconnect", () => {
-        console.log(`[Socket] Client disconnected: ${socket.id}`);
-    });
+	socket.on("start_tracking", async (data) => {
+		// data: { ride_id, startCoords: [lat, lon], endCoords: [lat, lon], phase: 'pickup' | 'dropoff' }
+		if (data && data.ride_id && data.startCoords && data.endCoords) {
+			console.log(`[Socket.io] Starting tracking for ride ${data.ride_id}, phase ${data.phase}`);
+			await startLiveTracking(io, data.ride_id, data.startCoords, data.endCoords, data.phase);
+		}
+	});
+
+	socket.on("disconnect", () => {
+		console.log(`[Socket.io] Client disconnected: ${socket.id}`);
+	});
 });
 
 // error handlers

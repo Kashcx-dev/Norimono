@@ -3,6 +3,21 @@
 
 const WALLET_EVENT = "makelyft_wallet_updated";
 
+// Helper to load Razorpay SDK
+const loadRazorpaySDK = () => {
+	return new Promise((resolve) => {
+		if (window.Razorpay) {
+			resolve(true);
+			return;
+		}
+		const script = document.createElement("script");
+		script.src = "https://checkout.razorpay.com/v1/checkout.js";
+		script.onload = () => resolve(true);
+		script.onerror = () => resolve(false);
+		document.body.appendChild(script);
+	});
+};
+
 const DEFAULT_INITIAL_WALLET = {
 	balance: 650.0,
 	currency: "₹",
@@ -105,30 +120,92 @@ export const addMoneyToWallet = async (empId, amount, paymentMethod = "UPI") => 
 		throw new Error("Please enter a valid amount greater than zero.");
 	}
 
-	// Attempt backend sync
-	let backendUpdated = false;
+	// Razorpay Integration
+	const resLoad = await loadRazorpaySDK();
+	if (!resLoad) {
+		throw new Error("Razorpay SDK failed to load. Are you online?");
+	}
+
 	try {
-		const response = await fetch("/wallet/add", {
+		// 1. Create Order
+		const orderRes = await fetch("/wallet/create-order", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 				...(token ? { Authorization: `Bearer ${token}` } : {}),
 			},
-			body: JSON.stringify({
-				emp_id: empId,
-				amount: numAmount,
-				payment_method: paymentMethod,
-			}),
+			body: JSON.stringify({ amount: numAmount }),
 		});
+		
+		const orderData = await orderRes.json();
+		if (!orderData.success) throw new Error("Failed to create order");
 
-		if (response.ok) {
-			const resData = await response.json();
-			if (resData && resData.success) {
-				backendUpdated = true;
+		// 2. Open Razorpay Checkout
+		const options = {
+			key: "YOUR_KEY_ID", // This is usually passed from backend, but Razorpay works with public key on frontend
+			amount: orderData.order.amount,
+			currency: orderData.order.currency,
+			name: "MakeLyft Wallet",
+			description: "Wallet Top-Up",
+			order_id: orderData.order.id,
+			handler: async function (response) {
+				// 3. Verify Payment
+				const verifyRes = await fetch("/wallet/verify-payment", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						...(token ? { Authorization: `Bearer ${token}` } : {}),
+					},
+					body: JSON.stringify({
+						razorpay_payment_id: response.razorpay_payment_id,
+						razorpay_order_id: response.razorpay_order_id,
+						razorpay_signature: response.razorpay_signature,
+					}),
+				});
+				
+				const verifyData = await verifyRes.json();
+				if (verifyData.success) {
+					// 4. Update Backend Wallet Balance
+					await fetch("/wallet/add", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							...(token ? { Authorization: `Bearer ${token}` } : {}),
+						},
+						body: JSON.stringify({
+							emp_id: empId,
+							amount: numAmount,
+							payment_method: paymentMethod,
+						}),
+					});
+					
+					// Force reload of page or dispatch success
+					alert("Payment successful! Wallet balance updated.");
+					window.location.reload();
+				} else {
+					alert("Payment verification failed.");
+				}
+			},
+			prefill: {
+				name: "MakeLyft User",
+				email: "user@makelyft.corp",
+				contact: "9999999999"
+			},
+			theme: {
+				color: "#714B67"
 			}
-		}
+		};
+		
+		const rzp = new window.Razorpay(options);
+		rzp.on('payment.failed', function (response){
+			alert("Payment Failed: " + response.error.description);
+		});
+		rzp.open();
+		
+		// Return immediately so UI doesn't hang, the handler will take care of success
+		return;
 	} catch (err) {
-		console.warn("Backend add money fallback to local state:", err.message);
+		console.warn("Razorpay flow failed, fallback to local state:", err.message);
 	}
 
 	// Read current wallet data

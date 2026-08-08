@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from "react";
+import { io } from "socket.io-client";
 import Header from "./Header";
 import MapPlaceholder from "./MapPlaceholder";
 import RideActions from "./RideActions";
 import BrowseRidesPanel from "./BrowseRidesPanel";
 import VehicleRegistrationModal from "./VehicleRegistrationModal";
 import AIAssistant from "./AIAssistant";
+import ActiveTripPanel from "./ActiveTripPanel";
+
+// Initialize socket connection (connects to the same origin by default)
+const socket = io();
 
 function Dashboard() {
 	const [viewMode, setViewMode] = useState("default"); // 'default' | 'browse'
@@ -20,6 +25,7 @@ function Dashboard() {
 	const [nearbyRides, setNearbyRides] = useState([]);
 	const [loadingNearby, setLoadingNearby] = useState(false);
 	const [selectedRide, setSelectedRide] = useState(null);
+	const [activeTrip, setActiveTrip] = useState(null);
 
 	// Get user's current location on mount
 	useEffect(() => {
@@ -125,6 +131,18 @@ function Dashboard() {
 		setSelectedRide(null);
 	};
 
+	const handleRideBooked = (bookingSuccessData) => {
+		// When a ride is booked successfully, switch to active trip view
+		setActiveTrip({
+			mode: "passenger",
+			...bookingSuccessData
+		});
+	};
+
+	const handleTripEnded = () => {
+		setActiveTrip(null);
+	};
+
 	return (
 		<div className="min-h-screen bg-gray-50 flex flex-col w-full text-left">
 			<Header onOpenVehicleModal={() => setShowVehicleModal(true)} />
@@ -143,14 +161,9 @@ function Dashboard() {
 									onSelectRide={setSelectedRide}
 									onBack={handleBackToSearch}
 									userLocation={userLocation}
-									onRideBooked={(rideId) => {
-										setNearbyRides((prev) =>
-											prev.map((r) =>
-												r.ride_id === rideId
-													? { ...r, available_seats: Math.max(0, r.available_seats - 1) }
-													: r
-											)
-										);
+									onRideBooked={(bookingData) => {
+										setViewMode("default");
+										handleRideBooked(bookingData);
 									}}
 								/>
 							</div>
@@ -183,16 +196,24 @@ function Dashboard() {
 							</div>
 
 							{/* DEFAULT MODE: Search / Ride Actions on Right */}
-							<div className="w-full lg:w-1/3 transition-all duration-500 ease-in-out">
-								<RideActions 
-									onPublishRide={handlePublishRide} 
-									onLocationUpdate={handleLocationUpdate}
-									pickupCoords={pickupCoords}
-									dropoffCoords={dropoffCoords}
-									userLocation={userLocation}
-									onSearchRoute={setRoutePolyline}
-									onBrowseRides={handleBrowseRides}
-								/>
+							<div className="w-full lg:w-1/3 flex flex-col h-[600px] lg:h-auto">
+								{activeTrip ? (
+									<ActiveTripPanel 
+										activeTrip={activeTrip}
+										socket={socket}
+										onTripEnded={handleTripEnded}
+									/>
+								) : (
+									<RideActions 
+										onPublishRide={handlePublishRide} 
+										onLocationUpdate={handleLocationUpdate}
+										pickupCoords={pickupCoords}
+										dropoffCoords={dropoffCoords}
+										userLocation={userLocation}
+										onSearchRoute={setRoutePolyline}
+										onBrowseRides={handleBrowseRides}
+									/>
+								)}
 							</div>
 						</>
 					)}
