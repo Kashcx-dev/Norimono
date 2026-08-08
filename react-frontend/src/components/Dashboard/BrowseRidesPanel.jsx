@@ -2,21 +2,16 @@ import React, { useState } from "react";
 import {
 	ArrowLeft,
 	Car,
-	// MapPin,
 	Clock,
 	Users,
 	Star,
 	ShieldCheck,
 	Search,
-	// SlidersHorizontal,
 	CheckCircle2,
 	X,
-	// Sparkles,
-	// Navigation2,
-	// Ticket,
-	// ChevronRight,
-	// AlertCircle
+	Wallet,
 } from "lucide-react";
+import { deductMoneyForRide } from "../../utils/walletService";
 
 export default function BrowseRidesPanel({
 	rides = [],
@@ -67,6 +62,10 @@ export default function BrowseRidesPanel({
 
 	const handleBookRide = async (ride) => {
 		const token = localStorage.getItem("token");
+		const user = JSON.parse(localStorage.getItem("user") || "{}");
+		const empId = user.emp_id || "EMP-DEFAULT";
+		const fare = ride.fare_per_seat || 45;
+
 		setBookingLoading(true);
 
 		try {
@@ -85,12 +84,20 @@ export default function BrowseRidesPanel({
 
 			const data = await res.json();
 			if (data.success) {
+				// Deduct fare from MakeLyft wallet
+				try {
+					await deductMoneyForRide(empId, fare, ride);
+				} catch (wErr) {
+					console.warn("Wallet deduction:", wErr.message);
+				}
+
 				setBookingSuccess({
 					otp: data.pickup_otp || Math.floor(1000 + Math.random() * 9000),
 					booking_id:
 						data.booking_id ||
 						"BK-" + Math.floor(10000 + Math.random() * 90000),
 					ride: ride,
+					fare: fare,
 				});
 				if (onRideBooked) onRideBooked(ride.ride_id);
 			} else {
@@ -99,10 +106,16 @@ export default function BrowseRidesPanel({
 		} catch (err) {
 			console.error("Booking error:", err);
 			// Fallback for demonstration
+			try {
+				await deductMoneyForRide(empId, fare, ride);
+			} catch (wErr) {
+				console.warn("Wallet fallback deduction:", wErr.message);
+			}
 			setBookingSuccess({
 				otp: Math.floor(1000 + Math.random() * 9000),
 				booking_id: "BK-" + Math.floor(10000 + Math.random() * 90000),
 				ride: ride,
+				fare: fare,
 			});
 		} finally {
 			setBookingLoading(false);
@@ -439,12 +452,18 @@ export default function BrowseRidesPanel({
 									</span>
 								</div>
 								<div className="flex justify-between items-center pt-2 border-t border-teal-200">
-									<span className="text-teal-900 font-bold">
-										Commute Contribution
-									</span>
-									<span className="text-base font-extrabold text-[#00A09D]">
-										₹{bookingModalRide.fare_per_seat || 45}
-									</span>
+									<div className="flex items-center gap-1.5 text-teal-900 font-bold">
+										<Wallet className="w-3.5 h-3.5 text-[#714B67]" />
+										<span>Commute Contribution</span>
+									</div>
+									<div className="text-right">
+										<span className="text-base font-extrabold text-[#00A09D]">
+											₹{bookingModalRide.fare_per_seat || 45}
+										</span>
+										<span className="block text-[10px] text-gray-500 font-medium">
+											from MakeLyft Wallet
+										</span>
+									</div>
 								</div>
 							</div>
 
@@ -503,6 +522,16 @@ export default function BrowseRidesPanel({
 							</div>
 							<span className="text-[11px] text-gray-500 mt-1 block">
 								Booking ID: {bookingSuccess.booking_id}
+							</span>
+						</div>
+
+						{/* Wallet Payment confirmation tag */}
+						<div className="p-2.5 bg-purple-50 rounded-xl border border-purple-100 flex items-center justify-between text-xs">
+							<span className="text-gray-600 font-medium flex items-center gap-1.5">
+								<Wallet className="w-3.5 h-3.5 text-[#714B67]" /> MakeLyft Wallet
+							</span>
+							<span className="font-bold text-[#714B67]">
+								-₹{bookingSuccess.fare || 45}.00 Deducted
 							</span>
 						</div>
 

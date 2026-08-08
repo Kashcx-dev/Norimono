@@ -28,9 +28,12 @@ import {
 	// ShieldAlert,
 	ChevronRight,
 	RefreshCw,
+	Wallet,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import carModels from "../data/car_models.json";
+import WalletModal from "./Dashboard/WalletModal";
+import { getWalletData, subscribeToWallet } from "../utils/walletService";
 
 function AdminDashboard() {
 	const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'employees' | 'vehicles' | 'settings'
@@ -55,6 +58,8 @@ function AdminDashboard() {
 	const [showAddVehicleModal, setShowAddVehicleModal] = useState(false);
 	const [dropdownOpen, setDropdownOpen] = useState(false);
 	const [notificationsOpen, setNotificationsOpen] = useState(false);
+	const [walletModalOpen, setWalletModalOpen] = useState(false);
+	const [walletBalance, setWalletBalance] = useState(650.0);
 	const [successToast, setSuccessToast] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [savingSettings, setSavingSettings] = useState(false);
@@ -88,6 +93,21 @@ function AdminDashboard() {
 			return;
 		}
 		fetchData();
+
+		const empId = user.emp_id || "EMP-ADMIN";
+		getWalletData(empId).then((data) => {
+			if (data && typeof data.balance === "number") {
+				setWalletBalance(data.balance);
+			}
+		});
+
+		const unsubscribe = subscribeToWallet((updatedWallet) => {
+			if (updatedWallet && typeof updatedWallet.balance === "number") {
+				setWalletBalance(updatedWallet.balance);
+			}
+		});
+
+		return () => unsubscribe();
 	}, [token, navigate]);
 
 	const showToast = (msg) => {
@@ -473,6 +493,27 @@ function AdminDashboard() {
 
 					{/* Right: Actions, Refresh, Notifications, Profile */}
 					<div className="flex items-center gap-3">
+						{/* Wallet Pill Button */}
+						<button
+							onClick={() => {
+								setWalletModalOpen(true);
+								setDropdownOpen(false);
+								setNotificationsOpen(false);
+							}}
+							className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-50/70 hover:bg-purple-100/70 text-[#714B67] border border-[#714B67]/20 transition-all cursor-pointer group"
+							title="Open MakeLyft Commute Wallet"
+						>
+							<div className="w-5 h-5 rounded-lg bg-[#714B67] text-white flex items-center justify-center group-hover:scale-105 transition-transform">
+								<Wallet className="w-3 h-3" />
+							</div>
+							<div className="text-left flex flex-col leading-tight">
+								<span className="text-[9px] uppercase font-bold text-gray-500 tracking-wider">Wallet</span>
+								<span className="text-xs font-extrabold text-gray-900 font-mono">
+									₹{walletBalance.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+								</span>
+							</div>
+						</button>
+
 						<button
 							onClick={fetchData}
 							title="Refresh Data"
@@ -1384,8 +1425,15 @@ function AdminDashboard() {
 					</div>
 				</div>
 			)}
+
+			{/* Wallet Modal */}
+			<WalletModal
+				isOpen={walletModalOpen}
+				onClose={() => setWalletModalOpen(false)}
+			/>
 		</div>
 	);
 }
 
 export default AdminDashboard;
+
