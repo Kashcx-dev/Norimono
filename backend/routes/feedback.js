@@ -6,12 +6,14 @@ const nodemailer = require('nodemailer');
 // feedback routes
 router.post('/send_feedback', async (req, res, next) =>{
     const {message, rating} = req.body;
-    const username = req.user.username;
-    const user = await db.query(`SELECT email FROM users WHERE user_id = $1`, [username]);
+    const emp_id = req.user.emp_id;
+    
+    const user = await db.query(`SELECT name, email FROM users WHERE emp_id = $1`, [emp_id]);
     if(user.rows.length === 0) {
         return res.status(404).json({error: "User not found"});
     }
     const user_email = user.rows[0].email;
+    const user_name = user.rows[0].name;
 
     if(!message || !rating){
         return res.status(400).json({error: "No message was provided"});
@@ -32,7 +34,7 @@ router.post('/send_feedback', async (req, res, next) =>{
         from: process.env.EMAIL_USER,
         replyTo: user_email,
         to: process.env.EMAIL_USER,
-        subject: `Feedback for InstaKG from ${username}`,
+        subject: `Feedback for MakeLyft from ${user_name}`,
         text: `Rating: ${rating} Stars\n\nMessage:\n${message}`
     };
 
