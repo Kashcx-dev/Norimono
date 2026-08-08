@@ -31,6 +31,14 @@ function Dashboard() {
 		}
 	}, []);
 
+	// Check if user already has a vehicle registered
+	useEffect(() => {
+		const user = JSON.parse(sessionStorage.getItem("user") || "{}");
+		if (user.is_vehicle_registered === "1" || user.is_vehicle_registered === "2") {
+			setHasVehicle(true);
+		}
+	}, []);
+
 	const handlePublishRide = () => {
 		if (!hasVehicle) {
 			setShowVehicleModal(true);
@@ -39,11 +47,29 @@ function Dashboard() {
 		}
 	};
 
-	const handleRegisterVehicle = (vehicleData) => {
-		console.log("Registered:", vehicleData);
-		setHasVehicle(true);
-		setShowVehicleModal(false);
-		alert("Application submitted to admin for review.");
+	const handleRegisterVehicle = async (vehicleData) => {
+		const token = sessionStorage.getItem("token");
+		try {
+			const res = await fetch("/register-vehicle", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`
+				},
+				body: JSON.stringify(vehicleData)
+			});
+			const data = await res.json();
+			if (data.success) {
+				setHasVehicle(true);
+				setShowVehicleModal(false);
+				alert("Application submitted to admin for review.");
+			} else {
+				alert("Vehicle registration failed: " + (data.message || "Please check details"));
+			}
+		} catch (err) {
+			console.error("Error registering vehicle:", err);
+			alert("Error registering vehicle. Please try again.");
+		}
 	};
 
 	const handleLocationUpdate = (type, coords) => {

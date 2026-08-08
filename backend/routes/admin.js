@@ -35,8 +35,40 @@ router.get('/vehicles', async (req, res, next) => {
         next(err);
     }
 });
+// 2.5 Admin Add Vehicle Directly
+router.post('/vehicles', async (req, res, next) => {
+    try {
+        const { emp_id, vehicle_model, veh_no, seating_capacity, fuel_consumption_ratio } = req.body;
+        
+        if (!emp_id || !veh_no) return res.status(400).json({ success: false, message: "emp_id and veh_no are required" });
 
-// 2.5 Approve a vehicle
+        const crypto = require('crypto');
+        const veh_id = 'VEH-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+
+        await db.query('BEGIN');
+        
+        // Insert vehicle
+        await db.query(
+            `INSERT INTO vehicles (veh_id, veh_no, emp_id, vehicle_model, seating_capacity, fuel_consumption_ratio) 
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [veh_id, veh_no, emp_id, vehicle_model, seating_capacity || 4, fuel_consumption_ratio || 1.0]
+        );
+
+        // Update user status directly to '2' (Approved)
+        await db.query("UPDATE users SET is_vehicle_registered = '2' WHERE emp_id = $1", [emp_id]);
+
+        await db.query('COMMIT');
+        res.json({ success: true, message: "Vehicle registered successfully by admin" });
+    } catch (err) {
+        await db.query('ROLLBACK');
+        if(err.code === '23505') {
+            return res.status(400).json({ success: false, message: "Vehicle number already exists." });
+        }
+        next(err);
+    }
+});
+
+// 2.75 Approve a pending vehicle
 router.post('/vehicles/approve', async (req, res, next) => {
     try {
         const { veh_id } = req.body;
