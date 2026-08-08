@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const pool = require("../database/db");
+const db = require("../handlers/dbHandler");
 const authenticateToken = require("./authMiddleware");
 
 // GET /api/history/driver
@@ -14,7 +14,7 @@ router.get("/driver", authenticateToken, async (req, res, next) => {
             WHERE driver_id = $1 
             ORDER BY departure_time DESC
         `;
-        const { rows } = await pool.query(query, [userId]);
+        const { rows } = await db.query(query, [userId]);
         
         return res.json({ success: true, history: rows });
     } catch (error) {
@@ -37,7 +37,7 @@ router.get("/passenger", authenticateToken, async (req, res, next) => {
             WHERE b.passenger_id = $1
             ORDER BY r.departure_time DESC
         `;
-        const { rows } = await pool.query(query, [userId]);
+        const { rows } = await db.query(query, [userId]);
         
         return res.json({ success: true, history: rows });
     } catch (error) {
