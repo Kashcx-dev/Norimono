@@ -245,7 +245,7 @@ router.get("/me", FN_verifyTkn, async (req, res, next) => {
         
         // Fetch vehicle if any
         const vehicleQuery = await db.query(
-            "SELECT veh_no, vehicle_model, seating_capacity FROM vehicles WHERE emp_id = $1",
+            "SELECT * FROM vehicles WHERE emp_id = $1",
             [emp_id]
         );
         
