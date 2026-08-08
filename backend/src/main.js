@@ -15,6 +15,7 @@ const publishRideRoutes = require("../routes/publishRide");
 const bookRideRoutes = require("../routes/bookRide");
 const pickupRideRoutes = require("../routes/pickupRide");
 const registerVehicleRoutes = require("../routes/registerVehicle");
+const dropPassengerRoutes = require("../routes/dropPassenger");
 const { getRouting } = require("../handlers/GPS_CalcHandler");
 const { startLiveTracking } = require("../routes/GPS_fetch");
 
@@ -41,6 +42,7 @@ app.use("/publish-ride", FN_verifyTkn, API_Limiter("standard"), publishRideRoute
 app.use("/book-ride", FN_verifyTkn, API_Limiter("standard"), bookRideRoutes);
 app.use("/pickup-ride", FN_verifyTkn, API_Limiter("standard"), pickupRideRoutes);
 app.use("/register-vehicle", FN_verifyTkn, API_Limiter("standard"), registerVehicleRoutes);
+app.use("/drop-passenger", FN_verifyTkn, API_Limiter("standard"), dropPassengerRoutes);
 
 // Socket.io connection logic for GPS Tracking
 io.on("connection", (socket) => {
