@@ -19,7 +19,7 @@ router.post('/', async (req, res, next) => {
             return res.status(400).json({message: "Need the passenger's OTP to confirm pickup."});
         }
 
-        // 1. Fetch the booking and join with the ride to ensure this driver actually owns the ride
+        // Fetch the booking and join with the ride to ensure this driver actually owns the ride
         const bookingResult = await db.query(`
             SELECT b.booking_id, b.otp, b.booking_status, r.driver_id, r.status AS ride_status
             FROM bookings b
@@ -33,22 +33,22 @@ router.post('/', async (req, res, next) => {
 
         const bookingInfo = bookingResult.rows[0];
 
-        // 2. Verify the driver owns this ride
+        // Verify the driver owns this ride
         if(bookingInfo.driver_id !== driver_id){
             return res.status(403).json({message: "You are not the driver for this ride."});
         }
 
-        // 3. Check if the booking is already completed or cancelled
+        // Check if the booking is already completed or cancelled
         if(bookingInfo.booking_status !== "confirmed"){
             return res.status(400).json({message: `Booking is not in confirmed state (Current state: ${bookingInfo.booking_status})`});
         }
 
-        // 4. Validate OTP
+        // Validate OTP
         if (bookingInfo.otp !== otp) {
             return res.status(401).json({message: "Invalid OTP. Passenger verification failed."});
         }
 
-        // 5. Update the booking status to indicate the passenger has been picked up
+        // Update the booking status to indicate the passenger has been picked up
         await db.query(
             "UPDATE bookings SET booking_status = 'in_progress' WHERE booking_id = $1", 
             [booking_id]
