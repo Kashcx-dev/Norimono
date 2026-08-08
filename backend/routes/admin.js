@@ -12,7 +12,9 @@ router.get('/employees', async (req, res, next) => {
         const result = await db.query(
             `SELECT emp_id, name, email, phone, role, is_vehicle_registered, passenger_rating, driving_rating, created_at 
              FROM users 
-             ORDER BY created_at DESC`
+             WHERE org_name = $1
+             ORDER BY created_at DESC`,
+            [req.user.org_name]
         );
         res.json({ success: true, employees: result.rows });
     } catch (err) {
@@ -28,7 +30,9 @@ router.get('/vehicles', async (req, res, next) => {
                     u.name as driver_name, u.email as driver_email, u.is_vehicle_registered 
              FROM vehicles v
              JOIN users u ON v.emp_id = u.emp_id
-             ORDER BY v.created_at DESC`
+             WHERE u.org_name = $1
+             ORDER BY v.created_at DESC`,
+            [req.user.org_name]
         );
         res.json({ success: true, vehicles: result.rows });
     } catch (err) {
@@ -92,7 +96,10 @@ router.post('/vehicles/approve', async (req, res, next) => {
 // 3. Get org settings
 router.get('/settings', async (req, res, next) => {
     try {
-        const result = await db.query('SELECT * FROM org_settings ORDER BY id DESC LIMIT 1');
+        const result = await db.query(
+            'SELECT * FROM org_settings WHERE org_name = $1 LIMIT 1', 
+            [req.user.org_name]
+        );
         res.json({ success: true, settings: result.rows[0] || {} });
     } catch (err) {
         next(err);
@@ -107,16 +114,17 @@ router.put('/settings', async (req, res, next) => {
         const result = await db.query(
             `UPDATE org_settings 
              SET fuel_cost_per_km = $1, travel_cost_per_km = $2, max_rides_per_day = $3, updated_at = CURRENT_TIMESTAMP
+             WHERE org_name = $4
              RETURNING *`,
-            [fuel_cost_per_km, travel_cost_per_km, max_rides_per_day]
+            [fuel_cost_per_km, travel_cost_per_km, max_rides_per_day, req.user.org_name]
         );
         
         // If table was somehow empty, insert it
         if (result.rows.length === 0) {
             const insertResult = await db.query(
-                `INSERT INTO org_settings (fuel_cost_per_km, travel_cost_per_km, max_rides_per_day) 
-                 VALUES ($1, $2, $3) RETURNING *`,
-                [fuel_cost_per_km, travel_cost_per_km, max_rides_per_day]
+                `INSERT INTO org_settings (org_name, fuel_cost_per_km, travel_cost_per_km, max_rides_per_day) 
+                 VALUES ($1, $2, $3, $4) RETURNING *`,
+                [req.user.org_name, fuel_cost_per_km, travel_cost_per_km, max_rides_per_day]
             );
             return res.json({ success: true, settings: insertResult.rows[0], message: "Settings created" });
         }
@@ -130,10 +138,11 @@ router.put('/settings', async (req, res, next) => {
 // 5. Get Metrics / Monitor Participation
 router.get('/metrics', async (req, res, next) => {
     try {
-        const usersRes = await db.query("SELECT COUNT(*) as total FROM users WHERE role = 'employee'");
-        const vehRes = await db.query("SELECT COUNT(*) as total FROM vehicles");
-        const ridesRes = await db.query("SELECT COUNT(*) as total FROM rides");
-        const activeRes = await db.query("SELECT COUNT(*) as total FROM rides WHERE status = 'scheduled' OR status = 'in_progress'");
+        const org_name = req.user.org_name;
+        const usersRes = await db.query("SELECT COUNT(*) as total FROM users WHERE role = 'employee' AND org_name = $1", [org_name]);
+        const vehRes = await db.query("SELECT COUNT(*) as total FROM vehicles v JOIN users u ON v.emp_id = u.emp_id WHERE u.org_name = $1", [org_name]);
+        const ridesRes = await db.query("SELECT COUNT(*) as total FROM rides r JOIN users u ON r.driver_id = u.emp_id WHERE u.org_name = $1", [org_name]);
+        const activeRes = await db.query("SELECT COUNT(*) as total FROM rides r JOIN users u ON r.driver_id = u.emp_id WHERE (r.status = 'scheduled' OR r.status = 'in_progress') AND u.org_name = $1", [org_name]);
 
         res.json({
             success: true,

@@ -35,10 +35,10 @@ const transporter = nodemailer.createTransport({
 
 // --- SIGNUP FLOW ---
 router.post("/signup", async (req, res, next) => {
-    const { name, email, phone, password, role } = req.body;
+    const { name, email, phone, password, role, organization } = req.body;
 
-    if (!name || !email || !password) {
-        return res.status(400).json({ message: "Name, email, and password are required." });
+    if (!name || !email || !password || !organization) {
+        return res.status(400).json({ message: "Name, email, password, and organization are required." });
     }
 
     const selectedRole = (role === 'admin') ? 'admin' : 'employee';
@@ -52,12 +52,14 @@ router.post("/signup", async (req, res, next) => {
         const hashedPassword = await Hash_Pass(password);
         const otp = crypto.randomInt(100000, 999999).toString();
         const expiresAt = Date.now() + 5 * 60 * 1000;
+        const org_name = organization; // Use dropdown value instead of email extraction
 
         signupStore.set(email, { 
             name, 
             phone, 
             role: selectedRole,
             hashedPassword, 
+            org_name,
             code: otp, 
             expiresAt 
         });
@@ -104,14 +106,22 @@ router.post("/verify-signup-otp", async (req, res, next) => {
             const userRole = record.role || 'employee';
             
             await db.query(
-                `INSERT INTO users (emp_id, name, email, phone, role, password_hash) 
-                 VALUES ($1, $2, $3, $4, $5, $6)`, 
-                [emp_id, record.name, email, record.phone || null, userRole, record.hashedPassword]
+                `INSERT INTO users (emp_id, name, email, org_name, phone, role, password_hash) 
+                 VALUES ($1, $2, $3, $4, $5, $6, $7)`, 
+                [emp_id, record.name, email, record.org_name, record.phone || null, userRole, record.hashedPassword]
+            );
+
+            // Also ensure org_settings exists for this new org_name
+            await db.query(
+                `INSERT INTO org_settings (org_name, fuel_cost_per_km, travel_cost_per_km) 
+                 VALUES ($1, 5.50, 2.00) 
+                 ON CONFLICT (org_name) DO NOTHING`,
+                [record.org_name]
             );
 
             signupStore.delete(email);
 
-            const user_data = { emp_id, email, name: record.name, role: userRole };
+            const user_data = { emp_id, email, name: record.name, role: userRole, org_name: record.org_name };
             const token = jwt.sign(user_data, process.env.JWT_SECRET || 'secret', { expiresIn: "7d" });
 
             return res.json({ 
@@ -131,10 +141,10 @@ router.post("/verify-signup-otp", async (req, res, next) => {
 
 // --- LOGIN FLOW ---
 router.post("/login", async (req, res, next) => {
-    const { email, password } = req.body;
+    const { email, password, organization } = req.body;
 
-    if (!email || !password) {
-        return res.status(400).json({ message: "Email and password are required." });
+    if (!email || !password || !organization) {
+        return res.status(400).json({ message: "Email, password, and organization are required." });
     }
 
     try {
@@ -142,6 +152,9 @@ router.post("/login", async (req, res, next) => {
         const user = result.rows[0];
 
         if (user) {
+            if (user.org_name && user.org_name !== organization) {
+                return res.status(401).json({ message: "This email does not belong to the selected organization." });
+            }
             const isMatch = await Compare_Pass(password, user.password_hash);
             if (isMatch) {
                 const otp = crypto.randomInt(100000, 999999).toString();
@@ -152,7 +165,8 @@ router.post("/login", async (req, res, next) => {
                     expiresAt, 
                     emp_id: user.emp_id,
                     name: user.name,
-                    role: user.role
+                    role: user.role,
+                    org_name: user.org_name
                 });
 
                 try {
@@ -200,7 +214,7 @@ router.post("/verify-otp", (req, res, next) => {
     if (record.code === otp) {
         otpStore.delete(email); 
         
-        const user_data = { emp_id: record.emp_id, email, name: record.name, role: record.role };
+        const user_data = { emp_id: record.emp_id, email, name: record.name, role: record.role, org_name: record.org_name };
         const token = jwt.sign(user_data, process.env.JWT_SECRET || 'secret', { expiresIn: "7d" });
         
         return res.json({ 

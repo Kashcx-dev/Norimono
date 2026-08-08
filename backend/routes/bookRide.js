@@ -7,7 +7,7 @@ router.post('/', async (req, res, next) => {
     try {
         const { ride_id, pickup_location, dropoff_location } = req.body;
 
-        // Ensure user is authenticated (populated by FN_verifyTkn)
+        // Ensure user is authenticated
         if (!req.user || !req.user.emp_id) {
             return res.status(401).json({ message: "Unauthorized. Please log in." });
         }
@@ -19,9 +19,12 @@ router.post('/', async (req, res, next) => {
             return res.status(400).json({ message: "Missing required fields: ride_id, pickup_location, dropoff_location." });
         }
 
-        // Check if the ride exists and has available seats
+        // Check if the ride exists and has available seats, and if it's in the same organization
         const rideResult = await db.query(
-            'SELECT available_seats, driver_id FROM rides WHERE ride_id = $1', 
+            `SELECT r.available_seats, r.driver_id, u.org_name 
+             FROM rides r
+             JOIN users u ON r.driver_id = u.emp_id
+             WHERE r.ride_id = $1`, 
             [ride_id]
         );
 
@@ -33,6 +36,10 @@ router.post('/', async (req, res, next) => {
 
         if (ride.driver_id === passenger_id) {
             return res.status(400).json({ message: "You cannot book your own published ride." });
+        }
+
+        if (ride.org_name !== req.user.org_name) {
+            return res.status(403).json({ message: "You can only book rides within your own organization." });
         }
 
         if (ride.available_seats <= 0) {

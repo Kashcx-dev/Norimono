@@ -13,8 +13,12 @@ const calcFare = async (req, res, next) => {
         // Total chargeable distance = deviation distance + passenger route distance
         const total_chargeable_distance = parseFloat(extra_driver_distance) + parseFloat(passenger_distance);
 
-        // Fetch organization settings for the current rates
-        const settingsRes = await db.query('SELECT fuel_cost_per_km, travel_cost_per_km FROM org_settings ORDER BY id DESC LIMIT 1');
+        // Fetch organization settings for the current rates based on user's organization
+        const org_name = req.user ? req.user.org_name : 'Odoo'; // fallback if not authenticated (though it should be)
+        const settingsRes = await db.query(
+            'SELECT fuel_cost_per_km, travel_cost_per_km FROM org_settings WHERE org_name = $1 LIMIT 1',
+            [org_name]
+        );
         
         let cost_per_km = 7.50; // default fallback (5.50 fuel + 2.00 travel)
         if (settingsRes.rows.length > 0) {

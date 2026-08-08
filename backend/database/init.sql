@@ -10,6 +10,7 @@ DROP TABLE IF EXISTS org_settings CASCADE;
 -- Organization Settings (Admin configuration)
 CREATE TABLE org_settings (
     id SERIAL PRIMARY KEY,
+    org_name VARCHAR(100) UNIQUE NOT NULL,
     fuel_cost_per_km DECIMAL(5, 2) DEFAULT 0.00,
     travel_cost_per_km DECIMAL(5, 2) DEFAULT 0.00,
     max_rides_per_day INT DEFAULT 5,
@@ -17,13 +18,14 @@ CREATE TABLE org_settings (
 );
 
 -- Insert default settings
-INSERT INTO org_settings (fuel_cost_per_km, travel_cost_per_km) VALUES (5.50, 2.00);
+INSERT INTO org_settings (org_name, fuel_cost_per_km, travel_cost_per_km) VALUES ('Odoo', 5.50, 2.00);
 
 -- Users Table (Profile)
 CREATE TABLE users (
     emp_id VARCHAR(50) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
+    org_name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
     role VARCHAR(30) NOT NULL DEFAULT 'employee',
     password_hash VARCHAR(255) NOT NULL,

@@ -45,11 +45,9 @@ function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [savingSettings, setSavingSettings] = useState(false);
 
-  // New Employee Form State
   const [newEmp, setNewEmp] = useState({
     name: "",
     email: "",
-    department: "Engineering",
     manager: "A. Shah",
     location: "Ahmedabad",
     role: "employee",
@@ -512,7 +510,6 @@ function AdminDashboard() {
                     <tr className="border-b border-gray-200 bg-gray-50/50 text-xs font-bold text-[#00A09D]">
                       <th className="py-3.5 px-6">Name</th>
                       <th className="py-3.5 px-6">Email</th>
-                      <th className="py-3.5 px-6">Department</th>
                       <th className="py-3.5 px-6">Manager</th>
                       <th className="py-3.5 px-6">Location</th>
                       <th className="py-3.5 px-6 text-right">Platform Access</th>
@@ -533,9 +530,6 @@ function AdminDashboard() {
                             </td>
                             <td className="py-4 px-6 font-mono text-gray-600">
                               {emp.email}
-                            </td>
-                            <td className="py-4 px-6 text-gray-700">
-                              {emp.department || "Engineering"}
                             </td>
                             <td className="py-4 px-6 text-gray-700">
                               {emp.manager || "A. Shah"}
@@ -561,7 +555,7 @@ function AdminDashboard() {
                       })
                     ) : (
                       <tr>
-                        <td colSpan={6} className="py-8 text-center text-gray-400">
+                        <td colSpan={5} className="py-8 text-center text-gray-400">
                           No employees found.
                         </td>
                       </tr>
@@ -786,25 +780,6 @@ function AdminDashboard() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold uppercase text-gray-600 mb-1">
-                    Department
-                  </label>
-                  <select
-                    value={newEmp.department}
-                    onChange={(e) =>
-                      setNewEmp({ ...newEmp, department: e.target.value })
-                    }
-                    className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#00A09D]/20 focus:border-[#00A09D]"
-                  >
-                    <option value="Engineering">Engineering</option>
-                    <option value="Sales">Sales</option>
-                    <option value="HR">HR</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Operations">Operations</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase text-gray-600 mb-1">
                     Manager
                   </label>
                   <input
@@ -817,21 +792,20 @@ function AdminDashboard() {
                     className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#00A09D]/20 focus:border-[#00A09D]"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase text-gray-600 mb-1">
-                  Location
-                </label>
-                <input
-                  type="text"
-                  value={newEmp.location}
-                  onChange={(e) =>
-                    setNewEmp({ ...newEmp, location: e.target.value })
-                  }
-                  placeholder="Ahmedabad"
-                  className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#00A09D]/20 focus:border-[#00A09D]"
-                />
+                <div>
+                  <label className="block text-xs font-bold uppercase text-gray-600 mb-1">
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    value={newEmp.location}
+                    onChange={(e) =>
+                      setNewEmp({ ...newEmp, location: e.target.value })
+                    }
+                    placeholder="Ahmedabad"
+                    className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#00A09D]/20 focus:border-[#00A09D]"
+                  />
+                </div>
               </div>
 
               <div className="pt-3 flex gap-2">
