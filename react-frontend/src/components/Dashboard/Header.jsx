@@ -3,7 +3,7 @@ import { User, Car, LogOut, Settings, Bell, Phone, MessageSquare, Calendar, MapP
 import WalletModal from "./WalletModal";
 import { getWalletData, subscribeToWallet } from "../../utils/walletService";
 
-function Header({ onOpenVehicleModal }) {
+function Header({ onOpenVehicleModal, onOpenChat }) {
 	const [dropdownOpen, setDropdownOpen] = useState(false);
 	const [notificationsOpen, setNotificationsOpen] = useState(false);
 	const [walletModalOpen, setWalletModalOpen] = useState(false);
@@ -113,8 +113,17 @@ function Header({ onOpenVehicleModal }) {
 									</div>
 
 									<div className="flex gap-2">
-										<button className="w-full py-1.5 flex items-center justify-center gap-1.5 bg-[#714B67] hover:bg-[#5c3c54] text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer">
-											<Phone className="w-3.5 h-3.5" /> Call Driver
+										<button className="flex-1 py-1.5 flex items-center justify-center gap-1.5 bg-[#714B67] hover:bg-[#5c3c54] text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer">
+											<Phone className="w-3.5 h-3.5" /> Call
+										</button>
+										<button 
+											onClick={() => {
+												setNotificationsOpen(false);
+												if (onOpenChat) onOpenChat();
+											}}
+											className="flex-1 py-1.5 flex items-center justify-center gap-1.5 bg-[#00A09D] hover:bg-[#008f8c] text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+										>
+											<MessageSquare className="w-3.5 h-3.5" /> Message Driver
 										</button>
 									</div>
 								</div>

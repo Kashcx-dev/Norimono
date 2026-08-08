@@ -7,6 +7,7 @@ import BrowseRidesPanel from "./BrowseRidesPanel";
 import VehicleRegistrationModal from "./VehicleRegistrationModal";
 import AIAssistant from "./AIAssistant";
 import ActiveTripPanel from "./ActiveTripPanel";
+import ChatModal from "./ChatModal";
 
 // Initialize socket connection (connects to the same origin by default)
 const socket = io();
@@ -26,6 +27,9 @@ function Dashboard() {
 	const [loadingNearby, setLoadingNearby] = useState(false);
 	const [selectedRide, setSelectedRide] = useState(null);
 	const [activeTrip, setActiveTrip] = useState(null);
+	const [showGlobalChat, setShowGlobalChat] = useState(false);
+	
+	const user = JSON.parse(localStorage.getItem("user") || "{}");
 
 	// Get user's current location on mount
 	useEffect(() => {
@@ -145,7 +149,10 @@ function Dashboard() {
 
 	return (
 		<div className="min-h-screen bg-gray-50 flex flex-col w-full text-left">
-			<Header onOpenVehicleModal={() => setShowVehicleModal(true)} />
+			<Header 
+				onOpenVehicleModal={() => setShowVehicleModal(true)} 
+				onOpenChat={() => setShowGlobalChat(true)}
+			/>
 
 			{/* Main Content Area */}
 			<main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8">
@@ -235,6 +242,16 @@ function Dashboard() {
 				<VehicleRegistrationModal
 					onClose={() => setShowVehicleModal(false)}
 					onRegister={handleRegisterVehicle}
+				/>
+			)}
+
+			{showGlobalChat && (
+				<ChatModal
+					isOpen={showGlobalChat}
+					onClose={() => setShowGlobalChat(false)}
+					socket={socket}
+					activeTrip={activeTrip || { ride: { ride_id: "DEMO_RIDE_1", driver_name: "Rahul M." } }}
+					user={user}
 				/>
 			)}
 		</div>

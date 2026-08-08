@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Car, MapPin, CheckCircle2, Navigation, Loader2, MessageSquare } from "lucide-react";
+import { Car, MapPin, CheckCircle2, Navigation, Loader2, MessageSquare, ArrowLeft, Clock, Calendar } from "lucide-react";
 import ChatModal from "./ChatModal";
 
 export default function ActiveTripPanel({
@@ -139,13 +139,21 @@ export default function ActiveTripPanel({
 
 	return (
 		<div className="flex flex-col h-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden text-left">
-			<div className="p-5 border-b border-gray-100 bg-[#00A09D]/5">
-				<h2 className="text-lg font-extrabold text-[#00A09D]">
-					{isDriver ? "Active Drive" : "Active Ride"}
-				</h2>
-				<p className="text-xs text-gray-500">
-					{phase} {liveLocation ? `(Live: ${liveLocation[0].toFixed(3)}, ${liveLocation[1].toFixed(3)})` : ""}
-				</p>
+			<div className="p-5 border-b border-gray-100 bg-[#00A09D]/5 flex items-center justify-between">
+				<div>
+					<h2 className="text-lg font-extrabold text-[#00A09D]">
+						{isDriver ? "Active Drive" : "Active Ride"}
+					</h2>
+					<p className="text-xs text-gray-500">
+						{phase} {liveLocation ? `(Live: ${liveLocation[0].toFixed(3)}, ${liveLocation[1].toFixed(3)})` : ""}
+					</p>
+				</div>
+				<button
+					onClick={onTripEnded}
+					className="flex items-center gap-1.5 text-xs font-bold text-gray-700 hover:text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 px-3.5 py-2 rounded-xl shadow-xs transition-all cursor-pointer"
+				>
+					<ArrowLeft className="w-4 h-4 text-[#714B67]" /> Back to Dashboard
+				</button>
 			</div>
 
 			<div className="flex-1 p-6 flex flex-col space-y-6">
@@ -175,12 +183,35 @@ export default function ActiveTripPanel({
 					<div className="space-y-2 text-xs text-gray-700">
 						<div className="flex items-center gap-2">
 							<MapPin className="w-4 h-4 text-[#00A09D]" />
-							<span className="font-semibold truncate">Pickup: {activeTrip.ride?.origin?.name || "Original Location"}</span>
+							<span className="font-semibold truncate">Pickup: {activeTrip.ride?.origin?.name || activeTrip.ride?.origin || "Pickup Point"}</span>
 						</div>
 						<div className="flex items-center gap-2">
 							<MapPin className="w-4 h-4 text-[#EF4444]" />
-							<span className="font-semibold truncate">Dropoff: {activeTrip.ride?.destination?.name || "Destination Location"}</span>
+							<span className="font-semibold truncate">Dropoff: {activeTrip.ride?.destination?.name || activeTrip.ride?.destination || "Destination Point"}</span>
 						</div>
+					</div>
+				</div>
+
+				{/* Rich Time Slot & Departure Info */}
+				<div className="p-4 rounded-xl border border-indigo-100 bg-gradient-to-r from-indigo-50/70 via-purple-50/50 to-pink-50/30 flex items-center justify-between">
+					<div className="flex items-center gap-3">
+						<div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-600">
+							<Clock className="w-5 h-5" />
+						</div>
+						<div>
+							<p className="text-xs font-extrabold text-indigo-950 uppercase tracking-wider">
+								Departure Time Slot
+							</p>
+							<p className="text-sm font-bold text-gray-800 flex items-center gap-1.5 mt-0.5">
+								<Calendar className="w-3.5 h-3.5 text-indigo-500" />
+								{activeTrip.ride?.departure_time || activeTrip.ride?.time || "Today, 9:30 AM"}
+							</p>
+						</div>
+					</div>
+					<div className="text-right">
+						<span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-indigo-100 text-indigo-700 border border-indigo-200">
+							Commences in ~2 hrs
+						</span>
 					</div>
 				</div>
 
