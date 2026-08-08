@@ -1,6 +1,33 @@
 import React, { useState } from "react";
 import { User, Mail, Lock, Phone, Shield, ArrowRight, Car } from "lucide-react";
 
+function checkPasswordStrength(password) {
+	let score = 0;
+	let feedback = [];
+
+	if (!password) return { score: 0, strength: "Weak", feedback: [] };
+
+	if (password.length > 8) score += 1;
+	else feedback.push("Longer than 8 chars");
+
+	if (password.length >= 12) score += 1;
+
+	if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score += 1;
+	else feedback.push("Upper & lowercase");
+
+	if (/\d/.test(password)) score += 1;
+	else feedback.push("At least one number");
+
+	if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score += 1;
+	else feedback.push("Special character");
+
+	let strength = "Weak";
+	if (score >= 4) strength = "Strong";
+	else if (score === 3) strength = "Medium";
+
+	return { score, strength, feedback };
+}
+
 function Signup({ onSwitchToLogin, onSignupSuccess }) {
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
@@ -240,6 +267,31 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 										<Lock className="w-5 h-5" />
 									</div>
 								</div>
+								{password && (() => {
+									const strengthData = checkPasswordStrength(password);
+									const s = strengthData.score;
+									return (
+										<div className="pt-1 w-full relative">
+											<div className="flex gap-1 h-1.5 w-full bg-gray-100 rounded-full overflow-hidden mt-1">
+												<div className={`h-full transition-all duration-300 ${s >= 1 ? 'w-1/4 bg-rose-400' : 'w-0'}`}></div>
+												<div className={`h-full transition-all duration-300 ${s >= 2 ? (s >= 3 ? 'w-1/4 bg-amber-400' : 'w-1/4 bg-orange-400') : 'w-0'}`}></div>
+												<div className={`h-full transition-all duration-300 ${s >= 3 ? (s >= 4 ? 'w-1/4 bg-emerald-400' : 'w-1/4 bg-amber-400') : 'w-0'}`}></div>
+												<div className={`h-full transition-all duration-300 ${s >= 5 ? 'w-1/4 bg-emerald-500' : 'w-0'}`}></div>
+											</div>
+											<div className="flex justify-between items-center text-[9px] uppercase font-bold tracking-wider text-gray-500 mt-1">
+												<span className={s >= 4 ? 'text-emerald-500' : s === 3 ? 'text-amber-500' : 'text-rose-500'}>
+													{strengthData.strength}
+												</span>
+												<span>{s}/5</span>
+											</div>
+											{strengthData.feedback.length > 0 && s < 4 && (
+												<div className="text-[10px] text-gray-400 mt-0.5 leading-tight">
+													Tip: {strengthData.feedback[0]}
+												</div>
+											)}
+										</div>
+									);
+								})()}
 							</div>
 							<div className="space-y-1">
 								<div className="flex justify-between items-center">
