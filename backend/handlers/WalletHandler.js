@@ -14,6 +14,10 @@ const getWallet = async (req, res, next) =>{
         return res.json({message: "Sucessfully got Wallet info", wallet_id, balance, bank_connection, updated_at});
     } catch (error) {
         console.log(error);
+        res.status(500).json({message: "Internal Server Error"});
+    }
+}
+
 const deductAmt = async (emp_id, amount, client) => {
     // We allow the wallet to go negative so the driver is guaranteed payment
     // We can handle top-ups via Razorpay later
