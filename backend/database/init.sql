@@ -6,7 +6,7 @@ DROP TABLE IF EXISTS wallets CASCADE;
 DROP TABLE IF EXISTS vehicles CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
--- Users Table (Profile)
+-- Users Table
 CREATE TABLE users (
     emp_id VARCHAR(50) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
