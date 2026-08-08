@@ -43,7 +43,7 @@ function Dashboard() {
 		console.log("Registered:", vehicleData);
 		setHasVehicle(true);
 		setShowVehicleModal(false);
-		alert("Vehicle registered successfully! You can now publish rides.");
+		alert("Application submitted to admin for review.");
 	};
 
 	const handleLocationUpdate = (type, coords) => {
