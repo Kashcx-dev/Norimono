@@ -18,6 +18,11 @@ export default function VoiceCallModal({ isOpen, onClose, socket, activeTrip, us
 
 		const rideId = activeTrip?.ride?.ride_id || activeTrip?.ride_id || activeTrip?.booking_id || "DEMO_RIDE_1";
 		
+		// CRITICAL FIX: Ensure caller joins the socket room so they can receive signaling answers
+		if (socket) {
+			socket.emit("join_ride_room", { ride_id: rideId });
+		}
+		
 		const vc = new VoiceCall(socket, rideId, isCaller, (state) => {
 			setCallState(state);
 			if (state === "closed" || state === "failed") {
@@ -67,82 +72,78 @@ export default function VoiceCallModal({ isOpen, onClose, socket, activeTrip, us
 		if (voiceCallRef.current) {
 			voiceCallRef.current.endCall();
 		}
+		setCallState("closed");
 		onClose();
 	};
 
 	if (!isOpen) return null;
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200 text-left">
-			<div className="bg-gradient-to-b from-slate-900 via-slate-900 to-[#714B67]/40 text-white rounded-3xl shadow-2xl border border-white/10 w-full max-w-sm overflow-hidden flex flex-col items-center p-8 relative transform transition-all">
+		<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xl animate-in fade-in duration-300">
+			<div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl flex flex-col transform transition-all relative overflow-hidden border border-gray-100">
 				
-				{/* Encrypted Badge */}
-				<div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-bold mb-6">
-					<ShieldCheck className="w-3.5 h-3.5" />
-					<span>End-to-End Encrypted Peer Call</span>
-				</div>
-
-				{/* Avatar & Pulse Rings */}
-				<div className="relative mb-6 flex items-center justify-center">
-					{callState === "connecting" && (
-						<div className="absolute inset-0 w-28 h-28 rounded-full bg-[#00A09D]/20 animate-ping"></div>
-					)}
-					<div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#00A09D] to-[#714B67] flex items-center justify-center shadow-lg border-2 border-white/20 z-10 text-white font-extrabold text-3xl">
-						<User className="w-12 h-12 text-white" />
+				{/* Header - Elaborate Odoo Branding */}
+				<div className={`p-10 flex flex-col items-center justify-center relative overflow-hidden transition-colors duration-500 ${callState === "failed" ? "bg-red-500" : "bg-gradient-to-br from-[#714B67] to-[#8C5D80]"}`}>
+					{/* Abstract Background Design */}
+					<div className="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+					<div className="absolute left-0 bottom-0 w-40 h-40 bg-black/10 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none"></div>
+					
+					{/* Encrypted Badge */}
+					<div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/20 border border-white/10 text-emerald-300 text-[10px] font-bold mb-6 z-10 backdrop-blur-sm">
+						<ShieldCheck className="w-3.5 h-3.5" />
+						<span>End-to-End Encrypted</span>
 					</div>
-				</div>
 
-				{/* Name & Status */}
-				<h3 className="text-xl font-extrabold text-white text-center mb-1">
-					{targetName}
-				</h3>
-				<p className="text-xs text-white/60 font-medium mb-3">
-					MakeLyft Corporate Commute Call
-				</p>
+					{/* Avatar Profile */}
+					<div className="relative mb-6 z-10">
+						<div className={`w-28 h-28 rounded-full bg-white flex items-center justify-center text-[#714B67] shadow-2xl text-5xl font-black uppercase border-4 border-white/20 ${callState === "connecting" ? "animate-pulse" : ""}`}>
+							{targetName.charAt(0)}
+						</div>
+						{/* Animated Ring for Calling */}
+						{callState === "connecting" && (
+							<div className="absolute -inset-4 border-2 border-white/40 rounded-full animate-ping pointer-events-none"></div>
+						)}
+					</div>
 
-				{/* Timer or Status */}
-				<div className="text-sm font-extrabold tracking-widest text-[#00A09D] mb-8">
-					{callState === "connected" ? (
-						<span className="font-mono text-emerald-400 text-base">{formatTimer(timerSeconds)}</span>
-					) : callState === "closed" ? (
-						<span className="text-rose-400">Call Ended</span>
-					) : callState === "failed" ? (
-						<span className="text-rose-400">Call Failed</span>
-					) : (
-						<span className="animate-pulse">Calling...</span>
+					<h2 className="text-2xl font-bold text-white text-center z-10 leading-tight drop-shadow-md">{targetName}</h2>
+					<p className="text-white/80 text-sm font-semibold mt-1 z-10 tracking-wider uppercase flex items-center gap-2">
+						{callState === "connecting" && (isCaller ? "Calling..." : "Incoming Call...")}
+						{callState === "connected" && (
+							<>
+								<span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+								Connected
+							</>
+						)}
+						{callState === "failed" && "Call Failed"}
+						{callState === "closed" && "Call Ended"}
+					</p>
+					{callState === "connected" && (
+						<p className="text-white text-lg font-mono font-bold mt-2 z-10 tracking-widest drop-shadow">
+							{formatTimer(timerSeconds)}
+						</p>
 					)}
 				</div>
 
-				{/* Call Controls */}
-				<div className="flex items-center gap-6 mt-2">
+				{/* Controls */}
+				<div className="px-8 py-8 flex items-center justify-center gap-8 bg-gray-50/50">
 					{/* Mute Button */}
-					<button
+					<button 
 						onClick={handleToggleMute}
-						className={`w-14 h-14 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-md ${
-							isMuted 
-								? "bg-rose-500 text-white hover:bg-rose-600" 
-								: "bg-white/10 hover:bg-white/20 text-white border border-white/20"
+						disabled={callState !== "connected"}
+						className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all cursor-pointer ${
+							callState !== "connected" ? "opacity-50 cursor-not-allowed bg-gray-200 text-gray-400" :
+							isMuted ? "bg-white text-gray-800 border-2 border-gray-200" : "bg-[#00A09D] text-white hover:bg-[#008f8c]"
 						}`}
-						title={isMuted ? "Unmute" : "Mute"}
 					>
 						{isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
 					</button>
 
 					{/* End Call Button */}
-					<button
+					<button 
 						onClick={handleEndCall}
-						className="w-16 h-16 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center shadow-lg shadow-rose-600/40 transition-all transform hover:scale-105 cursor-pointer"
-						title="End Call"
+						className="w-16 h-16 rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-xl shadow-red-500/30 transition-transform hover:scale-105 cursor-pointer"
 					>
 						<PhoneOff className="w-7 h-7" />
-					</button>
-
-					{/* Speaker Button */}
-					<button
-						className="w-14 h-14 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 flex items-center justify-center transition-all cursor-pointer shadow-md"
-						title="Speakerphone"
-					>
-						<Volume2 className="w-6 h-6" />
 					</button>
 				</div>
 			</div>

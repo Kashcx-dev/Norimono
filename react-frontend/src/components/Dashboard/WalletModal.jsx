@@ -238,7 +238,7 @@ export default function WalletModal({ isOpen, onClose }) {
 						<div className="py-16 text-center">
 							<RefreshCw className="w-8 h-8 text-[#714B67] animate-spin mx-auto mb-3" />
 							<p className="text-sm font-semibold text-gray-600">
-								Loading wallet information...
+								Loading walslet information...
 							</p>
 						</div>
 					) : activeTab === "overview" ? (
@@ -247,7 +247,7 @@ export default function WalletModal({ isOpen, onClose }) {
 							<div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#714B67] via-[#5c3c54] to-[#392433] text-white p-6 shadow-xl shadow-[#714B67]/25">
 								{/* Background Pattern Deco */}
 								<div className="absolute -right-8 -bottom-8 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-								<div className="absolute top-0 right-0 w-32 h-32 bg-[#00A09D]/20 rounded-full blur-xl pointer-events-none"></div>
+								{/* <div className="absolute top-0 right-0 w-32 h-32 bg-[#00A09D]/20 rounded-full blur-xl pointer-events-none"></div> */}
 
 								<div className="relative z-10 flex flex-col justify-between h-full">
 									<div className="flex items-start justify-between">

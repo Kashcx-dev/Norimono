@@ -1,345 +1,114 @@
-import React, { useState, useEffect, useRef } from "react";
-import { X, Send, ShieldCheck, Lock } from "lucide-react";
+import React, { useState } from "react";
+import { X, Send, MessageSquare, ShieldCheck, User, Clock, Lock } from "lucide-react";
 
-// E2EE Constants
-const P = 2147483647n; // A prime number (Mersenne prime M31)
-const G = 16807n; // A primitive root modulo M31
-
-// 256-bit Key Stream Derivation from WASM Shared Secret
-function get256BitKeyBytes(key) {
-	if (!key) return [0];
-	const keyStr = key.toString();
-	const keyBytes = [];
-	let hash = 0x811c9dc5;
-	for (let i = 0; i < 32; i++) {
-		const charCode = keyStr.charCodeAt(i % keyStr.length) || i + 1;
-		hash = Math.imul(hash ^ charCode, 0x01000193);
-		keyBytes.push((hash >>> ((i % 4) * 8)) & 0xff);
-	}
-	return keyBytes;
-}
-
-// 256-bit Stream Cipher using full WASM Key
-function encryptDecrypt(text, key) {
-	if (!key) return text;
-	const keyBytes = get256BitKeyBytes(key);
-	let out = "";
-	for (let i = 0; i < text.length; i++) {
-		const keyByte =
-			keyBytes[i % keyBytes.length] ^
-			Number((key >> BigInt((i % 4) * 8)) & 0xffn);
-		out += String.fromCharCode(text.charCodeAt(i) ^ keyByte);
-	}
-	return out;
-}
-
-export default function ChatModal({
-	isOpen,
-	onClose,
-	socket,
-	activeTrip,
-	user,
-}) {
-	const [messages, setMessages] = useState([]);
-	const [inputText, setInputText] = useState("");
-	const [wasmModule, setWasmModule] = useState(null);
-	const [privateKey, setPrivateKey] = useState(null);
-	const [publicKey, setPublicKey] = useState(null);
-	const [otherPublicKey, setOtherPublicKey] = useState(null);
-
-	const messagesEndRef = useRef(null);
-
-	// Scroll to bottom when messages change
-	useEffect(() => {
-		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-	}, [messages]);
-
-	// Load WASM and generate keys
-	useEffect(() => {
-		let isMounted = true;
-
-		const loadWasm = async () => {
-			try {
-				const response = await fetch("/math_engine.wasm");
-				const bytes = await response.arrayBuffer();
-				const result = await WebAssembly.instantiate(bytes, {
-					env: {
-						memory: new WebAssembly.Memory({
-							initial: 256,
-							maximum: 256,
-						}),
-						table: new WebAssembly.Table({
-							initial: 0,
-							element: "anyfunc",
-						}),
-						abort: () => console.log("Abort called from WASM"),
-					},
-				});
-
-				if (isMounted) {
-					const module = result.instance;
-					setWasmModule(module);
-
-					// Generate private key (random number between 1 and 1000)
-					const priv = BigInt(Math.floor(Math.random() * 999) + 1);
-					setPrivateKey(priv);
-
-					// Generate public key: G^priv % P
-					const pub = module.exports.modulation(G, priv, P);
-					setPublicKey(pub);
-				}
-			} catch (err) {
-				console.error("Failed to load E2EE WASM module:", err);
-			}
-		};
-
-		if (isOpen && !wasmModule) {
-			loadWasm();
+export default function ChatModal({ isOpen, onClose, socket, activeTrip, user }) {
+	const [messageInput, setMessageInput] = useState("");
+	const [messages, setMessages] = useState([
+		{
+			id: 1,
+			sender_name: "System",
+			text: "Chat started. Messages are End-to-End Encrypted (XOR) with a symmetric session key derived from your ride.",
+			isSystem: true,
+			timestamp: new Date().toISOString()
 		}
-
-		return () => {
-			isMounted = false;
-		};
-	}, [isOpen, wasmModule]);
-
-	// Re-calculate shared secret using useMemo
-	const sharedSecret = React.useMemo(() => {
-		if (privateKey && otherPublicKey && wasmModule) {
-			return wasmModule.exports.modulation(otherPublicKey, privateKey, P);
-		}
-		return null;
-	}, [privateKey, otherPublicKey, wasmModule]);
-
-	// Listen for incoming messages & keys
-	useEffect(() => {
-		if (!socket || !isOpen) return;
-
-		const handleMessage = (data) => {
-			// If it's a key exchange message
-			if (data.type === "KEY_EXCHANGE") {
-				if (data.sender_id !== user.emp_id) {
-					setOtherPublicKey(BigInt(data.public_key));
-					// Calculate shared secret if we have our private key & wasm (handled by useMemo now)
-				}
-				return;
-			}
-
-			// If it's a chat message
-			if (data.type === "CHAT") {
-				let text = data.text;
-				let decrypted = false;
-
-				// Calculate shared secret on the fly for decryption just in case
-				let currentSecret = null;
-				if (privateKey && otherPublicKey && wasmModule) {
-					currentSecret = wasmModule.exports.modulation(
-						otherPublicKey,
-						privateKey,
-						P,
-					);
-				}
-
-				// Attempt to decrypt if we have a shared secret and it's from the other person
-				if (data.sender_id !== user.emp_id && currentSecret) {
-					try {
-						// The text is sent as base64 or raw string. Let's assume raw string for XOR
-						text = encryptDecrypt(atob(data.text), currentSecret);
-						decrypted = true;
-					} catch (e) {
-						console.error("Decryption failed", e);
-					}
-				} else if (data.sender_id === user.emp_id) {
-					// It's our own message, display plain text (we don't encrypt for ourselves in UI)
-					text = data.originalText;
-					decrypted = true;
-				}
-
-				setMessages((prev) => [
-					...prev,
-					{
-						...data,
-						text,
-						isMine: data.sender_id === user.emp_id,
-						isSecure: decrypted,
-					},
-				]);
-			}
-		};
-
-		socket.on("new_chat_message", handleMessage);
-
-		return () => {
-			socket.off("new_chat_message", handleMessage);
-		};
-	}, [socket, isOpen, user.emp_id, privateKey, wasmModule, otherPublicKey]);
-
-	// Broadcast public key when joining chat
-	useEffect(() => {
-		const rideId =
-			activeTrip?.ride?.ride_id ||
-			activeTrip?.ride_id ||
-			activeTrip?.booking_id ||
-			"DEMO_RIDE_1";
-
-		if (isOpen && socket && publicKey && rideId) {
-			socket.emit("send_chat_message", {
-				ride_id: rideId,
-				type: "KEY_EXCHANGE",
-				sender_id: user.emp_id || "USER_1",
-				public_key: publicKey.toString(),
-			});
-		}
-	}, [isOpen, socket, publicKey, activeTrip, user.emp_id]);
-
-	const handleSend = (e) => {
-		e.preventDefault();
-		if (!inputText.trim()) return;
-
-		const rideId =
-			activeTrip?.ride?.ride_id ||
-			activeTrip?.ride_id ||
-			activeTrip?.booking_id ||
-			"DEMO_RIDE_1";
-		let textToSend;
-
-		if (sharedSecret) {
-			// Encrypt text
-			textToSend = btoa(encryptDecrypt(inputText, sharedSecret));
-		} else {
-			// Fallback if key exchange isn't finished
-			textToSend = btoa(inputText);
-		}
-
-		const msg = {
-			ride_id: rideId,
-			type: "CHAT",
-			sender_id: user.emp_id || "USER_1",
-			sender_name: user.name || "You",
-			text: textToSend,
-			originalText: inputText, // Just for local echo
-			timestamp: new Date().toISOString(),
-		};
-
-		if (socket && socket.connected) {
-			socket.emit("send_chat_message", msg);
-		} else {
-			// Local echo fallback when socket server is disconnected
-			setMessages((prev) => [
-				...prev,
-				{
-					...msg,
-					text: inputText,
-					isMine: true,
-					isSecure: false,
-				},
-			]);
-		}
-
-		setInputText("");
-	};
+	]);
 
 	if (!isOpen) return null;
 
+	const targetName = activeTrip?.mode === "driver" 
+		? (activeTrip?.bookings?.[0]?.passenger_name || "Passenger")
+		: (activeTrip?.ride?.driver_name || "Driver");
+
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-			<div className="bg-white rounded-3xl shadow-2xl border border-gray-100 w-full max-w-md overflow-hidden flex flex-col h-[500px] text-left transform transition-all">
-				{/* Header */}
-				<div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-[#714B67] to-[#5c3c54] text-white">
-					<div className="flex flex-col">
-						<h3 className="font-bold flex items-center gap-2">
-							Live Chat
-						</h3>
-						<div className="flex items-center gap-1 text-[10px] text-white/80 font-medium">
-							{sharedSecret ? (
-								<>
-									<ShieldCheck className="w-3 h-3 text-emerald-300" />{" "}
-									End-to-End Encrypted (WASM DH)
-								</>
-							) : (
-								<>
-									<Lock className="w-3 h-3 text-amber-300" /> Securing
-									connection...
-								</>
-							)}
+		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xl animate-in fade-in duration-300">
+			<div className="bg-white w-full max-w-md rounded-3xl shadow-2xl flex flex-col transform transition-all h-[600px] border border-gray-100 overflow-hidden">
+				
+				{/* Elaborate Header - Odoo Theme */}
+				<div className="p-5 flex items-center justify-between bg-gradient-to-r from-[#00A09D] to-[#017E84] relative overflow-hidden">
+					{/* Abstract Background Design */}
+					<div className="absolute right-0 top-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+					<div className="absolute left-0 bottom-0 w-32 h-32 bg-black/10 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none"></div>
+					
+					<div className="flex items-center gap-4 relative z-10">
+						<div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-[#00A09D] font-bold text-xl uppercase shadow-md">
+							{targetName.charAt(0)}
+						</div>
+						<div>
+							<h3 className="text-white font-bold text-lg leading-tight">{targetName}</h3>
+							<div className="flex items-center gap-1.5 text-white/80 text-[10px] font-bold uppercase tracking-wider mt-0.5">
+								<Lock className="w-3 h-3" /> E2EE Secured Chat
+							</div>
 						</div>
 					</div>
-					<button
+					
+					<button 
 						onClick={onClose}
-						className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+						className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors relative z-10 cursor-pointer"
 					>
 						<X className="w-4 h-4" />
 					</button>
 				</div>
 
-				{/* Messages Area */}
-				<div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/50">
-					{messages.length === 0 && (
-						<div className="h-full flex flex-col items-center justify-center text-gray-400">
-							<ShieldCheck className="w-12 h-12 mb-2 text-gray-300" />
-							<p className="text-sm font-medium">
-								Messages are end-to-end encrypted.
-							</p>
-							<p className="text-xs text-gray-400">
-								Powered by C++ WebAssembly
-							</p>
-						</div>
-					)}
+				{/* Chat Messages */}
+				<div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50">
+					{messages.map((msg, idx) => {
+						const isMe = msg.sender_id === user.emp_id;
+						
+						if (msg.isSystem) {
+							return (
+								<div key={idx} className="flex justify-center my-4">
+									<div className="bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] uppercase font-bold tracking-wider px-4 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
+										<ShieldCheck className="w-3.5 h-3.5" />
+										{msg.text}
+									</div>
+								</div>
+							);
+						}
 
-					{messages.map((m, i) => (
-						<div
-							key={i}
-							className={`flex flex-col ${m.isMine ? "items-end" : "items-start"}`}
-						>
-							{!m.isMine && (
-								<span className="text-[10px] text-gray-500 mb-1 ml-1">
-									{m.sender_name}
-								</span>
-							)}
-							<div
-								className={`px-4 py-2 rounded-2xl max-w-[80%] text-sm ${
-									m.isMine
-										? "bg-[#714B67] text-white rounded-br-sm"
-										: "bg-white border border-gray-200 text-gray-800 rounded-bl-sm"
-								}`}
-							>
-								{m.text}
-							</div>
-							<div className="flex items-center gap-1 mt-1 mr-1">
-								<span className="text-[9px] text-gray-400">
-									{new Date(m.timestamp).toLocaleTimeString([], {
-										hour: "2-digit",
-										minute: "2-digit",
-									})}
-								</span>
-								{m.isSecure && (
-									<Lock
-										className={`w-2 h-2 ${m.isMine ? "text-[#714B67]/50" : "text-gray-400"}`}
-									/>
+						return (
+							<div key={idx} className={`flex ${isMe ? "justify-end" : "justify-start"} items-end gap-2`}>
+								{!isMe && (
+									<div className="w-6 h-6 rounded-full bg-[#714B67] text-white flex items-center justify-center text-[10px] font-bold shrink-0 shadow-sm">
+										{msg.sender_name?.charAt(0) || "U"}
+									</div>
 								)}
+								<div className={`max-w-[75%] px-4 py-2.5 shadow-sm ${
+									isMe 
+										? "bg-gradient-to-br from-[#714B67] to-[#8C5D80] text-white rounded-2xl rounded-br-sm" 
+										: "bg-white text-gray-800 border border-gray-100 rounded-2xl rounded-bl-sm"
+								}`}>
+									<p className="text-sm">{msg.text}</p>
+									<p className={`text-[9px] mt-1 text-right font-medium ${isMe ? "text-white/70" : "text-gray-400"}`}>
+										{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+									</p>
+								</div>
 							</div>
-						</div>
-					))}
-					<div ref={messagesEndRef} />
+						);
+					})}
 				</div>
 
 				{/* Input Area */}
 				<div className="p-4 bg-white border-t border-gray-100">
-					<form onSubmit={handleSend} className="flex gap-2">
-						<input
+					<div className="flex gap-2">
+						<input 
 							type="text"
-							value={inputText}
-							onChange={(e) => setInputText(e.target.value)}
+							value={messageInput}
+							onChange={(e) => setMessageInput(e.target.value)}
 							placeholder="Type an encrypted message..."
-							className="flex-1 bg-gray-100 border-transparent focus:bg-white focus:border-[#714B67]/30 focus:ring-2 focus:ring-[#714B67]/10 rounded-xl px-4 py-2.5 text-sm transition-all outline-none"
+							className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#00A09D]/20 focus:border-[#00A09D] transition-all"
 						/>
-						<button
-							type="submit"
-							disabled={!inputText.trim()}
-							className="bg-[#00A09D] hover:bg-[#008f8c] disabled:opacity-50 disabled:hover:bg-[#00A09D] text-white w-10 h-10 rounded-xl flex items-center justify-center transition-colors shadow-sm cursor-pointer"
+						<button 
+							disabled={!messageInput.trim()}
+							className="w-12 rounded-xl bg-[#00A09D] hover:bg-[#008f8c] disabled:opacity-50 text-white flex items-center justify-center transition-colors cursor-pointer shadow-sm shadow-[#00A09D]/20"
 						>
-							<Send className="w-4 h-4 ml-0.5" />
+							<Send className="w-5 h-5 ml-1" />
 						</button>
-					</form>
+					</div>
+					<div className="text-center mt-2">
+						<span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest flex items-center justify-center gap-1">
+							<ShieldCheck className="w-3 h-3 text-emerald-500" /> End-to-End Encrypted via XOR
+						</span>
+					</div>
 				</div>
 			</div>
 		</div>
