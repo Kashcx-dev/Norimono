@@ -230,7 +230,8 @@ function Dashboard() {
 
 	return (
 		<div className="min-h-screen bg-gray-50 flex flex-col w-full text-left">
-			<Header
+			<Header 
+				socket={socket}
 				onOpenVehicleModal={() => setShowVehicleModal(true)}
 				onOpenChat={() => setShowGlobalChat(true)}
 				onOpenVoiceCall={() => {

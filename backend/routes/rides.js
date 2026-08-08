@@ -115,6 +115,7 @@ router.post('/driver/booking/accept', async (req, res, next) => {
         await db.query(`UPDATE bookings SET booking_status = 'confirmed' WHERE booking_id = $1`, [booking_id]);
         
         const ride_id = verifyResult.rows[0].ride_id;
+        const passenger_id = verifyResult.rows[0].passenger_id;
         const io = req.app.get("socketio");
         if (io) {
             const payload = { booking_id: Number(booking_id), booking_status: 'confirmed', ride_id };
@@ -122,6 +123,15 @@ router.post('/driver/booking/accept', async (req, res, next) => {
             io.emit('booking_status_updated', payload);
             io.to(`ride_${ride_id}`).emit('driver_refresh_bookings');
             io.emit('driver_refresh_bookings');
+            
+            // Emit notification to passenger
+            io.emit('new_notification', {
+                target_emp_id: passenger_id,
+                title: "Ride Accepted",
+                message: `Your ride request has been confirmed!`,
+                type: "confirmed",
+                timestamp: new Date().toISOString()
+            });
         }
 
         return res.json({ success: true, message: "Booking accepted." });

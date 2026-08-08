@@ -76,6 +76,15 @@ router.post('/', async (req, res, next) => {
         const io = req.app.get("socketio");
         if (io) {
             io.to(`ride_${ride_id}`).emit('driver_refresh_bookings');
+            
+            // Emit notification to driver
+            io.emit('new_notification', {
+                target_emp_id: ride.driver_id,
+                title: "New Ride Request",
+                message: `${req.user.name || 'A passenger'} wants to join your ride.`,
+                type: "request",
+                timestamp: new Date().toISOString()
+            });
         }
 
         return res.json({ 

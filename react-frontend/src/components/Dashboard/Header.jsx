@@ -3,14 +3,26 @@ import { Bell, ChevronDown, LogOut, Wallet, Car, Settings, User, Clock, Phone, M
 import WalletModal from "./WalletModal";
 import { getWalletData, subscribeToWallet } from "../../utils/walletService";
 
-function Header({ onOpenVehicleModal, onOpenChat, onOpenVoiceCall, onOpenHistory, onOpenFeedback, onOpenProfile }) {
+function Header({ socket, onOpenVehicleModal, onOpenChat, onOpenVoiceCall, onOpenHistory, onOpenFeedback, onOpenProfile }) {
 	const [dropdownOpen, setDropdownOpen] = useState(false);
 	const [notificationsOpen, setNotificationsOpen] = useState(false);
 	const [walletModalOpen, setWalletModalOpen] = useState(false);
 	const [walletBalance, setWalletBalance] = useState(650.0);
+	const [notifications, setNotifications] = useState([]);
 
 	const user = JSON.parse(localStorage.getItem("user") || "{}");
 	const empId = user.emp_id || "EMP-DEFAULT";
+
+	useEffect(() => {
+		if (!socket) return;
+		const handleNotif = (data) => {
+			if (data.target_emp_id === empId || data.target_emp_id === "all") {
+				setNotifications(prev => [data, ...prev]);
+			}
+		};
+		socket.on("new_notification", handleNotif);
+		return () => socket.off("new_notification", handleNotif);
+	}, [socket, empId]);
 
 	useEffect(() => {
 		getWalletData(empId).then((data) => {
@@ -89,50 +101,57 @@ function Header({ onOpenVehicleModal, onOpenChat, onOpenVoiceCall, onOpenHistory
 
 						{notificationsOpen && (
 							<div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden py-2 z-50">
-								<div className="px-4 py-2 border-b border-gray-100">
+								<div className="px-4 py-2 border-b border-gray-100 flex justify-between items-center">
 									<h4 className="font-bold text-gray-900">Notifications</h4>
+									{notifications.length > 0 && (
+										<span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold">{notifications.length}</span>
+									)}
 								</div>
 								
-								{/* Mock Accepted Ride */}
-								<div className="p-4 bg-teal-50/30 hover:bg-teal-50/60 transition-colors border-b border-gray-50 text-left">
-									<div className="flex justify-between items-start mb-2">
-										<span className="text-xs font-bold px-2 py-1 bg-[#00A09D] text-white rounded-md uppercase tracking-wide">Ride Accepted</span>
-										<span className="text-xs text-gray-500">Just now</span>
+								{notifications.length === 0 ? (
+									<div className="p-6 text-center text-gray-500 text-sm font-semibold">
+										No new notifications
 									</div>
-									<p className="text-sm text-gray-800 mb-3">
-										<span className="font-semibold">Rahul M.</span> has accepted your ride request!
-									</p>
-									
-									<div className="flex items-center gap-2 text-xs text-gray-600 mb-1">
-										<Calendar className="w-3.5 h-3.5 text-gray-400" />
-										<span>Tomorrow, 9:30 AM</span>
+								) : (
+									<div className="max-h-[350px] overflow-y-auto">
+										{notifications.map((notif, idx) => (
+											<div key={idx} className="p-4 bg-teal-50/30 hover:bg-teal-50/60 transition-colors border-b border-gray-50 text-left">
+												<div className="flex justify-between items-start mb-2">
+													<span className={`text-[10px] font-bold px-2 py-1 text-white rounded-md uppercase tracking-wide ${notif.type === 'request' ? 'bg-[#714B67]' : 'bg-[#00A09D]'}`}>
+														{notif.title}
+													</span>
+													<span className="text-xs text-gray-500">
+														{new Date(notif.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+													</span>
+												</div>
+												<p className="text-sm text-gray-800 mb-3">
+													{notif.message}
+												</p>
+												
+												<div className="flex gap-2">
+													<button 
+														onClick={() => {
+															setNotificationsOpen(false);
+															if (onOpenVoiceCall) onOpenVoiceCall();
+														}}
+														className="flex-1 py-1.5 flex items-center justify-center gap-1.5 bg-[#714B67] hover:bg-[#5c3c54] text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+													>
+														<Phone className="w-3.5 h-3.5" /> Call
+													</button>
+													<button 
+														onClick={() => {
+															setNotificationsOpen(false);
+															if (onOpenChat) onOpenChat();
+														}}
+														className="flex-1 py-1.5 flex items-center justify-center gap-1.5 bg-[#00A09D] hover:bg-[#008f8c] text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+													>
+														<MessageSquare className="w-3.5 h-3.5" /> Chat
+													</button>
+												</div>
+											</div>
+										))}
 									</div>
-									<div className="flex items-center gap-2 text-xs text-gray-600 mb-3">
-										<MapPin className="w-3.5 h-3.5 text-gray-400" />
-										<span className="truncate">Adamas University → Howrah</span>
-									</div>
-
-									<div className="flex gap-2">
-										<button 
-											onClick={() => {
-												setNotificationsOpen(false);
-												if (onOpenVoiceCall) onOpenVoiceCall();
-											}}
-											className="flex-1 py-1.5 flex items-center justify-center gap-1.5 bg-[#714B67] hover:bg-[#5c3c54] text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-										>
-											<Phone className="w-3.5 h-3.5" /> Call Driver
-										</button>
-										<button 
-											onClick={() => {
-												setNotificationsOpen(false);
-												if (onOpenChat) onOpenChat();
-											}}
-											className="flex-1 py-1.5 flex items-center justify-center gap-1.5 bg-[#00A09D] hover:bg-[#008f8c] text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-										>
-											<MessageSquare className="w-3.5 h-3.5" /> Message Driver
-										</button>
-									</div>
-								</div>
+								)}
 							</div>
 						)}
 					</div>
