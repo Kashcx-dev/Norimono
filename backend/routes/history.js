@@ -1,11 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../handlers/dbHandler");
-const authenticateToken = require("./authMiddleware");
 
 // GET /api/history/driver
 // Get history of rides published by the user
-router.get("/driver", authenticateToken, async (req, res, next) => {
+router.get("/driver", async (req, res, next) => {
     try {
         const userId = req.user.emp_id;
         
@@ -25,7 +24,7 @@ router.get("/driver", authenticateToken, async (req, res, next) => {
 
 // GET /api/history/passenger
 // Get history of rides booked by the user
-router.get("/passenger", authenticateToken, async (req, res, next) => {
+router.get("/passenger", async (req, res, next) => {
     try {
         const userId = req.user.emp_id;
         
