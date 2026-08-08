@@ -22,12 +22,14 @@ CREATE TABLE users (
 
 -- Vehicles Table (Vehicle_R)
 CREATE TABLE vehicles (
-    veh_no VARCHAR(20) PRIMARY KEY,
+    veh_id VARCHAR(20) UNIQUE PRIMARY KEY,
+    veh_no VARCHAR(20) UNIQUE,
     emp_id VARCHAR(50) REFERENCES users(emp_id) ON DELETE CASCADE,
     insurance_no VARCHAR(50),
     dl_no VARCHAR(50) NOT NULL,
     vehicle_model VARCHAR(100),
     seating_capacity INT NOT NULL DEFAULT 4,
+    fuel_consumption_ratio DECIMAL(5,2) DEFAULT 1.0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

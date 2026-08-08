@@ -79,6 +79,7 @@ router.post("/signup", async (req, res, next) => {
     } catch (err) {
         return next(err);
     }
+    
 });
 
 router.post("/verify-signup-otp", async (req, res, next) => {
