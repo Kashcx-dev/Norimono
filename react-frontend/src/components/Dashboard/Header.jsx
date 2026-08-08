@@ -3,7 +3,7 @@ import { Bell, ChevronDown, LogOut, Wallet, Car, Settings, User, Clock, Phone, M
 import WalletModal from "./WalletModal";
 import { getWalletData, subscribeToWallet } from "../../utils/walletService";
 
-function Header({ onOpenVehicleModal, onOpenChat, onOpenVoiceCall, onOpenHistory, onOpenFeedback }) {
+function Header({ onOpenVehicleModal, onOpenChat, onOpenVoiceCall, onOpenHistory, onOpenFeedback, onOpenProfile }) {
 	const [dropdownOpen, setDropdownOpen] = useState(false);
 	const [notificationsOpen, setNotificationsOpen] = useState(false);
 	const [walletModalOpen, setWalletModalOpen] = useState(false);
@@ -178,7 +178,13 @@ function Header({ onOpenVehicleModal, onOpenChat, onOpenVoiceCall, onOpenHistory
 								>
 									<Car className="w-4 h-4 text-gray-400" /> Register Vehicle
 								</button>
-								<button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer transition-colors font-medium">
+								<button 
+									onClick={() => {
+										setDropdownOpen(false);
+										if (onOpenProfile) onOpenProfile();
+									}}
+									className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer transition-colors font-medium"
+								>
 									<User className="w-4 h-4" /> Profile Details
 								</button>
 								<button 

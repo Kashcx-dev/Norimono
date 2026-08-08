@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const db = require("../handlers/dbHandler");
+const { FN_verifyTkn } = require("../handlers/middlewareHandler");
 
 /* HASHING FUNCTIONS */
 async function Hash_Pass(password) {
@@ -226,6 +227,34 @@ router.post("/verify-otp", (req, res, next) => {
     }
 
     return res.status(400).json({ message: "Invalid OTP. Please try again." });
+});
+
+router.get("/me", FN_verifyTkn, async (req, res, next) => {
+    try {
+        const emp_id = req.user.emp_id;
+        const userQuery = await db.query(
+            "SELECT emp_id, name, email, org_name, phone, role, address, passenger_rating, driving_rating FROM users WHERE emp_id = $1",
+            [emp_id]
+        );
+        
+        if (userQuery.rows.length === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        
+        const profile = userQuery.rows[0];
+        
+        // Fetch vehicle if any
+        const vehicleQuery = await db.query(
+            "SELECT veh_no, vehicle_model, seating_capacity FROM vehicles WHERE emp_id = $1",
+            [emp_id]
+        );
+        
+        profile.vehicle = vehicleQuery.rows.length > 0 ? vehicleQuery.rows[0] : null;
+        
+        return res.json({ success: true, profile });
+    } catch (err) {
+        return next(err);
+    }
 });
 
 module.exports = router;

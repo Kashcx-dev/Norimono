@@ -11,6 +11,7 @@ import ChatModal from "./ChatModal";
 import VoiceCallModal from "./VoiceCallModal";
 import HistoryModal from "./HistoryModal";
 import FeedbackModal from "./FeedbackModal";
+import ProfileModal from "./ProfileModal";
 import PublishRideModal from "./PublishRideModal";
 
 // Initialize socket connection (connects to the same origin by default)
@@ -36,6 +37,7 @@ function Dashboard() {
 	const [showGlobalVoiceCall, setShowGlobalVoiceCall] = useState(false);
 	const [showHistoryModal, setShowHistoryModal] = useState(false);
 	const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+	const [showProfileModal, setShowProfileModal] = useState(false);
 	const [isIncomingCall, setIsIncomingCall] = useState(false);
 
 	const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -237,6 +239,7 @@ function Dashboard() {
 				}}
 				onOpenHistory={() => setShowHistoryModal(true)}
 				onOpenFeedback={() => setShowFeedbackModal(true)}
+				onOpenProfile={() => setShowProfileModal(true)}
 			/>
 
 			{/* Main Content Area */}
@@ -377,6 +380,11 @@ function Dashboard() {
 			<FeedbackModal
 				isOpen={showFeedbackModal}
 				onClose={() => setShowFeedbackModal(false)}
+			/>
+			
+			<ProfileModal
+				isOpen={showProfileModal}
+				onClose={() => setShowProfileModal(false)}
 			/>
 		</div>
 	);
