@@ -9,6 +9,7 @@ import AIAssistant from "./AIAssistant";
 import ActiveTripPanel from "./ActiveTripPanel";
 import ChatModal from "./ChatModal";
 import VoiceCallModal from "./VoiceCallModal";
+import HistoryModal from "./HistoryModal";
 import PublishRideModal from "./PublishRideModal";
 
 // Initialize socket connection (connects to the same origin by default)
@@ -32,6 +33,7 @@ function Dashboard() {
 	const [activeTrip, setActiveTrip] = useState(null);
 	const [showGlobalChat, setShowGlobalChat] = useState(false);
 	const [showGlobalVoiceCall, setShowGlobalVoiceCall] = useState(false);
+	const [showHistoryModal, setShowHistoryModal] = useState(false);
 	const [isIncomingCall, setIsIncomingCall] = useState(false);
 
 	const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -231,6 +233,7 @@ function Dashboard() {
 					setIsIncomingCall(false);
 					setShowGlobalVoiceCall(true);
 				}}
+				onOpenHistory={() => setShowHistoryModal(true)}
 			/>
 
 			{/* Main Content Area */}
@@ -362,6 +365,11 @@ function Dashboard() {
 					isCaller={!isIncomingCall}
 				/>
 			)}
+			
+			<HistoryModal 
+				isOpen={showHistoryModal} 
+				onClose={() => setShowHistoryModal(false)} 
+			/>
 		</div>
 	);
 }

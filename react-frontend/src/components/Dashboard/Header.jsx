@@ -3,7 +3,7 @@ import { User, Car, LogOut, Settings, Bell, Phone, MessageSquare, Calendar, MapP
 import WalletModal from "./WalletModal";
 import { getWalletData, subscribeToWallet } from "../../utils/walletService";
 
-function Header({ onOpenVehicleModal, onOpenChat, onOpenVoiceCall }) {
+function Header({ onOpenVehicleModal, onOpenChat, onOpenVoiceCall, onOpenHistory }) {
 	const [dropdownOpen, setDropdownOpen] = useState(false);
 	const [notificationsOpen, setNotificationsOpen] = useState(false);
 	const [walletModalOpen, setWalletModalOpen] = useState(false);
@@ -178,13 +178,21 @@ function Header({ onOpenVehicleModal, onOpenChat, onOpenVoiceCall }) {
 								>
 									<Car className="w-4 h-4 text-gray-400" /> Register Vehicle
 								</button>
-								<button className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer transition-colors">
-									<Settings className="w-4 h-4 text-gray-400" /> Settings
+								<button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer transition-colors font-medium">
+									<User className="w-4 h-4" /> Profile Details
 								</button>
-								<div className="h-px bg-gray-100 my-1"></div>
-								<button
+								<button 
+									onClick={() => {
+										setDropdownOpen(false);
+										if (onOpenHistory) onOpenHistory();
+									}}
+									className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer transition-colors font-medium"
+								>
+									<Clock className="w-4 h-4" /> View History
+								</button>
+								<button 
 									onClick={handleLogout}
-									className="w-full px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer transition-colors"
+									className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer transition-colors font-medium mt-1 border-t border-gray-100"
 								>
 									<LogOut className="w-4 h-4 text-red-400" /> Logout
 								</button>
