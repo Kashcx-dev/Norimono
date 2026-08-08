@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { User, Car, LogOut, Settings, Bell, Phone, MessageSquare, Calendar, MapPin, Wallet, Plus } from "lucide-react";
+import { Bell, ChevronDown, LogOut, Wallet, Car, Settings, User, Clock, Phone, MessageSquare, MessageSquareHeart } from "lucide-react";
 import WalletModal from "./WalletModal";
 import { getWalletData, subscribeToWallet } from "../../utils/walletService";
 
-function Header({ onOpenVehicleModal, onOpenChat, onOpenVoiceCall, onOpenHistory }) {
+function Header({ onOpenVehicleModal, onOpenChat, onOpenVoiceCall, onOpenHistory, onOpenFeedback }) {
 	const [dropdownOpen, setDropdownOpen] = useState(false);
 	const [notificationsOpen, setNotificationsOpen] = useState(false);
 	const [walletModalOpen, setWalletModalOpen] = useState(false);
@@ -189,6 +189,15 @@ function Header({ onOpenVehicleModal, onOpenChat, onOpenVoiceCall, onOpenHistory
 									className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer transition-colors font-medium"
 								>
 									<Clock className="w-4 h-4" /> View History
+								</button>
+								<button 
+									onClick={() => {
+										setDropdownOpen(false);
+										if (onOpenFeedback) onOpenFeedback();
+									}}
+									className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer transition-colors font-medium"
+								>
+									<MessageSquareHeart className="w-4 h-4" /> Send Feedback
 								</button>
 								<button 
 									onClick={handleLogout}

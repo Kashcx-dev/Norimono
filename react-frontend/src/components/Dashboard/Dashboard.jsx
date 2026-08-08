@@ -10,6 +10,7 @@ import ActiveTripPanel from "./ActiveTripPanel";
 import ChatModal from "./ChatModal";
 import VoiceCallModal from "./VoiceCallModal";
 import HistoryModal from "./HistoryModal";
+import FeedbackModal from "./FeedbackModal";
 import PublishRideModal from "./PublishRideModal";
 
 // Initialize socket connection (connects to the same origin by default)
@@ -34,6 +35,7 @@ function Dashboard() {
 	const [showGlobalChat, setShowGlobalChat] = useState(false);
 	const [showGlobalVoiceCall, setShowGlobalVoiceCall] = useState(false);
 	const [showHistoryModal, setShowHistoryModal] = useState(false);
+	const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 	const [isIncomingCall, setIsIncomingCall] = useState(false);
 
 	const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -234,6 +236,7 @@ function Dashboard() {
 					setShowGlobalVoiceCall(true);
 				}}
 				onOpenHistory={() => setShowHistoryModal(true)}
+				onOpenFeedback={() => setShowFeedbackModal(true)}
 			/>
 
 			{/* Main Content Area */}
@@ -369,6 +372,11 @@ function Dashboard() {
 			<HistoryModal 
 				isOpen={showHistoryModal} 
 				onClose={() => setShowHistoryModal(false)} 
+			/>
+
+			<FeedbackModal
+				isOpen={showFeedbackModal}
+				onClose={() => setShowFeedbackModal(false)}
 			/>
 		</div>
 	);
