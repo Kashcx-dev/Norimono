@@ -268,6 +268,7 @@ function RideActions({
 
 				setTripSummary({ distance: distanceKm, duration: durationMins });
 				onSearchRoute(routeCoords);
+				if (onBrowseRides) onBrowseRides();
 			} else {
 				alert("No drivable road route found between these locations.");
 			}

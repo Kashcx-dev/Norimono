@@ -308,8 +308,8 @@ export default function Map({
 					</>
 				)}
 
-				{/* Default Mode: Source Marker */}
-				{viewMode !== "browse" && pickupCoords && (
+				{/* Source Marker */}
+				{pickupCoords && (
 					<Marker position={pickupCoords}>
 						<Popup>
 							<div className="font-semibold text-sm text-[#00A09D]">
@@ -319,8 +319,8 @@ export default function Map({
 					</Marker>
 				)}
 
-				{/* Default Mode: Destination Marker */}
-				{viewMode !== "browse" && dropoffCoords && (
+				{/* Destination Marker */}
+				{dropoffCoords && (
 					<Marker position={dropoffCoords}>
 						<Popup>
 							<div className="font-semibold text-sm text-[#EF4444]">
@@ -330,11 +330,11 @@ export default function Map({
 					</Marker>
 				)}
 
-				{/* Default Mode: Route Polyline */}
-				{viewMode !== "browse" && routePolyline && (
+				{/* Route Polyline (Vibrant cyan/purple path) */}
+				{routePolyline && (
 					<Polyline
 						positions={routePolyline}
-						pathOptions={{ color: "#714B67", weight: 5, opacity: 0.85 }}
+						pathOptions={{ color: "#00A09D", weight: 6, opacity: 0.9 }}
 					/>
 				)}
 
