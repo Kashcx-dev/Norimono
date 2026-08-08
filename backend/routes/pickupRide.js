@@ -62,6 +62,14 @@ router.post('/', async (req, res, next) => {
             );
         }
 
+        const io = req.app.get("socketio");
+        if (io) {
+            const rideIdResult = await db.query(`SELECT ride_id FROM bookings WHERE booking_id = $1`, [booking_id]);
+            if (rideIdResult.rows.length > 0) {
+                io.to(`ride_${rideIdResult.rows[0].ride_id}`).emit('booking_status_updated', { booking_status: 'in_progress' });
+            }
+        }
+
         return res.json({
             success: true,
             message: "OTP Verified! Passenger picked up successfully."

@@ -295,6 +295,30 @@ function AdminDashboard() {
 		}
 	};
 
+	// Approve Vehicle
+	const handleApproveVehicle = async (veh_id) => {
+		try {
+			const res = await fetch("/admin/vehicles/approve", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+				body: JSON.stringify({ veh_id }),
+			});
+			const data = await res.json();
+			if (data.success) {
+				showToast(data.message);
+				fetchVehicles();
+				fetchEmployees();
+			} else {
+				alert(data.message || "Failed to approve vehicle");
+			}
+		} catch (err) {
+			console.error(err);
+		}
+	};
+
 	// Save Settings
 	const handleUpdateSettings = async (e) => {
 		e.preventDefault();
@@ -1015,23 +1039,26 @@ function AdminDashboard() {
 																{v.driver_name || "Unassigned"}
 															</td>
 															<td className="py-4 px-6 text-right">
-																<button
-																	onClick={() =>
-																		handleToggleVehicleStatus(
-																			v.veh_id,
-																		)
-																	}
-																	title="Click to toggle status"
-																	className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
-																		isActive
-																			? "text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200"
-																			: "text-red-700 bg-red-50 hover:bg-red-100 border border-red-200"
-																	}`}
-																>
-																	{isActive
-																		? "[Active]"
-																		: "[Inactive]"}
-																</button>
+																{v.is_vehicle_registered === "1" ? (
+																	<button
+																		onClick={() => handleApproveVehicle(v.veh_id)}
+																		className="px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200"
+																	>
+																		[Approve]
+																	</button>
+																) : (
+																	<button
+																		onClick={() => handleToggleVehicleStatus(v.veh_id)}
+																		title="Click to toggle status"
+																		className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
+																			isActive
+																				? "text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200"
+																				: "text-red-700 bg-red-50 hover:bg-red-100 border border-red-200"
+																		}`}
+																	>
+																		{isActive ? "[Active]" : "[Inactive]"}
+																	</button>
+																)}
 															</td>
 														</tr>
 													);

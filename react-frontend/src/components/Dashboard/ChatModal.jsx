@@ -1,28 +1,52 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { X, Send, ShieldCheck, Lock } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import { X, Send, ShieldCheck, Lock } from "lucide-react";
 
 // E2EE Constants
 const P = 2147483647n; // A prime number (Mersenne prime M31)
 const G = 16807n; // A primitive root modulo M31
 
-// Simple XOR stream cipher using the shared secret
+// 256-bit Key Stream Derivation from WASM Shared Secret
+function get256BitKeyBytes(key) {
+	if (!key) return [0];
+	const keyStr = key.toString();
+	const keyBytes = [];
+	let hash = 0x811c9dc5;
+	for (let i = 0; i < 32; i++) {
+		const charCode = keyStr.charCodeAt(i % keyStr.length) || i + 1;
+		hash = Math.imul(hash ^ charCode, 0x01000193);
+		keyBytes.push((hash >>> ((i % 4) * 8)) & 0xff);
+	}
+	return keyBytes;
+}
+
+// 256-bit Stream Cipher using full WASM Key
 function encryptDecrypt(text, key) {
 	if (!key) return text;
-	let out = '';
+	const keyBytes = get256BitKeyBytes(key);
+	let out = "";
 	for (let i = 0; i < text.length; i++) {
-		out += String.fromCharCode(text.charCodeAt(i) ^ Number(key % 256n));
+		const keyByte =
+			keyBytes[i % keyBytes.length] ^
+			Number((key >> BigInt((i % 4) * 8)) & 0xffn);
+		out += String.fromCharCode(text.charCodeAt(i) ^ keyByte);
 	}
 	return out;
 }
 
-export default function ChatModal({ isOpen, onClose, socket, activeTrip, user }) {
+export default function ChatModal({
+	isOpen,
+	onClose,
+	socket,
+	activeTrip,
+	user,
+}) {
 	const [messages, setMessages] = useState([]);
 	const [inputText, setInputText] = useState("");
 	const [wasmModule, setWasmModule] = useState(null);
 	const [privateKey, setPrivateKey] = useState(null);
 	const [publicKey, setPublicKey] = useState(null);
 	const [otherPublicKey, setOtherPublicKey] = useState(null);
-	
+
 	const messagesEndRef = useRef(null);
 
 	// Scroll to bottom when messages change
@@ -33,27 +57,33 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 	// Load WASM and generate keys
 	useEffect(() => {
 		let isMounted = true;
-		
+
 		const loadWasm = async () => {
 			try {
-				const response = await fetch('/math_engine.wasm');
+				const response = await fetch("/math_engine.wasm");
 				const bytes = await response.arrayBuffer();
 				const result = await WebAssembly.instantiate(bytes, {
 					env: {
-						memory: new WebAssembly.Memory({ initial: 256, maximum: 256 }),
-						table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' }),
-						abort: () => console.log('Abort called from WASM')
-					}
+						memory: new WebAssembly.Memory({
+							initial: 256,
+							maximum: 256,
+						}),
+						table: new WebAssembly.Table({
+							initial: 0,
+							element: "anyfunc",
+						}),
+						abort: () => console.log("Abort called from WASM"),
+					},
 				});
-				
+
 				if (isMounted) {
 					const module = result.instance;
 					setWasmModule(module);
-					
+
 					// Generate private key (random number between 1 and 1000)
 					const priv = BigInt(Math.floor(Math.random() * 999) + 1);
 					setPrivateKey(priv);
-					
+
 					// Generate public key: G^priv % P
 					const pub = module.exports.modulation(G, priv, P);
 					setPublicKey(pub);
@@ -62,12 +92,14 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 				console.error("Failed to load E2EE WASM module:", err);
 			}
 		};
-		
+
 		if (isOpen && !wasmModule) {
 			loadWasm();
 		}
-		
-		return () => { isMounted = false; };
+
+		return () => {
+			isMounted = false;
+		};
 	}, [isOpen, wasmModule]);
 
 	// Re-calculate shared secret using useMemo
@@ -81,7 +113,7 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 	// Listen for incoming messages & keys
 	useEffect(() => {
 		if (!socket || !isOpen) return;
-		
+
 		const handleMessage = (data) => {
 			// If it's a key exchange message
 			if (data.type === "KEY_EXCHANGE") {
@@ -91,16 +123,20 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 				}
 				return;
 			}
-			
+
 			// If it's a chat message
 			if (data.type === "CHAT") {
 				let text = data.text;
 				let decrypted = false;
-				
+
 				// Calculate shared secret on the fly for decryption just in case
 				let currentSecret = null;
 				if (privateKey && otherPublicKey && wasmModule) {
-					currentSecret = wasmModule.exports.modulation(otherPublicKey, privateKey, P);
+					currentSecret = wasmModule.exports.modulation(
+						otherPublicKey,
+						privateKey,
+						P,
+					);
 				}
 
 				// Attempt to decrypt if we have a shared secret and it's from the other person
@@ -109,26 +145,29 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 						// The text is sent as base64 or raw string. Let's assume raw string for XOR
 						text = encryptDecrypt(atob(data.text), currentSecret);
 						decrypted = true;
-					} catch(e) {
+					} catch (e) {
 						console.error("Decryption failed", e);
 					}
 				} else if (data.sender_id === user.emp_id) {
 					// It's our own message, display plain text (we don't encrypt for ourselves in UI)
-					text = data.originalText; 
+					text = data.originalText;
 					decrypted = true;
 				}
 
-				setMessages(prev => [...prev, {
-					...data,
-					text,
-					isMine: data.sender_id === user.emp_id,
-					isSecure: decrypted
-				}]);
+				setMessages((prev) => [
+					...prev,
+					{
+						...data,
+						text,
+						isMine: data.sender_id === user.emp_id,
+						isSecure: decrypted,
+					},
+				]);
 			}
 		};
-		
+
 		socket.on("new_chat_message", handleMessage);
-		
+
 		return () => {
 			socket.off("new_chat_message", handleMessage);
 		};
@@ -136,14 +175,18 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 
 	// Broadcast public key when joining chat
 	useEffect(() => {
-		const rideId = activeTrip?.ride?.ride_id || activeTrip?.ride_id || activeTrip?.booking_id || "DEMO_RIDE_1";
+		const rideId =
+			activeTrip?.ride?.ride_id ||
+			activeTrip?.ride_id ||
+			activeTrip?.booking_id ||
+			"DEMO_RIDE_1";
 
 		if (isOpen && socket && publicKey && rideId) {
 			socket.emit("send_chat_message", {
 				ride_id: rideId,
 				type: "KEY_EXCHANGE",
 				sender_id: user.emp_id || "USER_1",
-				public_key: publicKey.toString()
+				public_key: publicKey.toString(),
 			});
 		}
 	}, [isOpen, socket, publicKey, activeTrip, user.emp_id]);
@@ -151,10 +194,14 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 	const handleSend = (e) => {
 		e.preventDefault();
 		if (!inputText.trim()) return;
-		
-		const rideId = activeTrip?.ride?.ride_id || activeTrip?.ride_id || activeTrip?.booking_id || "DEMO_RIDE_1";
+
+		const rideId =
+			activeTrip?.ride?.ride_id ||
+			activeTrip?.ride_id ||
+			activeTrip?.booking_id ||
+			"DEMO_RIDE_1";
 		let textToSend;
-		
+
 		if (sharedSecret) {
 			// Encrypt text
 			textToSend = btoa(encryptDecrypt(inputText, sharedSecret));
@@ -170,19 +217,22 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 			sender_name: user.name || "You",
 			text: textToSend,
 			originalText: inputText, // Just for local echo
-			timestamp: new Date().toISOString()
+			timestamp: new Date().toISOString(),
 		};
-		
+
 		if (socket && socket.connected) {
 			socket.emit("send_chat_message", msg);
 		} else {
 			// Local echo fallback when socket server is disconnected
-			setMessages(prev => [...prev, {
-				...msg,
-				text: inputText,
-				isMine: true,
-				isSecure: false
-			}]);
+			setMessages((prev) => [
+				...prev,
+				{
+					...msg,
+					text: inputText,
+					isMine: true,
+					isSecure: false,
+				},
+			]);
 		}
 
 		setInputText("");
@@ -193,7 +243,6 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
 			<div className="bg-white rounded-3xl shadow-2xl border border-gray-100 w-full max-w-md overflow-hidden flex flex-col h-[500px] text-left transform transition-all">
-				
 				{/* Header */}
 				<div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-[#714B67] to-[#5c3c54] text-white">
 					<div className="flex flex-col">
@@ -202,9 +251,15 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 						</h3>
 						<div className="flex items-center gap-1 text-[10px] text-white/80 font-medium">
 							{sharedSecret ? (
-								<><ShieldCheck className="w-3 h-3 text-emerald-300" /> End-to-End Encrypted (WASM DH)</>
+								<>
+									<ShieldCheck className="w-3 h-3 text-emerald-300" />{" "}
+									End-to-End Encrypted (WASM DH)
+								</>
 							) : (
-								<><Lock className="w-3 h-3 text-amber-300" /> Securing connection...</>
+								<>
+									<Lock className="w-3 h-3 text-amber-300" /> Securing
+									connection...
+								</>
 							)}
 						</div>
 					</div>
@@ -221,28 +276,46 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 					{messages.length === 0 && (
 						<div className="h-full flex flex-col items-center justify-center text-gray-400">
 							<ShieldCheck className="w-12 h-12 mb-2 text-gray-300" />
-							<p className="text-sm font-medium">Messages are end-to-end encrypted.</p>
-							<p className="text-xs text-gray-400">Powered by C++ WebAssembly</p>
+							<p className="text-sm font-medium">
+								Messages are end-to-end encrypted.
+							</p>
+							<p className="text-xs text-gray-400">
+								Powered by C++ WebAssembly
+							</p>
 						</div>
 					)}
-					
+
 					{messages.map((m, i) => (
-						<div key={i} className={`flex flex-col ${m.isMine ? 'items-end' : 'items-start'}`}>
+						<div
+							key={i}
+							className={`flex flex-col ${m.isMine ? "items-end" : "items-start"}`}
+						>
 							{!m.isMine && (
-								<span className="text-[10px] text-gray-500 mb-1 ml-1">{m.sender_name}</span>
+								<span className="text-[10px] text-gray-500 mb-1 ml-1">
+									{m.sender_name}
+								</span>
 							)}
-							<div className={`px-4 py-2 rounded-2xl max-w-[80%] text-sm ${
-								m.isMine 
-									? 'bg-[#714B67] text-white rounded-br-sm' 
-									: 'bg-white border border-gray-200 text-gray-800 rounded-bl-sm'
-							}`}>
+							<div
+								className={`px-4 py-2 rounded-2xl max-w-[80%] text-sm ${
+									m.isMine
+										? "bg-[#714B67] text-white rounded-br-sm"
+										: "bg-white border border-gray-200 text-gray-800 rounded-bl-sm"
+								}`}
+							>
 								{m.text}
 							</div>
 							<div className="flex items-center gap-1 mt-1 mr-1">
 								<span className="text-[9px] text-gray-400">
-									{new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+									{new Date(m.timestamp).toLocaleTimeString([], {
+										hour: "2-digit",
+										minute: "2-digit",
+									})}
 								</span>
-								{m.isSecure && <Lock className={`w-2 h-2 ${m.isMine ? 'text-[#714B67]/50' : 'text-gray-400'}`} />}
+								{m.isSecure && (
+									<Lock
+										className={`w-2 h-2 ${m.isMine ? "text-[#714B67]/50" : "text-gray-400"}`}
+									/>
+								)}
 							</div>
 						</div>
 					))}

@@ -61,7 +61,7 @@ router.post('/', async (req, res, next) => {
                 ride_id, passenger_id, pickup_location, 
                 dropoff_location, booking_status, payment_status, otp
             ) 
-            VALUES ($1, $2, $3, $4, 'confirmed', 'pending', $5) 
+            VALUES ($1, $2, $3, $4, 'pending', 'pending', $5) 
             RETURNING booking_id
         `;
         
@@ -72,6 +72,11 @@ router.post('/', async (req, res, next) => {
             dropoff_location, 
             otp
         ]);
+
+        const io = req.app.get("socketio");
+        if (io) {
+            io.to(`ride_${ride_id}`).emit('driver_refresh_bookings');
+        }
 
         return res.json({ 
             success: true, 

@@ -40,19 +40,36 @@ router.post('/', async (req, res, next) => {
             return res.status(400).json({message: `Booking is not currently in progress (Current state: ${bookingInfo.booking_status})`});
         }
 
-        // Update the booking status to indicate the passenger has been dropped off
+        // Update the booking status to indicate the passenger has been dropped off and payment is pending
         await db.query(
-            "UPDATE bookings SET booking_status = 'completed' WHERE booking_id = $1", 
+            "UPDATE bookings SET booking_status = 'completed', payment_status = 'pending' WHERE booking_id = $1", 
             [booking_id]
         );
 
-        // Optionally, check if all other active bookings for this ride are completed/cancelled.
-        // If they are, we could mark the ride as 'completed' as well. 
-        // For simplicity, we just complete the booking here.
+        const io = req.app.get("socketio");
+        if (io) {
+            const rideIdResult = await db.query(`SELECT ride_id FROM bookings WHERE booking_id = $1`, [booking_id]);
+            if (rideIdResult.rows.length > 0) {
+                const rId = rideIdResult.rows[0].ride_id;
+                const updatePayload = {
+                    booking_id: Number(booking_id),
+                    booking_status: 'completed',
+                    payment_status: 'pending',
+                    ride_id: rId
+                };
+
+                // Emit to room and broadcast
+                io.to(`ride_${rId}`).emit('booking_status_updated', updatePayload);
+                io.emit('booking_status_updated', updatePayload);
+
+                io.to(`ride_${rId}`).emit('driver_refresh_bookings');
+                io.emit('driver_refresh_bookings');
+            }
+        }
 
         return res.json({
             success: true,
-            message: "Passenger dropped off successfully! Booking completed."
+            message: "Passenger dropped off successfully. Payment status updated to pending.",
         });
 
     } catch (error) {
