@@ -116,8 +116,10 @@ export default function WalletModal({ isOpen, onClose }) {
 			// Simulate real gateway delay + execute backend connection & local state update
 			await new Promise((r) => setTimeout(r, 600));
 			const updated = await addMoneyToWallet(empId, amountNum, paymentMethod);
-			setWallet(updated);
-			setSuccessMsg(`Successfully added ₹${amountNum.toLocaleString("en-IN")} to your MakeLyft Wallet!`);
+			if (updated) {
+				setWallet(updated);
+			}
+			setSuccessMsg(`Initiated transaction of ₹${amountNum.toLocaleString("en-IN")}. Complete it in the gateway!`);
 			setAddAmount("");
 			setActiveTab("overview");
 

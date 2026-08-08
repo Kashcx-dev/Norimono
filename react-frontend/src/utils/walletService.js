@@ -140,9 +140,16 @@ export const addMoneyToWallet = async (empId, amount, paymentMethod = "UPI") => 
 		const orderData = await orderRes.json();
 		if (!orderData.success) throw new Error("Failed to create order");
 
+		// Fetch Razorpay public key
+		const keyRes = await fetch("/wallet/razorpay-key", {
+			headers: token ? { Authorization: `Bearer ${token}` } : {}
+		});
+		const keyData = await keyRes.json();
+		if (!keyData.success || !keyData.key) throw new Error("Failed to get payment gateway key");
+
 		// 2. Open Razorpay Checkout
 		const options = {
-			key: "YOUR_KEY_ID", // This is usually passed from backend, but Razorpay works with public key on frontend
+			key: keyData.key,
 			amount: orderData.order.amount,
 			currency: orderData.order.currency,
 			name: "MakeLyft Wallet",
@@ -198,12 +205,14 @@ export const addMoneyToWallet = async (empId, amount, paymentMethod = "UPI") => 
 		
 		const rzp = new window.Razorpay(options);
 		rzp.on('payment.failed', function (response){
-			alert("Payment Failed: " + response.error.description);
+			console.error("Payment Failed: ", response.error.description);
+			// Removing the unprofessional alert()
 		});
 		rzp.open();
 		
-		// Return immediately so UI doesn't hang, the handler will take care of success
-		return;
+		// Return the current wallet so the UI doesn't blank out while waiting for Razorpay
+		const currentWallet = await getWalletData(empId);
+		return currentWallet;
 	} catch (err) {
 		console.warn("Razorpay flow failed, fallback to local state:", err.message);
 	}

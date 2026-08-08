@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Car, MapPin, CheckCircle2, Navigation, Loader2 } from "lucide-react";
+import { Car, MapPin, CheckCircle2, Navigation, Loader2, MessageSquare } from "lucide-react";
+import ChatModal from "./ChatModal";
 
 export default function ActiveTripPanel({
 	activeTrip,
@@ -13,6 +14,9 @@ export default function ActiveTripPanel({
 	const [status, setStatus] = useState("pending"); // pending, picked_up, dropped_off
 	const [liveLocation, setLiveLocation] = useState(null);
 	const [phase, setPhase] = useState("Waiting for pickup");
+	const [isChatOpen, setIsChatOpen] = useState(false);
+	
+	const user = JSON.parse(localStorage.getItem("user") || "{}");
 
 	useEffect(() => {
 		if (!socket || !activeTrip.ride?.ride_id) return;
@@ -146,8 +150,15 @@ export default function ActiveTripPanel({
 
 			<div className="flex-1 p-6 flex flex-col space-y-6">
 				{/* Ride Details Card */}
-				<div className="p-4 rounded-xl border border-gray-200 bg-gray-50">
-					<div className="flex items-center gap-3 mb-4">
+				<div className="p-4 rounded-xl border border-gray-200 bg-gray-50 relative">
+					<button 
+						onClick={() => setIsChatOpen(true)}
+						className="absolute top-4 right-4 bg-white border border-gray-200 hover:border-[#714B67] hover:text-[#714B67] text-gray-600 px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-2 text-xs font-bold transition-all cursor-pointer"
+					>
+						<MessageSquare className="w-4 h-4" /> Message
+					</button>
+
+					<div className="flex items-center gap-3 mb-4 pr-24">
 						<div className="w-10 h-10 rounded-full bg-[#714B67]/10 flex items-center justify-center text-[#714B67]">
 							<Car className="w-5 h-5" />
 						</div>
@@ -244,6 +255,14 @@ export default function ActiveTripPanel({
 					</div>
 				)}
 			</div>
+
+			<ChatModal 
+				isOpen={isChatOpen} 
+				onClose={() => setIsChatOpen(false)} 
+				socket={socket} 
+				activeTrip={activeTrip} 
+				user={user} 
+			/>
 		</div>
 	);
 }

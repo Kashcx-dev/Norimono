@@ -19,4 +19,10 @@ router.post('/create-order', createOrder);
 // Verify Razorpay payment
 router.post('/verify-payment', verifyPayment);
 
+// GET /wallet/razorpay-key
+// Returns the public Razorpay key ID for the frontend checkout
+router.get('/razorpay-key', (req, res) => {
+    return res.json({ success: true, key: process.env.RAZORPAY_KEY_ID });
+});
+
 module.exports = router;

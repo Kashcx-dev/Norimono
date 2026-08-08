@@ -109,7 +109,7 @@ function Dashboard() {
 			const token = localStorage.getItem("token");
 			const lat = userLocation ? userLocation[0] : 22.5726;
 			const lng = userLocation ? userLocation[1] : 88.3639;
-			const res = await fetch(`/book-ride/nearby?lat=${lat}&lng=${lng}&radius=10`, {
+			const res = await fetch(`/rides`, {
 				headers: token ? { Authorization: `Bearer ${token}` } : {}
 			});
 			const data = await res.json();

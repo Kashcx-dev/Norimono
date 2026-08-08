@@ -71,6 +71,16 @@ io.on("connection", (socket) => {
 		}
 	});
 
+    // Chat functionality
+    socket.on('send_chat_message', (data) => {
+        // data should contain: ride_id, sender_id, sender_name, text, timestamp, and potentially public_key for E2EE
+        const { ride_id, ...messageData } = data;
+        const roomName = `ride_${ride_id}`;
+        
+        // Broadcast the message to everyone in the ride room (driver & passenger)
+        io.to(roomName).emit('new_chat_message', messageData);
+    });
+
 	socket.on("disconnect", () => {
 		console.log(`[Socket.io] Client disconnected: ${socket.id}`);
 	});

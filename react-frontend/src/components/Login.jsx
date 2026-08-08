@@ -51,8 +51,8 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
 					setShowOtp(true);
 					setResolvedEmail(data.resolvedEmail || email);
 				} else if (data.token) {
-					sessionStorage.setItem("token", data.token);
-					sessionStorage.setItem("user", JSON.stringify(data.user));
+					localStorage.setItem("token", data.token);
+					localStorage.setItem("user", JSON.stringify(data.user));
 					onLoginSuccess?.({ ...data.user, organization });
 				}
 			})
@@ -87,8 +87,8 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
 			.then((data) => {
 				setIsLoading(false);
 				if (data.token) {
-					sessionStorage.setItem("token", data.token);
-					sessionStorage.setItem("user", JSON.stringify(data.user));
+					localStorage.setItem("token", data.token);
+					localStorage.setItem("user", JSON.stringify(data.user));
 					onLoginSuccess?.({ ...data.user, organization });
 				}
 			})

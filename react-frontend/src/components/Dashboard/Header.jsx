@@ -113,11 +113,8 @@ function Header({ onOpenVehicleModal }) {
 									</div>
 
 									<div className="flex gap-2">
-										<button className="flex-1 py-1.5 flex items-center justify-center gap-1.5 bg-[#714B67] hover:bg-[#5c3c54] text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer">
-											<Phone className="w-3.5 h-3.5" /> Call
-										</button>
-										<button className="flex-1 py-1.5 flex items-center justify-center gap-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer">
-											<MessageSquare className="w-3.5 h-3.5" /> Chat
+										<button className="w-full py-1.5 flex items-center justify-center gap-1.5 bg-[#714B67] hover:bg-[#5c3c54] text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer">
+											<Phone className="w-3.5 h-3.5" /> Call Driver
 										</button>
 									</div>
 								</div>
