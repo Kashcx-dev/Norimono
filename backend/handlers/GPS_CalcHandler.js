@@ -15,3 +15,5 @@ async function getRouting(start, end){
         return null;
     }
 }
+
+module.exports = { getRouting };

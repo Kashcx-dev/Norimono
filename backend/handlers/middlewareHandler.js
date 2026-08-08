@@ -4,7 +4,7 @@ const rate_limiter = require('express-rate-limit')
 
 // Pre-defined limits (dynamic by level)
 const limits = {
-    strict:   { windowMs: 15 * 60 * 1000, max: 5 },   // 15 mins, 5 requests (Auth)
+    strict:   { windowMs: 15 * 60 * 1000, max: 500 },   // 15 mins, 500 requests (Auth)
     standard: { windowMs: 1 * 60 * 1000,  max: 20 },  // 1 min, 20 requests (Feedback)
     relaxed:  { windowMs: 10 * 1000,      max: 50 }   // 10 sec, 50 requests (Chat)
 };

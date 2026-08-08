@@ -12,7 +12,7 @@ function startLiveTracking(socket, routeCoords, tripPhase) {
             return;
         }
 
-        // Emit the "live" GPS coordinate to the frontend
+        // Emit the live GPS coordinate to the frontend
         socket.emit('location_update', {
             status: 'Moving',
             phase: tripPhase,
@@ -20,5 +20,7 @@ function startLiveTracking(socket, routeCoords, tripPhase) {
         });
 
         currentIndex++;
-    }, 2000); // Move the car every 2000ms
+    }, 2000); // Move the car every 2 seconds for a smooth and best use-case
 }
+
+module.exports = { startLiveTracking };
