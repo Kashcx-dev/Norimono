@@ -331,9 +331,6 @@ function Dashboard() {
 			{/* Footer */}
 			<Footer />
 
-			{/* Floating AI Assistant */}
-			<AIAssistant />
-
 			{/* Modals */}
 			{showVehicleModal && (
 				<VehicleRegistrationModal

@@ -72,7 +72,7 @@ function AIAssistant() {
       {/* Floating Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-br from-[#714B67] to-[#8C5D80] text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-[#5c3c54] transition-all transform hover:scale-110 z-40 cursor-pointer animate-float border-2 border-white/20 shadow-[#714B67]/40 ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        className={`fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-br from-[#714B67] to-[#8C5D80] text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-[#5c3c54] transition-all transform hover:scale-110 z-[500] cursor-pointer animate-float border-2 border-white/20 shadow-[#714B67]/40 ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
         title="Open AI Assistant"
       >
         <Bot className="w-7 h-7 text-amber-300 drop-shadow-md" />
@@ -83,7 +83,7 @@ function AIAssistant() {
 
       {/* Chat Modal */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-[360px] h-[520px] bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col z-50 animate-in slide-in-from-bottom-4 zoom-in-95 duration-200 overflow-hidden">
+        <div className="fixed bottom-6 right-6 w-[360px] h-[520px] bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col z-[500] animate-in slide-in-from-bottom-4 zoom-in-95 duration-200 overflow-hidden">
           {/* Header */}
           <div className="bg-[#714B67] text-white p-4 flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-2">

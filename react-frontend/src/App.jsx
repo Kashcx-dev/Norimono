@@ -4,6 +4,7 @@ import AuthPortal from "./components/AuthPortal";
 import Dashboard from "./components/Dashboard/Dashboard";
 import AdminDashboard from "./components/AdminDashboard";
 import AlertModal from "./components/Dashboard/AlertModal";
+import AIAssistant from "./components/Dashboard/AIAssistant";
 import "./App.css";
 import SplashScreen from "./components/SplashScreen";
 
@@ -37,6 +38,7 @@ function App() {
       <div className="min-h-screen bg-gray-50 w-full page-transition">
         <AppRoutes />
         <AlertModal />
+        <AIAssistant />
       </div>
     </Router>
   );
