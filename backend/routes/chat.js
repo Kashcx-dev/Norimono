@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { getBotAnswer } = require("./getAiAnswer");
+const { sanitizeInput } = require("../utils/sanitize");
 
 // Chat routes
 router.get("/", (req, res) => {
@@ -10,11 +11,12 @@ router.get("/", (req, res) => {
 router.post("/", async (req, res, next) => {
     try {
         const { message } = req.body;
-        if (!message) {
+        const cleanMessage = sanitizeInput(message);
+        if (!cleanMessage) {
             return res.status(400).json({ error: "Message is required" });
         }
-        const reply = await getBotAnswer(message);
-        return res.json({ success: true, reply });
+        const reply = await getBotAnswer(cleanMessage);
+        return res.json({ success: true, reply: sanitizeInput(reply) });
     } catch (error) {
         console.error("Error in chat route:", error);
         return next(error);

@@ -7,6 +7,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 
 const {handle404, masterErrorHandler, FN_verifyTkn, API_Limiter} = require("../handlers/middlewareHandler");
+const { sanitizeInput } = require("../utils/sanitize");
 //ROUTES
 const authRoutes = require("../routes/auth");
 const chatRoutes = require("../routes/chat");
@@ -79,6 +80,9 @@ io.on("connection", (socket) => {
     socket.on('send_chat_message', (data) => {
         // data should contain: ride_id, sender_id, sender_name, text, timestamp, and potentially public_key for E2EE
         const { ride_id, ...messageData } = data;
+        if (messageData.text) {
+            messageData.text = sanitizeInput(messageData.text);
+        }
         const roomName = `ride_${ride_id}`;
         
         // Broadcast the message to everyone in the ride room (driver & passenger)
