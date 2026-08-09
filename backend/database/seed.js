@@ -1,5 +1,5 @@
 const { Pool } = require('pg');
-require('dotenv').config(); // Automatically looks for .env in current directory (backend/)
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const bcrypt = require('bcrypt');
 
 const db = new Pool({
