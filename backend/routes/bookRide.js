@@ -4,11 +4,13 @@ const db = require('../handlers/dbHandler');
 const crypto = require('crypto');
 
 router.post('/', async (req, res, next) => {
+    const client = await db.getClient();
     try {
         const { ride_id, pickup_location, dropoff_location } = req.body;
 
         // Ensure user is authenticated
         if (!req.user || !req.user.emp_id) {
+            client.release();
             return res.status(401).json({ message: "Unauthorized. Please log in." });
         }
         
@@ -16,41 +18,53 @@ router.post('/', async (req, res, next) => {
 
         // Validate payload
         if (!ride_id || !pickup_location || !dropoff_location) {
+            client.release();
             return res.status(400).json({ message: "Missing required fields: ride_id, pickup_location, dropoff_location." });
         }
 
-        // Check if the ride exists and has available seats, and if it's in the same organization
-        const rideResult = await db.query(
+        await client.query('BEGIN');
+
+        // Check if the ride exists and fetch metadata (locks the row with FOR UPDATE to prevent concurrent booking)
+        const rideResult = await client.query(
             `SELECT r.available_seats, r.driver_id, u.org_name 
              FROM rides r
              JOIN users u ON r.driver_id = u.emp_id
-             WHERE r.ride_id = $1`, 
+             WHERE r.ride_id = $1
+             FOR UPDATE`, 
             [ride_id]
         );
 
         if (!rideResult.rows || rideResult.rows.length === 0) {
+            await client.query('ROLLBACK');
+            client.release();
             return res.status(404).json({ message: "Ride not found." });
         }
 
         const ride = rideResult.rows[0];
 
         if (ride.driver_id === passenger_id) {
+            await client.query('ROLLBACK');
+            client.release();
             return res.status(400).json({ message: "You cannot book your own published ride." });
         }
 
         if (ride.org_name !== req.user.org_name) {
+            await client.query('ROLLBACK');
+            client.release();
             return res.status(403).json({ message: "You can only book rides within your own organization." });
         }
 
-        if (ride.available_seats <= 0) {
-            return res.status(400).json({ message: "Sorry, this ride is fully booked!" });
-        }
-
-        // Decrement available seats by 1
-        await db.query(
-            'UPDATE rides SET available_seats = available_seats - 1 WHERE ride_id = $1',
+        // Atomic seat decrement — only succeeds if seats are still available
+        const seatResult = await client.query(
+            'UPDATE rides SET available_seats = available_seats - 1 WHERE ride_id = $1 AND available_seats > 0 RETURNING available_seats',
             [ride_id]
         );
+
+        if (seatResult.rows.length === 0) {
+            await client.query('ROLLBACK');
+            client.release();
+            return res.status(400).json({ message: "Sorry, this ride is fully booked!" });
+        }
 
         // Generate a 4-digit OTP for the driver to verify pickup
         const otp = crypto.randomInt(1000, 9999).toString();
@@ -65,13 +79,16 @@ router.post('/', async (req, res, next) => {
             RETURNING booking_id
         `;
         
-        const insertResult = await db.query(insertQuery, [
+        const insertResult = await client.query(insertQuery, [
             ride_id, 
             passenger_id, 
             pickup_location, 
             dropoff_location, 
             otp
         ]);
+
+        await client.query('COMMIT');
+        client.release();
 
         const io = req.app.get("socketio");
         if (io) {
@@ -85,6 +102,12 @@ router.post('/', async (req, res, next) => {
                 type: "request",
                 timestamp: new Date().toISOString()
             });
+
+            // Emit seat count update so browse panels refresh
+            io.emit('ride_seats_updated', {
+                ride_id: ride_id,
+                available_seats: seatResult.rows[0].available_seats
+            });
         }
 
         return res.json({ 
@@ -95,6 +118,8 @@ router.post('/', async (req, res, next) => {
         });
 
     } catch (error) {
+        await client.query('ROLLBACK').catch(() => {});
+        client.release();
         console.error("Error booking ride:", error);
         return next(error);
     }

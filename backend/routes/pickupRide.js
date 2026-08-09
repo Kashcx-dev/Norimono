@@ -66,7 +66,14 @@ router.post('/', async (req, res, next) => {
         if (io) {
             const rideIdResult = await db.query(`SELECT ride_id FROM bookings WHERE booking_id = $1`, [booking_id]);
             if (rideIdResult.rows.length > 0) {
-                io.to(`ride_${rideIdResult.rows[0].ride_id}`).emit('booking_status_updated', { booking_status: 'in_progress' });
+                const ride_id = rideIdResult.rows[0].ride_id;
+                const payload = {
+                    booking_id: Number(booking_id),
+                    booking_status: 'in_progress',
+                    ride_id: ride_id
+                };
+                io.to(`ride_${ride_id}`).emit('booking_status_updated', payload);
+                io.emit('booking_status_updated', payload);
             }
         }
 

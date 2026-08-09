@@ -112,22 +112,7 @@ export default function BrowseRidesPanel({
 			}
 		} catch (err) {
 			console.error("Booking error:", err);
-			// Fallback for demonstration
-			try {
-				await deductMoneyForRide(empId, fare, ride);
-			} catch (wErr) {
-				console.warn("Wallet fallback deduction:", wErr.message);
-			}
-			const fallbackObj = {
-				otp: Math.floor(1000 + Math.random() * 9000),
-				booking_id: "BK-" + Math.floor(10000 + Math.random() * 90000),
-				ride: ride,
-				fare: fare,
-				seat_no: selectedSeatPref || "Seat 1 (Front Window)",
-				status: "requested",
-			};
-			setBookingSuccess(fallbackObj);
-			if (onRideBooked) onRideBooked(fallbackObj);
+			showAlert("Could not connect to the server. Please check your connection and try again.", "Booking Error", "error");
 		} finally {
 			setBookingLoading(false);
 		}
@@ -498,20 +483,26 @@ export default function BrowseRidesPanel({
 									</div>
 								</div>
 
-								{/* Seat Selection */}
+								{/* Seat Selection — Dynamic based on available seats */}
 								<div className="pt-2 border-t border-teal-100">
 									<label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-										Choose Preferred Seat
+										Choose Preferred Seat ({bookingModalRide.available_seats} available)
 									</label>
 									<select
 										value={selectedSeatPref}
 										onChange={(e) => setSelectedSeatPref(e.target.value)}
 										className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#00A09D]"
 									>
-										<option value="Seat 1 (Front Window)">Seat 1 (Front Window)</option>
-										<option value="Seat 2 (Rear Left Window)">Seat 2 (Rear Left Window)</option>
-										<option value="Seat 3 (Rear Right Window)">Seat 3 (Rear Right Window)</option>
-										<option value="Seat 4 (Rear Middle)">Seat 4 (Rear Middle)</option>
+										{(() => {
+											const seatLabels = ["Seat 1 (Front Window)", "Seat 2 (Rear Left Window)", "Seat 3 (Rear Right Window)", "Seat 4 (Rear Middle)"];
+											const totalSeats = bookingModalRide.total_seats || 4;
+											const availableCount = bookingModalRide.available_seats || 0;
+											// Show only as many seat options as are available, capped by total
+											const seatCount = Math.min(availableCount, totalSeats, seatLabels.length);
+											return seatLabels.slice(0, seatCount).map((label, idx) => (
+												<option key={idx} value={label}>{label}</option>
+											));
+										})()}
 									</select>
 								</div>
 							</div>

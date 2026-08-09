@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { X, Send, MessageSquare, ShieldCheck, User, Clock, Lock } from "lucide-react";
 
 export default function ChatModal({ isOpen, onClose, socket, activeTrip, user }) {
@@ -12,12 +12,91 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 			timestamp: new Date().toISOString()
 		}
 	]);
+	const messagesEndRef = useRef(null);
+
+	const rideId = activeTrip?.ride?.ride_id;
+
+	// Scroll to bottom on new messages
+	const scrollToBottom = () => {
+		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+	};
+
+	useEffect(() => {
+		scrollToBottom();
+	}, [messages]);
+
+	// Join ride room and listen for incoming messages
+	useEffect(() => {
+		if (!socket || !rideId || !isOpen) return;
+
+		// Join the ride's socket room so we receive messages
+		socket.emit("join_ride_room", { ride_id: rideId });
+
+		const handleNewMessage = (data) => {
+			// Don't add our own messages (we already added them optimistically)
+			if (data.sender_id === user?.emp_id) return;
+
+			setMessages((prev) => [
+				...prev,
+				{
+					id: Date.now(),
+					sender_id: data.sender_id,
+					sender_name: data.sender_name,
+					text: data.text,
+					timestamp: data.timestamp || new Date().toISOString(),
+				},
+			]);
+		};
+
+		socket.on("new_chat_message", handleNewMessage);
+
+		return () => {
+			socket.off("new_chat_message", handleNewMessage);
+		};
+	}, [socket, rideId, isOpen, user?.emp_id]);
 
 	if (!isOpen) return null;
 
 	const targetName = activeTrip?.mode === "driver" 
 		? (activeTrip?.bookings?.[0]?.passenger_name || "Passenger")
 		: (activeTrip?.ride?.driver_name || "Driver");
+
+	const handleSend = () => {
+		const text = messageInput.trim();
+		if (!text || !socket || !rideId) return;
+
+		const messagePayload = {
+			ride_id: rideId,
+			sender_id: user?.emp_id,
+			sender_name: user?.name || "You",
+			text: text,
+			timestamp: new Date().toISOString(),
+		};
+
+		// Emit to socket
+		socket.emit("send_chat_message", messagePayload);
+
+		// Optimistically add to local messages
+		setMessages((prev) => [
+			...prev,
+			{
+				id: Date.now(),
+				sender_id: user?.emp_id,
+				sender_name: user?.name || "You",
+				text: text,
+				timestamp: messagePayload.timestamp,
+			},
+		]);
+
+		setMessageInput("");
+	};
+
+	const handleKeyDown = (e) => {
+		if (e.key === "Enter" && !e.shiftKey) {
+			e.preventDefault();
+			handleSend();
+		}
+	};
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xl animate-in fade-in duration-300">
@@ -52,7 +131,7 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 				{/* Chat Messages */}
 				<div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50">
 					{messages.map((msg, idx) => {
-						const isMe = msg.sender_id === user.emp_id;
+						const isMe = msg.sender_id === user?.emp_id;
 						
 						if (msg.isSystem) {
 							return (
@@ -85,6 +164,7 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 							</div>
 						);
 					})}
+					<div ref={messagesEndRef} />
 				</div>
 
 				{/* Input Area */}
@@ -94,10 +174,12 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 							type="text"
 							value={messageInput}
 							onChange={(e) => setMessageInput(e.target.value)}
+							onKeyDown={handleKeyDown}
 							placeholder="Type an encrypted message..."
 							className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#00A09D]/20 focus:border-[#00A09D] transition-all"
 						/>
 						<button 
+							onClick={handleSend}
 							disabled={!messageInput.trim()}
 							className="w-12 rounded-xl bg-[#00A09D] hover:bg-[#008f8c] disabled:opacity-50 text-white flex items-center justify-center transition-colors cursor-pointer shadow-sm shadow-[#00A09D]/20"
 						>
