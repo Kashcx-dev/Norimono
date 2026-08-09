@@ -121,7 +121,7 @@ const seedDatabase = async () => {
         for(let i=1; i<=200; i++) {
             const randomRide = rides[Math.floor(Math.random() * rides.length)];
             const randomPassenger = users[Math.floor(Math.random() * users.length)];
-            const bookingStatuses = ['confirmed', 'completed', 'cancelled'];
+            const bookingStatuses = ['completed', 'cancelled'];
             const paymentStatuses = ['pending', 'paid'];
             
             await db.query(

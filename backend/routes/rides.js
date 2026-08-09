@@ -198,7 +198,7 @@ router.get('/passenger/active', async (req, res, next) => {
             JOIN rides r ON b.ride_id = r.ride_id
             JOIN vehicles v ON r.veh_no = v.veh_no
             JOIN users u ON r.driver_id = u.emp_id
-            WHERE b.passenger_id = $1 AND b.booking_status IN ('pending', 'confirmed', 'in_progress', 'completed')
+            WHERE b.passenger_id = $1 AND b.booking_status IN ('pending', 'confirmed', 'in_progress')
             ORDER BY b.booking_id DESC LIMIT 1
         `;
         const result = await db.query(query, [req.user.emp_id]);
