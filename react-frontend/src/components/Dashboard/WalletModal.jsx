@@ -115,11 +115,17 @@ export default function WalletModal({ isOpen, onClose }) {
 		try {
 			// Simulate real gateway delay + execute backend connection & local state update
 			await new Promise((r) => setTimeout(r, 600));
-			const updated = await addMoneyToWallet(empId, amountNum, paymentMethod);
+			const updated = await addMoneyToWallet(
+				empId,
+				amountNum,
+				paymentMethod,
+			);
 			if (updated) {
 				setWallet(updated);
 			}
-			setSuccessMsg(`Initiated transaction of ₹${amountNum.toLocaleString("en-IN")}. Complete it in the gateway!`);
+			setSuccessMsg(
+				`Initiated transaction of ₹${amountNum.toLocaleString("en-IN")}. Complete it in the gateway!`,
+			);
 			setAddAmount("");
 			setActiveTab("overview");
 
@@ -233,12 +239,15 @@ export default function WalletModal({ isOpen, onClose }) {
 				</div>
 
 				{/* Modal Body */}
-				<div ref={scrollContainerRef} className="p-6 overflow-y-auto flex-1 space-y-6">
+				<div
+					ref={scrollContainerRef}
+					className="p-6 overflow-y-auto flex-1 space-y-6"
+				>
 					{loading ? (
 						<div className="py-16 text-center">
 							<RefreshCw className="w-8 h-8 text-[#714B67] animate-spin mx-auto mb-3" />
 							<p className="text-sm font-semibold text-gray-600">
-								Loading walslet information...
+								Loading wallet information...
 							</p>
 						</div>
 					) : activeTab === "overview" ? (
@@ -260,10 +269,13 @@ export default function WalletModal({ isOpen, onClose }) {
 													₹
 												</span>
 												<span className="text-4xl font-extrabold tracking-tight text-white">
-													{(wallet?.balance || 0).toLocaleString("en-IN", {
-														minimumFractionDigits: 2,
-														maximumFractionDigits: 2,
-													})}
+													{(wallet?.balance || 0).toLocaleString(
+														"en-IN",
+														{
+															minimumFractionDigits: 2,
+															maximumFractionDigits: 2,
+														},
+													)}
 												</span>
 											</div>
 										</div>
@@ -288,7 +300,8 @@ export default function WalletModal({ isOpen, onClose }) {
 												Default Source
 											</p>
 											<p className="font-medium text-white mt-0.5">
-												{wallet?.bank_connection || "HDFC Bank (•••• 4821)"}
+												{wallet?.bank_connection ||
+													"HDFC Bank (•••• 4821)"}
 											</p>
 										</div>
 									</div>
@@ -328,57 +341,61 @@ export default function WalletModal({ isOpen, onClose }) {
 								</div>
 
 								<div className="space-y-2">
-									{(wallet?.transactions || []).slice(0, 3).map((tx) => (
-										<div
-											key={tx.id}
-											className="p-3.5 bg-gray-50/80 hover:bg-gray-100/80 rounded-2xl border border-gray-100 transition-colors flex items-center justify-between"
-										>
-											<div className="flex items-center gap-3">
-												<div
-													className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-														tx.type === "credit"
-															? "bg-emerald-100 text-emerald-700"
-															: "bg-purple-100 text-[#714B67]"
-													}`}
-												>
-													{tx.type === "credit" ? (
-														<ArrowDownLeft className="w-4 h-4" />
-													) : (
-														<ArrowUpRight className="w-4 h-4" />
-													)}
+									{(wallet?.transactions || [])
+										.slice(0, 3)
+										.map((tx) => (
+											<div
+												key={tx.id}
+												className="p-3.5 bg-gray-50/80 hover:bg-gray-100/80 rounded-2xl border border-gray-100 transition-colors flex items-center justify-between"
+											>
+												<div className="flex items-center gap-3">
+													<div
+														className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+															tx.type === "credit"
+																? "bg-emerald-100 text-emerald-700"
+																: "bg-purple-100 text-[#714B67]"
+														}`}
+													>
+														{tx.type === "credit" ? (
+															<ArrowDownLeft className="w-4 h-4" />
+														) : (
+															<ArrowUpRight className="w-4 h-4" />
+														)}
+													</div>
+													<div>
+														<p className="text-xs font-bold text-gray-900 leading-tight">
+															{tx.title}
+														</p>
+														<p className="text-[11px] text-gray-500 mt-0.5">
+															{new Date(
+																tx.date,
+															).toLocaleDateString("en-IN", {
+																month: "short",
+																day: "numeric",
+																hour: "2-digit",
+																minute: "2-digit",
+															})}
+														</p>
+													</div>
 												</div>
-												<div>
-													<p className="text-xs font-bold text-gray-900 leading-tight">
-														{tx.title}
-													</p>
-													<p className="text-[11px] text-gray-500 mt-0.5">
-														{new Date(tx.date).toLocaleDateString("en-IN", {
-															month: "short",
-															day: "numeric",
-															hour: "2-digit",
-															minute: "2-digit",
-														})}
-													</p>
-												</div>
-											</div>
 
-											<div className="text-right">
-												<p
-													className={`text-sm font-extrabold ${
-														tx.type === "credit"
-															? "text-emerald-600"
-															: "text-gray-900"
-													}`}
-												>
-													{tx.type === "credit" ? "+" : "-"}₹
-													{tx.amount.toFixed(2)}
-												</p>
-												<span className="text-[10px] text-gray-400 font-mono">
-													{tx.id}
-												</span>
+												<div className="text-right">
+													<p
+														className={`text-sm font-extrabold ${
+															tx.type === "credit"
+																? "text-emerald-600"
+																: "text-gray-900"
+														}`}
+													>
+														{tx.type === "credit" ? "+" : "-"}₹
+														{tx.amount.toFixed(2)}
+													</p>
+													<span className="text-[10px] text-gray-400 font-mono">
+														{tx.id}
+													</span>
+												</div>
 											</div>
-										</div>
-									))}
+										))}
 								</div>
 							</div>
 
@@ -386,7 +403,9 @@ export default function WalletModal({ isOpen, onClose }) {
 							<div className="p-3.5 bg-teal-50/60 border border-teal-100 rounded-2xl flex items-center gap-3 text-xs text-teal-800">
 								<ShieldCheck className="w-4 h-4 text-[#00A09D] shrink-0" />
 								<span>
-									MakeLyft uses 256-bit encrypted corporate banking routes. Fares are automatically synced with drivers upon ride completion.
+									MakeLyft uses 256-bit encrypted corporate banking
+									routes. Fares are automatically synced with drivers
+									upon ride completion.
 								</span>
 							</div>
 						</>
@@ -498,7 +517,9 @@ export default function WalletModal({ isOpen, onClose }) {
 													type="radio"
 													name="payment_method"
 													checked={isSelected}
-													onChange={() => setPaymentMethod(method.id)}
+													onChange={() =>
+														setPaymentMethod(method.id)
+													}
 													className="w-4 h-4 accent-[#714B67] cursor-pointer"
 												/>
 											</label>
@@ -532,7 +553,9 @@ export default function WalletModal({ isOpen, onClose }) {
 											<span>
 												Add ₹
 												{addAmount
-													? parseFloat(addAmount).toLocaleString("en-IN")
+													? parseFloat(addAmount).toLocaleString(
+															"en-IN",
+														)
 													: "0"}{" "}
 												Now
 											</span>
@@ -560,8 +583,8 @@ export default function WalletModal({ isOpen, onClose }) {
 											{type === "all"
 												? "All"
 												: type === "credit"
-												? "Top-Ups (+)"
-												: "Rides (-)"}
+													? "Top-Ups (+)"
+													: "Rides (-)"}
 										</button>
 									))}
 								</div>
@@ -574,7 +597,9 @@ export default function WalletModal({ isOpen, onClose }) {
 							{filteredTransactions.length === 0 ? (
 								<div className="py-12 text-center text-gray-400">
 									<History className="w-8 h-8 mx-auto mb-2 opacity-40" />
-									<p className="text-xs font-semibold">No transactions found</p>
+									<p className="text-xs font-semibold">
+										No transactions found
+									</p>
 								</div>
 							) : (
 								<div className="space-y-2.5">
@@ -603,14 +628,18 @@ export default function WalletModal({ isOpen, onClose }) {
 													</p>
 													<div className="flex items-center gap-2 mt-0.5 text-[11px] text-gray-500">
 														<span>
-															{new Date(tx.date).toLocaleDateString("en-IN", {
+															{new Date(
+																tx.date,
+															).toLocaleDateString("en-IN", {
 																day: "numeric",
 																month: "short",
 																year: "numeric",
 															})}
 														</span>
 														<span>•</span>
-														<span className="font-mono">{tx.id}</span>
+														<span className="font-mono">
+															{tx.id}
+														</span>
 													</div>
 												</div>
 											</div>

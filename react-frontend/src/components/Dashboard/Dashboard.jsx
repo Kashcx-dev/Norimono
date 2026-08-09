@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { showAlert } from "../../utils/alertService";
 import { io } from "socket.io-client";
+import Footer from "../Footer";
 import Header from "./Header";
 import MapPlaceholder from "./MapPlaceholder";
 import RideActions from "./RideActions";
@@ -328,11 +329,7 @@ function Dashboard() {
 			</main>
 
 			{/* Footer */}
-			<footer className="bg-white border-t border-gray-200 py-6 mt-auto">
-				<div className="max-w-7xl mx-auto px-6 text-center text-sm text-gray-500">
-					© {new Date().getFullYear()} MakeLyft. Powered by Odoo.
-				</div>
-			</footer>
+			<Footer />
 
 			{/* Floating AI Assistant */}
 			<AIAssistant />
