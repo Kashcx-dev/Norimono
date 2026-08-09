@@ -37,9 +37,9 @@ function App() {
     <Router>
       <div className="min-h-screen bg-gray-50 w-full page-transition">
         <AppRoutes />
-        <AlertModal />
-        <AIAssistant />
       </div>
+      <AlertModal />
+      <AIAssistant />
     </Router>
   );
 }
