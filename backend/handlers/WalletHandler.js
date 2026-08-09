@@ -41,11 +41,16 @@ const addMoney = async (req, res, next) => {
         }
         
         const result = await db.query(`UPDATE wallets SET balance = balance + $1 WHERE emp_id = $2 RETURNING balance`, [parseFloat(amount), emp_id]);
+        let newBalance;
         if (result.rows.length === 0) {
-            await db.query(`INSERT INTO wallets (emp_id, balance) VALUES ($1, $2)`, [emp_id, 10000.00 + parseFloat(amount)]);
+            const initialBalance = 10000.00 + parseFloat(amount);
+            await db.query(`INSERT INTO wallets (emp_id, balance) VALUES ($1, $2)`, [emp_id, initialBalance]);
+            newBalance = initialBalance;
+        } else {
+            newBalance = result.rows[0].balance;
         }
         
-        return res.json({ success: true, message: "Money added successfully" });
+        return res.json({ success: true, message: "Money added successfully", balance: newBalance });
     } catch (error) {
         console.error("Error adding money:", error);
         return res.status(500).json({ success: false, message: "Internal server error" });

@@ -124,8 +124,7 @@ export const getWalletData = async (empId) => {
 		try {
 			const parsed = JSON.parse(cached);
 			if (parsed && typeof parsed.balance === "number") {
-				// Ensure initial wallet is at least 10000 for demonstration if requested
-				if (parsed.balance < 1000) parsed.balance = 10000.0;
+				// Return parsed wallet directly without artificial resets
 				return parsed;
 			}
 		} catch (e) {
@@ -199,7 +198,7 @@ export const addMoneyToWallet = async (empId, amount, paymentMethod = "UPI") => 
 				const verifyData = await verifyRes.json();
 				if (verifyData.success) {
 					// 4. Update Backend Wallet Balance
-					await fetch("/wallet/add", {
+					const addRes = await fetch("/wallet/add", {
 						method: "POST",
 						headers: {
 							"Content-Type": "application/json",
@@ -211,10 +210,13 @@ export const addMoneyToWallet = async (empId, amount, paymentMethod = "UPI") => 
 							payment_method: paymentMethod,
 						}),
 					});
+					const addData = await addRes.json();
 					
 					// 5. Update Local Wallet & History
 					const currentWallet = await getWalletData(empId);
-					const newBalance = parseFloat((currentWallet.balance + numAmount).toFixed(2));
+					// getWalletData already fetched the updated balance from the backend
+					const newBalance = addData.balance !== undefined ? addData.balance : currentWallet.balance;
+					
 					const newTransaction = {
 						id: `TXN-${Math.floor(100000 + Math.random() * 900000)}`,
 						type: "credit",
@@ -275,9 +277,24 @@ export const addMoneyToWallet = async (empId, amount, paymentMethod = "UPI") => 
 		console.warn("Razorpay flow failed, fallback to local state:", err.message);
 	}
 
+	// Fallback if Razorpay fails to load or user bypasses it (demo mode)
+	const fallbackAddRes = await fetch("/wallet/add", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			...(token ? { Authorization: `Bearer ${token}` } : {}),
+		},
+		body: JSON.stringify({
+			emp_id: empId,
+			amount: numAmount,
+			payment_method: paymentMethod,
+		}),
+	});
+	const fallbackAddData = await fallbackAddRes.json();
+
 	// Read current wallet data
 	const currentWallet = await getWalletData(empId);
-	const newBalance = parseFloat((currentWallet.balance + numAmount).toFixed(2));
+	const newBalance = fallbackAddData.balance !== undefined ? fallbackAddData.balance : currentWallet.balance;
 
 	const newTransaction = {
 		id: `TXN-${Math.floor(100000 + Math.random() * 900000)}`,
@@ -310,6 +327,7 @@ export const addMoneyToWallet = async (empId, amount, paymentMethod = "UPI") => 
 		})
 	);
 
+	showAlert(`Offline Top-up successful! Added ₹${numAmount}.`, "Payment Complete", "success");
 	return updatedWallet;
 };
 
