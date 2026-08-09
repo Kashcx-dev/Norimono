@@ -273,8 +273,8 @@ function Dashboard() {
 								/>
 							</div>
 
-							{/* BROWSE MODE: Map on Right */}
-							<div className="w-full lg:w-[52%] h-[680px] transition-all duration-500 ease-in-out animate-in fade-in slide-in-from-right-6">
+							{/* BROWSE MODE: Panel on Left */}
+							<div className="w-full lg:w-[48%] h-[680px] flex flex-col slide-in-panel page-transition">
 								<MapPlaceholder
 									pickupCoords={pickupCoords}
 									dropoffCoords={dropoffCoords}
@@ -303,7 +303,7 @@ function Dashboard() {
 							</div>
 
 							{/* DEFAULT MODE: Search / Ride Actions / Active Trip on Right */}
-							<div className="w-full lg:w-1/3 flex flex-col h-[680px] max-h-[680px] overflow-hidden">
+							<div className="w-full lg:w-1/3 flex flex-col h-[680px] max-h-[680px] overflow-hidden slide-in-panel">
 								{activeTrip ? (
 									<ActiveTripPanel
 										activeTrip={activeTrip}

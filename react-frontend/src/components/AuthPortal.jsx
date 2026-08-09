@@ -20,7 +20,7 @@ function AuthPortal({ onLoginSuccess }) {
 	};
 
 	return (
-		<div className="min-h-screen bg-gray-50 flex flex-col md:flex-row w-full">
+		<div className="min-h-screen bg-gray-50 flex flex-col md:flex-row w-full page-transition">
 			{/* Left Panel: Content & Illustration (Odoo Themed) */}
 			<div className="md:w-1/2 bg-[#714B67] text-white p-8 md:p-16 flex flex-col justify-between relative overflow-hidden">
 				{/* Background shapes for depth */}

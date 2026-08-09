@@ -375,7 +375,7 @@ function AdminDashboard() {
 	});
 
 	return (
-		<div className="flex h-screen bg-[#F4F6F9] font-sans antialiased text-gray-900 overflow-hidden text-left">
+		<div className="flex h-screen bg-[#F4F6F9] font-sans antialiased text-gray-900 overflow-hidden text-left page-transition">
 			{/* 1. ODOO DARK SIDEBAR */}
 			<aside className="w-64 bg-[#714B67] text-white flex flex-col justify-between shadow-xl z-30 transition-all">
 				<div>
