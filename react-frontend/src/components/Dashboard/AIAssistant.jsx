@@ -72,9 +72,13 @@ function AIAssistant() {
       {/* Floating Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-6 right-6 w-14 h-14 bg-[#714B67] text-white rounded-full shadow-xl flex items-center justify-center hover:bg-[#5c3c54] transition-all transform hover:scale-105 z-40 cursor-pointer ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        className={`fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-br from-[#714B67] to-[#8C5D80] text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-[#5c3c54] transition-all transform hover:scale-110 z-40 cursor-pointer animate-float border-2 border-white/20 shadow-[#714B67]/40 ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        title="Open AI Assistant"
       >
-        <Bot className="w-7 h-7" />
+        <Bot className="w-7 h-7 text-amber-300 drop-shadow-md" />
+        <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#00A09D] rounded-full border-2 border-white flex items-center justify-center shadow-sm">
+          <span className="w-1.5 h-1.5 bg-white rounded-full animate-ping"></span>
+        </span>
       </button>
 
       {/* Chat Modal */}
