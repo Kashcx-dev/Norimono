@@ -7,7 +7,11 @@ export default defineConfig({
 	server: {
 		allowedHosts: true,
 		proxy: {
-			"/auth": "http://localhost:3000",
+			"/auth/signup": "http://localhost:3000",
+			"/auth/login": "http://localhost:3000",
+			"/auth/verify-signup-otp": "http://localhost:3000",
+			"/auth/verify-otp": "http://localhost:3000",
+			"/auth/me": "http://localhost:3000",
 			"/chat": "http://localhost:3000",
 			"/profile": "http://localhost:3000",
 			"/feedback": "http://localhost:3000",

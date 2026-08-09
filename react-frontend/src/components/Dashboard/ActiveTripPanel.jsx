@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { showAlert } from "../../utils/alertService";
 import {
 	Car,
 	MapPin,
@@ -10,71 +9,14 @@ import {
 	Calendar,
 	CheckCircle2,
 	AlertCircle,
-	ShieldCheck,
+	// ShieldCheck,
 	CreditCard,
 	Wallet,
-	DollarSign,
+	// DollarSign,
 	Check,
-	Sparkles,
-	Phone,
-	Star,
+	// Sparkles,
 } from "lucide-react";
 import ChatModal from "./ChatModal";
-import VoiceCallModal from "./VoiceCallModal";
-
-const InlineStarRating = ({ targetEmpId, type, onRated }) => {
-	const [hover, setHover] = useState(0);
-	const [rating, setRating] = useState(0);
-	const [submitted, setSubmitted] = useState(false);
-
-	const handleRate = async (val) => {
-		setRating(val);
-		try {
-			const token = localStorage.getItem("token");
-			await fetch("/rate", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`
-				},
-				body: JSON.stringify({ target_emp_id: targetEmpId, type, rating: val })
-			});
-			setSubmitted(true);
-			if (onRated) onRated(val);
-		} catch (error) {
-			console.error("Error rating:", error);
-		}
-	};
-
-	if (submitted) {
-		return (
-			<div className="flex items-center gap-1.5 text-[10px] text-amber-600 bg-amber-50 px-2 py-1 rounded-md font-bold border border-amber-200 mt-2 w-fit">
-				<Star className="w-3 h-3 fill-amber-500" /> Rated {rating}/5
-			</div>
-		);
-	}
-
-	return (
-		<div className="mt-2 p-2 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-between gap-2">
-			<span className="text-[10px] font-bold text-gray-500 uppercase">Rate {type}</span>
-			<div className="flex gap-1">
-				{[1, 2, 3, 4, 5].map((star) => (
-					<button
-						key={star}
-						onMouseEnter={() => setHover(star)}
-						onMouseLeave={() => setHover(0)}
-						onClick={() => handleRate(star)}
-						className="transition-transform hover:scale-110 cursor-pointer"
-					>
-						<Star 
-							className={`w-4 h-4 ${(hover || rating) >= star ? "fill-amber-400 text-amber-400" : "fill-transparent text-gray-300"}`} 
-						/>
-					</button>
-				))}
-			</div>
-		</div>
-	);
-};
 
 // Helper to load Razorpay Checkout SDK dynamically
 const loadRazorpaySDK = () => {
@@ -99,11 +41,13 @@ export default function ActiveTripPanel({
 }) {
 	const isDriver = activeTrip.mode === "driver";
 
+	//eslint-disable-next-line
 	const [otpInput, setOtpInput] = useState("");
 	const [otpInputs, setOtpInputs] = useState({});
 	const [bookings, setBookings] = useState(activeTrip.bookings || []);
 
 	const [loading, setLoading] = useState(false);
+	//eslint-disable-next-line
 	const [status, setStatus] = useState("pending");
 
 	// Local copy of booking status & payment status for passenger
@@ -121,13 +65,15 @@ export default function ActiveTripPanel({
 	const [liveLocation, setLiveLocation] = useState(null);
 	const [phase, setPhase] = useState("Waiting for pickup");
 	const [isChatOpen, setIsChatOpen] = useState(false);
-	const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
 
 	const user = JSON.parse(localStorage.getItem("user") || "{}");
-	const fareAmount = parseFloat(activeTrip.ride?.fare_per_seat || activeTrip.fare || 45);
+	const fareAmount = parseFloat(
+		activeTrip.ride?.fare_per_seat || activeTrip.fare || 45,
+	);
 
 	useEffect(() => {
 		if (activeTrip.bookings) {
+			//eslint-disable-next-line
 			setBookings(activeTrip.bookings);
 		}
 	}, [activeTrip.bookings]);
@@ -135,6 +81,7 @@ export default function ActiveTripPanel({
 	// Sync local passengerStatus & paymentStatus whenever parent passes new activeTrip
 	useEffect(() => {
 		if (activeTrip.booking_status) {
+			//eslint-disable-next-line
 			setPassengerStatus(activeTrip.booking_status);
 		}
 		if (activeTrip.payment_status) {
@@ -161,6 +108,7 @@ export default function ActiveTripPanel({
 
 	useEffect(() => {
 		if (!isDriver) {
+			//eslint-disable-next-line
 			fetchWalletBalance();
 		}
 	}, [isDriver, passengerStatus]);
@@ -299,7 +247,7 @@ export default function ActiveTripPanel({
 					setStatus("picked_up");
 					setPassengerStatus("in_progress");
 				}
-				showAlert("Passenger Verified! Starting navigation.", "OTP Verified", "success");
+				alert("Passenger Verified! Starting navigation.");
 
 				if (socket && activeTrip.ride) {
 					const start = activeTrip.ride.origin?.coords || [
@@ -315,11 +263,11 @@ export default function ActiveTripPanel({
 					});
 				}
 			} else {
-				showAlert(data.message || "Invalid OTP", "OTP Error", "error");
+				alert(data.message || "Invalid OTP");
 			}
 		} catch (err) {
 			console.error(err);
-			showAlert("Error verifying OTP", "Verification Error", "error");
+			alert("Error verifying OTP");
 		} finally {
 			setLoading(false);
 		}
@@ -358,13 +306,11 @@ export default function ActiveTripPanel({
 					setPassengerStatus("completed");
 					setPaymentStatus("pending");
 				}
-				showAlert(
+				alert(
 					"Passenger dropped off successfully! Passenger will now see payment options.",
-					"Passenger Dropped Off",
-					"success"
 				);
 			} else {
-				showAlert(data.message || "Error dropping off", "Dropoff Error", "error");
+				alert(data.message || "Error dropping off");
 			}
 		} catch (err) {
 			console.error(err);
@@ -402,7 +348,9 @@ export default function ActiveTripPanel({
 
 			if (data.success) {
 				setPaymentStatus("paid_pending_confirmation");
-				showAlert(`Payment of ₹${fareAmount} completed via MakeLyft Wallet! Awaiting driver confirmation.`, "Payment Complete", "success");
+				alert(
+					`Payment of ₹${fareAmount} completed via MakeLyft Wallet! Awaiting driver confirmation.`,
+				);
 				fetchWalletBalance();
 				if (onRefreshPassenger) onRefreshPassenger();
 			} else if (data.insufficient_balance) {
@@ -411,11 +359,11 @@ export default function ActiveTripPanel({
 					setWalletBalance(data.current_balance);
 				}
 			} else {
-				showAlert(data.message || "Payment failed", "Payment Failed", "error");
+				alert(data.message || "Payment failed");
 			}
 		} catch (err) {
 			console.error("Wallet payment error:", err);
-			showAlert("Network error processing wallet payment.", "Network Error", "error");
+			alert("Network error processing wallet payment.");
 		} finally {
 			setLoading(false);
 		}
@@ -431,10 +379,8 @@ export default function ActiveTripPanel({
 			// 1. Ensure Razorpay SDK is loaded
 			const sdkLoaded = await loadRazorpaySDK();
 			if (!sdkLoaded) {
-				showAlert(
+				alert(
 					"Razorpay payment gateway failed to load. Please check your internet connection.",
-					"Gateway Error",
-					"error"
 				);
 				setLoading(false);
 				return;
@@ -517,10 +463,8 @@ export default function ActiveTripPanel({
 
 						if (payData.success) {
 							setPaymentStatus("paid_pending_confirmation");
-							showAlert(
+							alert(
 								`Payment of ₹${fareAmount} completed via Razorpay! Awaiting driver confirmation.`,
-								"Payment Complete",
-								"success"
 							);
 							if (onRefreshPassenger) onRefreshPassenger();
 						} else {
@@ -539,20 +483,16 @@ export default function ActiveTripPanel({
 
 			const rzp = new window.Razorpay(options);
 			rzp.on("payment.failed", function (response) {
-				showAlert(
+				alert(
 					`Payment failed: ${response.error?.description || "Transaction declined"}`,
-					"Payment Failed",
-					"error"
 				);
 				setLoading(false);
 			});
 			rzp.open();
 		} catch (err) {
 			console.error("Razorpay initiation error:", err);
-			showAlert(
+			alert(
 				`Could not open Razorpay: ${err.message || "Please try again."}`,
-				"Razorpay Error",
-				"error"
 			);
 			setLoading(false);
 		}
@@ -579,18 +519,16 @@ export default function ActiveTripPanel({
 							: b,
 					),
 				);
-				showAlert(
+				alert(
 					data.message ||
 						"Payment confirmed and credited to your commute wallet!",
-					"Payment Confirmed",
-					"success"
 				);
 			} else {
-				showAlert(data.message || "Error confirming payment", "Confirmation Error", "error");
+				alert(data.message || "Error confirming payment");
 			}
 		} catch (err) {
 			console.error(err);
-			showAlert("Network error confirming payment.", "Network Error", "error");
+			alert("Network error confirming payment.");
 		} finally {
 			setLoading(false);
 		}
@@ -618,7 +556,7 @@ export default function ActiveTripPanel({
 					),
 				);
 			} else {
-				showAlert(data.message || "Error accepting booking", "Error", "error");
+				alert(data.message || "Error accepting booking");
 			}
 		} catch (err) {
 			console.error(err);
@@ -649,7 +587,7 @@ export default function ActiveTripPanel({
 					),
 				);
 			} else {
-				showAlert(data.message || "Error declining booking", "Error", "error");
+				alert(data.message || "Error declining booking");
 			}
 		} catch (err) {
 			console.error(err);
@@ -672,10 +610,10 @@ export default function ActiveTripPanel({
 			});
 			const data = await res.json();
 			if (data.success) {
-				showAlert(`Trip finished! Total earnings processed: ₹${data.earnings}`, "Trip Finished", "success");
+				alert(`Trip finished! Total earnings processed: ₹${data.earnings}`);
 				onTripEnded();
 			} else {
-				showAlert(data.message || "Error finishing trip", "Error", "error");
+				alert(data.message || "Error finishing trip");
 			}
 		} catch (err) {
 			console.error(err);
@@ -745,7 +683,8 @@ export default function ActiveTripPanel({
 		}
 	}
 
-	const hasInsufficientWallet = walletBalance !== null && walletBalance < fareAmount;
+	const hasInsufficientWallet =
+		walletBalance !== null && walletBalance < fareAmount;
 
 	return (
 		<div className="flex flex-col h-full bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden text-left">
@@ -786,22 +725,13 @@ export default function ActiveTripPanel({
 			<div className="flex-1 overflow-y-auto p-4 space-y-4">
 				{/* Ride Details Card */}
 				<div className="p-4 rounded-xl border border-gray-200 bg-gray-50/70 relative">
-					<div className="absolute top-3.5 right-3.5 flex items-center gap-2">
-						<button
-							onClick={() => setIsVoiceCallOpen(true)}
-							className="bg-white border border-gray-200 hover:border-[#714B67] hover:text-[#714B67] text-gray-700 px-2.5 py-1.5 rounded-lg shadow-2xs flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer"
-						>
-							<Phone className="w-3.5 h-3.5 text-[#714B67]" />
-							<span>Call</span>
-						</button>
-						<button
-							onClick={() => setIsChatOpen(true)}
-							className="bg-white border border-gray-200 hover:border-[#714B67] hover:text-[#714B67] text-gray-700 px-2.5 py-1.5 rounded-lg shadow-2xs flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer"
-						>
-							<MessageSquare className="w-3.5 h-3.5 text-[#00A09D]" />
-							<span>Chat</span>
-						</button>
-					</div>
+					<button
+						onClick={() => setIsChatOpen(true)}
+						className="absolute top-3.5 right-3.5 bg-white border border-gray-200 hover:border-[#714B67] hover:text-[#714B67] text-gray-700 px-2.5 py-1.5 rounded-lg shadow-2xs flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer"
+					>
+						<MessageSquare className="w-3.5 h-3.5 text-[#00A09D]" />
+						<span>Chat</span>
+					</button>
 
 					<div className="flex items-center gap-3 mb-3 pr-20">
 						<div className="w-10 h-10 rounded-xl bg-[#714B67]/10 text-[#714B67] flex items-center justify-center font-bold text-base shrink-0 border border-[#714B67]/20">
@@ -949,7 +879,10 @@ export default function ActiveTripPanel({
 										{walletBalance !== null && (
 											<p className="text-[10px] text-gray-500 flex items-center gap-1 justify-end">
 												<Wallet className="w-3 h-3 text-[#00A09D]" />
-												Wallet: <span className="font-semibold text-gray-700">₹{walletBalance.toFixed(2)}</span>
+												Wallet:{" "}
+												<span className="font-semibold text-gray-700">
+													₹{walletBalance.toFixed(2)}
+												</span>
 											</p>
 										)}
 									</div>
@@ -976,27 +909,42 @@ export default function ActiveTripPanel({
 												Payment Submitted (₹{fareAmount})
 											</p>
 											<p className="text-[10px] text-blue-700">
-												Waiting for driver to confirm receipt on their dashboard.
+												Waiting for driver to confirm receipt on
+												their dashboard.
 											</p>
 										</div>
 									</div>
 								) : (
 									<div className="space-y-3 pt-1">
 										{/* Insufficient Wallet Balance Alert */}
-										{(insufficientError || (walletBalance !== null && hasInsufficientWallet)) && (
+										{(insufficientError ||
+											(walletBalance !== null &&
+												hasInsufficientWallet)) && (
 											<div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2.5 animate-in fade-in duration-200">
 												<AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
 												<div className="text-xs text-amber-900">
-													<p className="font-bold">Insufficient Wallet Balance</p>
+													<p className="font-bold">
+														Insufficient Wallet Balance
+													</p>
 													<p className="text-[11px] text-amber-800 mt-0.5">
-														Your wallet has <b>₹{walletBalance !== null ? walletBalance.toFixed(2) : "0.00"}</b>, but the fare is <b>₹{fareAmount}</b>. Please pay using Razorpay / UPI below.
+														Your wallet has{" "}
+														<b>
+															₹
+															{walletBalance !== null
+																? walletBalance.toFixed(2)
+																: "0.00"}
+														</b>
+														, but the fare is <b>₹{fareAmount}</b>
+														. Please pay using Razorpay / UPI
+														below.
 													</p>
 												</div>
 											</div>
 										)}
 
 										<p className="text-[11px] text-gray-600">
-											You have reached your destination. Choose your payment method below:
+											You have reached your destination. Choose your
+											payment method below:
 										</p>
 
 										{/* Option 1: Pay with MakeLyft Wallet */}
@@ -1125,11 +1073,6 @@ export default function ActiveTripPanel({
 								))}
 							</div>
 						</div>
-
-						{/* Passenger Rating Driver */}
-						{paymentStatus === "completed" && activeTrip.ride?.driver_id && (
-							<InlineStarRating targetEmpId={activeTrip.ride.driver_id} type="driver" />
-						)}
 					</div>
 				)}
 
@@ -1313,19 +1256,14 @@ export default function ActiveTripPanel({
 									{booking.booking_status === "completed" && (
 										<div className="pt-2 border-t border-gray-100">
 											{booking.payment_status === "completed" ? (
-												<div>
-													<div className="p-2 bg-emerald-50 rounded-lg border border-emerald-200 flex items-center justify-between text-xs text-emerald-800 font-bold">
-														<span className="flex items-center gap-1.5">
-															<CheckCircle2 className="w-4 h-4 text-emerald-600" />
-															Payment Confirmed
-														</span>
-														<span className="font-extrabold text-emerald-950">
-															+₹{bookingFare}
-														</span>
-													</div>
-													{booking.passenger_id && (
-														<InlineStarRating targetEmpId={booking.passenger_id} type="passenger" />
-													)}
+												<div className="p-2 bg-emerald-50 rounded-lg border border-emerald-200 flex items-center justify-between text-xs text-emerald-800 font-bold">
+													<span className="flex items-center gap-1.5">
+														<CheckCircle2 className="w-4 h-4 text-emerald-600" />
+														Payment Confirmed
+													</span>
+													<span className="font-extrabold text-emerald-950">
+														+₹{bookingFare}
+													</span>
 												</div>
 											) : booking.payment_status ===
 											  "paid_pending_confirmation" ? (
@@ -1359,7 +1297,8 @@ export default function ActiveTripPanel({
 												</div>
 											) : (
 												<div className="p-2 bg-gray-50 rounded-lg border border-gray-200 text-center text-[11px] text-gray-500 font-medium">
-													Dropped off • Waiting for passenger to complete payment (₹{bookingFare})
+													Dropped off • Waiting for passenger to
+													complete payment (₹{bookingFare})
 												</div>
 											)}
 										</div>
@@ -1391,15 +1330,6 @@ export default function ActiveTripPanel({
 				socket={socket}
 				activeTrip={activeTrip}
 				user={user}
-			/>
-
-			<VoiceCallModal
-				isOpen={isVoiceCallOpen}
-				onClose={() => setIsVoiceCallOpen(false)}
-				socket={socket}
-				activeTrip={activeTrip}
-				user={user}
-				isCaller={true}
 			/>
 		</div>
 	);
