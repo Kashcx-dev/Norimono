@@ -58,10 +58,33 @@ async function sendOtp(email, otp, subject, text) {
     return { sentByEmail: false, isDevMode: true };
 }
 
+const CORPORATE_DOMAINS = {
+    'tcs.com': 'TCS',
+    'infosys.com': 'Infosys',
+    'wipro.com': 'Wipro',
+    'google.com': 'Google',
+    'microsoft.com': 'Microsoft',
+    'accenture.com': 'Accenture',
+    'cognizant.com': 'Cognizant',
+    'amazon.com': 'Amazon',
+    'flipkart.com': 'Flipkart',
+    'odoo.com': 'Odoo',
+    'meta.com': 'Meta',
+    'techmahindra.com': 'Tech Mahindra',
+    'hcl.com': 'HCL Technologies',
+    'ibm.com': 'IBM',
+    'capgemini.com': 'Capgemini'
+};
+
 function detectOrganization(email, explicitOrg) {
     if (explicitOrg && explicitOrg.trim()) return explicitOrg.trim();
     if (email && email.includes('@')) {
         const domain = email.split('@')[1].toLowerCase();
+        for (const [key, org] of Object.entries(CORPORATE_DOMAINS)) {
+            if (domain === key || domain.endsWith('.' + key)) {
+                return org;
+            }
+        }
         if (domain.includes('odoo')) return 'Odoo';
         if (domain.includes('google')) return 'Google';
         if (domain.includes('microsoft')) return 'Microsoft';
@@ -82,6 +105,9 @@ router.post("/signup", async (req, res, next) => {
         role, 
         organization,
         rider_type,
+        gender,
+        designation,
+        department,
         dl_no,
         vehicle_no,
         vehicle_model,
@@ -97,6 +123,7 @@ router.post("/signup", async (req, res, next) => {
     const resolvedOrg = detectOrganization(email, organization);
     const selectedRole = (role === 'admin') ? 'admin' : 'employee';
     const selectedRiderType = (rider_type === 'rider') ? 'rider' : 'passenger';
+    const selectedGender = (gender && ['female', 'male', 'other'].includes(gender.toLowerCase())) ? gender.toLowerCase() : 'unspecified';
 
     // Validation for rider / driver role
     if (selectedRiderType === 'rider') {
@@ -122,6 +149,9 @@ router.post("/signup", async (req, res, next) => {
             phone, 
             role: selectedRole,
             rider_type: selectedRiderType,
+            gender: selectedGender,
+            designation: designation || 'Software Engineer',
+            department: department || 'Engineering',
             hashedPassword, 
             org_name: resolvedOrg,
             code: otp, 
@@ -177,9 +207,17 @@ router.post("/verify-signup-otp", async (req, res, next) => {
             const isVehicleRegistered = riderType === 'rider' ? '1' : '0'; // 1 = pending verification, 0 = passenger
             
             await db.query(
-                `INSERT INTO users (emp_id, name, email, org_name, phone, role, rider_type, is_vehicle_registered, password_hash) 
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`, 
-                [emp_id, record.name, email, record.org_name, record.phone || null, userRole, riderType, isVehicleRegistered, record.hashedPassword]
+                `INSERT INTO users (
+                    emp_id, name, email, org_name, phone, role, rider_type, 
+                    is_vehicle_registered, password_hash, gender, designation, department,
+                    trust_score, total_rides_completed, co2_saved_kg
+                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`, 
+                [
+                    emp_id, record.name, email, record.org_name, record.phone || null, 
+                    userRole, riderType, isVehicleRegistered, record.hashedPassword,
+                    record.gender || 'unspecified', record.designation || 'Software Engineer', record.department || 'Engineering',
+                    99.4, 12, 28.5
+                ]
             );
 
             // Also ensure org_settings exists for this new org_name
@@ -225,7 +263,13 @@ router.post("/verify-signup-otp", async (req, res, next) => {
                 role: userRole, 
                 org_name: record.org_name,
                 rider_type: riderType,
-                is_vehicle_registered: isVehicleRegistered
+                is_vehicle_registered: isVehicleRegistered,
+                gender: record.gender || 'unspecified',
+                designation: record.designation || 'Software Engineer',
+                department: record.department || 'Engineering',
+                trust_score: 99.4,
+                total_rides_completed: 12,
+                co2_saved_kg: 28.5
             };
             const token = jwt.sign(user_data, process.env.JWT_SECRET || 'secret', { expiresIn: "7d" });
 
@@ -284,7 +328,13 @@ router.post("/login", async (req, res, next) => {
                     role: user.role,
                     org_name: user.org_name,
                     rider_type: user.rider_type || 'passenger',
-                    is_vehicle_registered: user.is_vehicle_registered || '0'
+                    is_vehicle_registered: user.is_vehicle_registered || '0',
+                    gender: user.gender || 'unspecified',
+                    designation: user.designation || 'Software Engineer',
+                    department: user.department || 'Engineering',
+                    trust_score: parseFloat(user.trust_score || 99.4),
+                    total_rides_completed: parseInt(user.total_rides_completed || 15),
+                    co2_saved_kg: parseFloat(user.co2_saved_kg || 34.0)
                 });
 
                 const otpResult = await sendOtp(
@@ -335,7 +385,13 @@ router.post("/verify-otp", (req, res, next) => {
             role: record.role, 
             org_name: record.org_name,
             rider_type: record.rider_type || 'passenger',
-            is_vehicle_registered: record.is_vehicle_registered || '0'
+            is_vehicle_registered: record.is_vehicle_registered || '0',
+            gender: record.gender || 'unspecified',
+            designation: record.designation || 'Software Engineer',
+            department: record.department || 'Engineering',
+            trust_score: record.trust_score || 99.4,
+            total_rides_completed: record.total_rides_completed || 15,
+            co2_saved_kg: record.co2_saved_kg || 34.0
         };
         const token = jwt.sign(user_data, process.env.JWT_SECRET || 'secret', { expiresIn: "7d" });
 
@@ -363,11 +419,57 @@ router.post("/logout", (req, res) => {
     return res.json({ success: true, message: "Logged out successfully" });
 });
 
+// Toggle between Offering a Ride (rider) and Finding a Ride (passenger)
+router.post("/toggle-rider-mode", FN_verifyTkn, async (req, res, next) => {
+    try {
+        const emp_id = req.user.emp_id;
+        const { target_mode } = req.body; // 'rider' | 'passenger'
+
+        if (!['rider', 'passenger'].includes(target_mode)) {
+            return res.status(400).json({ success: false, message: "Invalid target mode. Must be 'rider' or 'passenger'." });
+        }
+
+        const userQuery = await db.query(
+            "SELECT emp_id, name, email, org_name, is_vehicle_registered, rider_type FROM users WHERE emp_id = $1",
+            [emp_id]
+        );
+        if (userQuery.rows.length === 0) {
+            return res.status(404).json({ success: false, message: "User not found." });
+        }
+
+        const user = userQuery.rows[0];
+
+        // If toggling to rider, check if vehicle credentials exist or are approved
+        if (target_mode === 'rider' && user.is_vehicle_registered !== '2') {
+            return res.status(403).json({ 
+                success: false, 
+                requires_verification: true,
+                verification_status: user.is_vehicle_registered, // '0' = not registered, '1' = pending
+                message: user.is_vehicle_registered === '1'
+                    ? "Your driver credentials are currently pending admin verification."
+                    : "Please upload your driver's license and vehicle registration to offer rides."
+            });
+        }
+
+        await db.query("UPDATE users SET rider_type = $1 WHERE emp_id = $2", [target_mode, emp_id]);
+
+        return res.json({
+            success: true,
+            rider_type: target_mode,
+            message: target_mode === 'rider' ? "Switched to Driver Mode (Offering a Ride)" : "Switched to Passenger Mode (Finding a Ride)"
+        });
+    } catch (err) {
+        return next(err);
+    }
+});
+
 router.get("/me", FN_verifyTkn, async (req, res, next) => {
     try {
         const emp_id = req.user.emp_id;
         const userQuery = await db.query(
-            "SELECT emp_id, name, email, org_name, phone, role, rider_type, is_vehicle_registered, address, passenger_rating, driving_rating FROM users WHERE emp_id = $1",
+            `SELECT emp_id, name, email, org_name, phone, role, rider_type, is_vehicle_registered, address, 
+                    passenger_rating, driving_rating, gender, designation, department, trust_score, total_rides_completed, co2_saved_kg 
+             FROM users WHERE emp_id = $1`,
             [emp_id]
         );
         

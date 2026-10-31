@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import vehicleCatalog from "../data/vehicle_catalog.json";
 import { io } from "socket.io-client";
+import { getCompanyInfo } from "../utils/companyBadges";
 
 function checkPasswordStrength(password) {
 	let score = 0;
@@ -57,10 +58,13 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [phone, setPhone] = useState("");
-	const [organization, setOrganization] = useState("Odoo");
+	const [organization, setOrganization] = useState("TCS");
 	const [corporateDomain, setCorporateDomain] = useState("");
 	const [role, setRole] = useState("employee"); // 'employee' or 'admin'
 	const [riderType, setRiderType] = useState("passenger"); // 'passenger' or 'rider'
+	const [gender, setGender] = useState("female"); // 'female' | 'male' | 'other' (Crucial for female-only rides!)
+	const [designation, setDesignation] = useState("Senior Cloud Architect");
+	const [department, setDepartment] = useState("Technology Operations");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
@@ -97,10 +101,10 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 		if (email && email.includes("@")) {
 			const domain = email.split("@")[1].toLowerCase();
 			setCorporateDomain(domain);
-			if (domain.includes("odoo")) setOrganization("Odoo");
-			else if (domain.includes("google")) setOrganization("Google");
-			else if (domain.includes("microsoft")) setOrganization("Microsoft");
-			else if (domain.includes("meta")) setOrganization("Meta");
+			const info = getCompanyInfo(email);
+			if (info && info.shortName && info.shortName !== "CORP") {
+				setOrganization(info.shortName);
+			}
 		} else {
 			setCorporateDomain("");
 		}
@@ -161,6 +165,12 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 
 		if (!name.trim()) return setError("Please enter your full name.");
 		if (!email.trim() || !email.includes("@")) return setError("Please enter a valid corporate email.");
+
+		const lowerEmail = email.toLowerCase().trim();
+		if (lowerEmail.endsWith("@gmail.com") || lowerEmail.endsWith("@yahoo.com") || lowerEmail.endsWith("@hotmail.com")) {
+			return setError("Verification Wall: Please use your official corporate work email (e.g. name@tcs.com) to access the closed-loop workplace network.");
+		}
+
 		if (!phone.trim()) return setError("Please enter your mobile phone number.");
 		if (!password) return setError("Please create a password.");
 		if (password !== confirmPassword) return setError("Passwords do not match.");
@@ -188,6 +198,9 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 			role,
 			organization,
 			rider_type: riderType,
+			gender,
+			designation,
+			department,
 			...(riderType === "rider" && {
 				dl_no: dlNo.trim(),
 				vehicle_no: vehicleNo.trim().toUpperCase(),
@@ -757,9 +770,9 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 					{/* Corporate Email & Domain Auto-detection */}
 					<div className="space-y-1">
 						<div className="flex items-center justify-between">
-							<label className="text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Corporate Email</label>
+							<label className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Official Corporate Email</label>
 							{corporateDomain && (
-								<span className="text-[10px] font-bold text-[#00A09D] flex items-center gap-1">
+								<span className="text-[10px] font-bold text-teal-600 flex items-center gap-1">
 									<Building2 className="w-3 h-3" /> @{corporateDomain}
 								</span>
 							)}
@@ -769,43 +782,71 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 								type="email"
 								value={email}
 								onChange={(e) => setEmail(e.target.value)}
-								placeholder="jane.doe@odoo.com"
-								className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 text-xs focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
+								placeholder="e.g. name@tcs.com"
+								className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs font-mono font-medium focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
 								required
 							/>
-							<Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+							<Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
 						</div>
 					</div>
 
-					{/* Organization & Phone */}
+					{/* Organization & Gender */}
 					<div className="grid grid-cols-2 gap-2.5">
 						<div className="space-y-1">
-							<label className="text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Company</label>
+							<label className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Company</label>
 							<select
 								value={organization}
 								onChange={(e) => setOrganization(e.target.value)}
-								className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
+								className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
 							>
-								<option value="Odoo">Odoo S.A.</option>
-								<option value="Google">Google Inc.</option>
-								<option value="Microsoft">Microsoft Corp.</option>
-								<option value="Meta">Meta Platforms</option>
+								<option value="TCS">TCS</option>
+								<option value="Infosys">Infosys</option>
+								<option value="Wipro">Wipro</option>
+								<option value="Google">Google</option>
+								<option value="Microsoft">Microsoft</option>
+								<option value="Accenture">Accenture</option>
+								<option value="Amazon">Amazon</option>
+								<option value="Cognizant">Cognizant</option>
+								<option value="Odoo">Odoo</option>
 							</select>
 						</div>
 
 						<div className="space-y-1">
-							<label className="text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Phone</label>
-							<div className="relative">
-								<input
-									type="tel"
-									value={phone}
-									onChange={(e) => setPhone(e.target.value)}
-									placeholder="+91 98765 43210"
-									className="w-full pl-8 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 text-xs focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
-									required
-								/>
-								<Phone className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-							</div>
+							<label className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Gender (Safety Filter)</label>
+							<select
+								value={gender}
+								onChange={(e) => setGender(e.target.value)}
+								className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+							>
+								<option value="female">Female</option>
+								<option value="male">Male</option>
+								<option value="other">Other</option>
+							</select>
+						</div>
+					</div>
+
+					{/* Designation & Department */}
+					<div className="grid grid-cols-2 gap-2.5">
+						<div className="space-y-1">
+							<label className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Designation</label>
+							<input
+								type="text"
+								value={designation}
+								onChange={(e) => setDesignation(e.target.value)}
+								placeholder="e.g. Senior Cloud Architect"
+								className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+							/>
+						</div>
+
+						<div className="space-y-1">
+							<label className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Department</label>
+							<input
+								type="text"
+								value={department}
+								onChange={(e) => setDepartment(e.target.value)}
+								placeholder="e.g. Technology"
+								className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+							/>
 						</div>
 					</div>
 

@@ -1,17 +1,34 @@
 import React, { useState, useEffect } from "react";
-import { Bell, ChevronDown, LogOut, Wallet, Car, Settings, User, Clock, Phone, MessageSquare, MessageSquareHeart, Plus, Calendar, MapPin } from "lucide-react";
+import { Bell, ChevronDown, LogOut, Wallet, Car, Settings, User, Clock, Phone, MessageSquare, MessageSquareHeart, Plus, Calendar, MapPin, ShieldCheck, Leaf, Sparkles, Award } from "lucide-react";
 import WalletModal from "./WalletModal";
+import RoleToggle from "./RoleToggle";
+import DigitalIdCard from "./DigitalIdCard";
+import { getCompanyInfo } from "../../utils/companyBadges";
 import { getWalletData, subscribeToWallet } from "../../utils/walletService";
 
-function Header({ socket, onOpenVehicleModal, onOpenChat, onOpenVoiceCall, onOpenHistory, onOpenFeedback, onOpenProfile }) {
+function Header({ 
+	socket, 
+	onOpenVehicleModal, 
+	onOpenChat, 
+	onOpenVoiceCall, 
+	onOpenHistory, 
+	onOpenFeedback, 
+	onOpenProfile,
+	currentRole = "passenger",
+	onToggleRole,
+	onOpenImpact
+}) {
 	const [dropdownOpen, setDropdownOpen] = useState(false);
 	const [notificationsOpen, setNotificationsOpen] = useState(false);
 	const [walletModalOpen, setWalletModalOpen] = useState(false);
+	const [digitalIdOpen, setDigitalIdOpen] = useState(false);
 	const [walletBalance, setWalletBalance] = useState(650.0);
 	const [notifications, setNotifications] = useState([]);
 
 	const user = JSON.parse(localStorage.getItem("user") || "{}");
 	const empId = user.emp_id || "EMP-DEFAULT";
+	const companyInfo = getCompanyInfo(user.org_name || user.email);
+	const Logo = companyInfo.Logo;
 
 	useEffect(() => {
 		if (!socket) return;
@@ -51,19 +68,52 @@ function Header({ socket, onOpenVehicleModal, onOpenChat, onOpenVoiceCall, onOpe
 
 	return (
 		<>
-			<header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-50">
-				{/* Brand */}
-				<div className="flex items-center gap-2">
-					<div className="w-8 h-8 bg-[#714B67] rounded-lg flex items-center justify-center shadow-xs">
-						<Car className="w-5 h-5 text-white" />
+			<header className="bg-white/95 backdrop-blur-xl border-b border-slate-200/80 px-4 md:px-8 py-3.5 flex items-center justify-between sticky top-0 z-50 shadow-2xs">
+				{/* Left: Brand & Verified Tech Hub Badge */}
+				<div className="flex items-center gap-3">
+					<div className="w-9 h-9 bg-slate-900 rounded-xl flex items-center justify-center shadow-md border border-slate-800">
+						<Car className="w-5 h-5 text-teal-400" />
 					</div>
-					<span className="text-xl font-bold text-gray-900 tracking-tight">
-						Norimono
-					</span>
+					<div>
+						<div className="flex items-center gap-2">
+							<span className="text-xl font-black text-slate-900 tracking-tight">
+								Norimono
+							</span>
+							<span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-200">
+								<ShieldCheck className="w-3 h-3 text-teal-600" />
+								Enterprise
+							</span>
+						</div>
+						<p className="text-[10px] text-slate-400 font-semibold tracking-wide hidden md:block">
+							Closed-Loop Corporate Mobility
+						</p>
+					</div>
 				</div>
 
-				{/* Right Navbar Elements: Wallet, Notifications & User Profile */}
-				<div className="flex items-center gap-3 md:gap-4 relative">
+				{/* Center: Commute Mode Segmented Switcher (Role Toggle) */}
+				<div className="hidden sm:flex items-center">
+					<RoleToggle
+						currentRole={currentRole}
+						onToggleRole={onToggleRole}
+						isVehicleRegistered={user.is_vehicle_registered || "0"}
+						onRequestVehicleReg={onOpenVehicleModal}
+					/>
+				</div>
+
+				{/* Right: ESG Impact, Wallet, Notifications & Digital ID Card */}
+				<div className="flex items-center gap-2.5 md:gap-3.5 relative">
+					{/* B2B ESG Impact Screen Link Button */}
+					{onOpenImpact && (
+						<button
+							onClick={onOpenImpact}
+							className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+							title="View Corporate ESG & Facility Impact Portal (Pitch Deck Showcase)"
+						>
+							<Leaf className="w-3.5 h-3.5 text-emerald-600" />
+							<span>ESG Impact</span>
+						</button>
+					)}
+
 					{/* Wallet Pill Button */}
 					<button
 						onClick={() => {
@@ -71,22 +121,37 @@ function Header({ socket, onOpenVehicleModal, onOpenChat, onOpenVoiceCall, onOpe
 							setDropdownOpen(false);
 							setNotificationsOpen(false);
 						}}
-						className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-purple-50 via-teal-50/40 to-white hover:from-purple-100/70 hover:to-teal-100/50 text-[#714B67] border border-[#714B67]/20 hover:border-[#714B67]/40 shadow-2xs hover:shadow-xs transition-all duration-200 cursor-pointer group"
-						title="Open Norimono Commute Wallet"
+						className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200/80 shadow-2xs transition-all cursor-pointer group"
+						title="Open Zero-Cash Commute Wallet"
 					>
-						<div className="w-6 h-6 rounded-lg bg-[#714B67] text-white flex items-center justify-center group-hover:scale-105 transition-transform">
+						<div className="w-6 h-6 rounded-lg bg-slate-900 text-teal-400 flex items-center justify-center group-hover:scale-105 transition-transform">
 							<Wallet className="w-3.5 h-3.5" />
 						</div>
 						<div className="text-left flex flex-col leading-tight">
-							<span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Wallet</span>
-							<span className="text-xs font-extrabold text-gray-900 font-mono">
-								₹{walletBalance.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+							<span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Zero-Cash</span>
+							<span className="text-xs font-extrabold text-slate-900 font-mono">
+								₹{walletBalance.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
 							</span>
 						</div>
-						<span className="hidden sm:flex w-5 h-5 rounded-full bg-[#00A09D]/15 text-[#00A09D] items-center justify-center ml-0.5">
-							<Plus className="w-3 h-3" />
-						</span>
 					</button>
+
+					{/* Digital ID Card Avatar Framed by Company Logo */}
+					<div className="relative">
+						<button
+							onClick={() => setDigitalIdOpen(true)}
+							className="relative p-0.5 rounded-2xl border-2 hover:scale-105 transition-all cursor-pointer"
+							style={{ borderColor: companyInfo.color }}
+							title="Open Digital ID Card & Trust Credential"
+						>
+							<div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-xs shadow-inner">
+								{user.name ? user.name.charAt(0).toUpperCase() : "U"}
+							</div>
+							{/* Company Logo Badge Framing Ring */}
+							<div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-md shadow-sm border border-white bg-white flex items-center justify-center p-0.5">
+								<Logo />
+							</div>
+						</button>
+					</div>
 
 					{/* Notifications Bell */}
 					<div className="relative">
@@ -95,11 +160,12 @@ function Header({ socket, onOpenVehicleModal, onOpenChat, onOpenVoiceCall, onOpe
 								setNotificationsOpen(!notificationsOpen);
 								setDropdownOpen(false);
 							}}
-							className="flex items-center justify-center w-10 h-10 rounded-2xl bg-gray-100 hover:bg-gray-200 transition-colors border border-gray-200 cursor-pointer relative"
+							className="flex items-center justify-center w-9 h-9 rounded-2xl bg-slate-100 hover:bg-slate-200 transition-colors border border-slate-200 cursor-pointer relative"
 						>
-							<Bell className="w-5 h-5 text-gray-600" />
-							{/* Notification Badge */}
-							<span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+							<Bell className="w-4 h-4 text-slate-600" />
+							{notifications.length > 0 && (
+								<span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+							)}
 						</button>
 
 						{notificationsOpen && (
@@ -220,6 +286,15 @@ function Header({ socket, onOpenVehicleModal, onOpenChat, onOpenVoiceCall, onOpe
 								<button 
 									onClick={() => {
 										setDropdownOpen(false);
+										setDigitalIdOpen(true);
+									}}
+									className="w-full text-left px-4 py-2 text-sm text-slate-800 hover:bg-slate-50 flex items-center gap-2 cursor-pointer transition-colors font-medium"
+								>
+									<ShieldCheck className="w-4 h-4 text-emerald-500" /> Digital ID Card
+								</button>
+								<button 
+									onClick={() => {
+										setDropdownOpen(false);
 										if (onOpenProfile) onOpenProfile();
 									}}
 									className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer transition-colors font-medium"
@@ -261,6 +336,15 @@ function Header({ socket, onOpenVehicleModal, onOpenChat, onOpenVoiceCall, onOpe
 				isOpen={walletModalOpen}
 				onClose={() => setWalletModalOpen(false)}
 			/>
+
+			{/* Digital ID Card Modal */}
+			{digitalIdOpen && (
+				<DigitalIdCard
+					user={user}
+					showModal={true}
+					onClose={() => setDigitalIdOpen(false)}
+				/>
+			)}
 		</>
 	);
 }

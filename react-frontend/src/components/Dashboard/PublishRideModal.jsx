@@ -11,8 +11,13 @@ import {
 	Building2,
 	Leaf,
 	ShieldCheck,
+	Lock,
+	CheckCircle2,
+	Clock,
+	Heart
 } from "lucide-react";
 import { fetchPlaceSuggestions } from "../../utils/geoService";
+import { POPULAR_TECH_PARKS } from "../../utils/companyBadges";
 
 function PublishRideModal({ onClose, onPublish, userLocation }) {
 	const [originInput, setOriginInput] = useState("");
@@ -20,10 +25,13 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 
 	const [destInput, setDestInput] = useState("");
 	const [destData, setDestData] = useState(null); // { lat, lng, address }
+	const [selectedTechPark, setSelectedTechPark] = useState("");
 
 	const [departureTime, setDepartureTime] = useState("");
+	const [targetArrivalTime, setTargetArrivalTime] = useState("08:50 AM");
+	const [isFemaleOnly, setIsFemaleOnly] = useState(false);
 	const [seats, setSeats] = useState(4);
-	const [fare, setFare] = useState("");
+	const [fare, setFare] = useState("45");
 	const [fareBreakdown, setFareBreakdown] = useState(null);
 	const [estimatingFare, setEstimatingFare] = useState(false);
 
@@ -191,9 +199,12 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 					origin: originData,
 					destination: destData,
 					departure_time: departureTime,
-					seats: parseInt(seats), // Passed to form body, backend handles DB sync
+					seats: parseInt(seats),
 					fare_per_seat: parseFloat(fare),
 					subsidy_per_seat: fareBreakdown ? fareBreakdown.subsidyPerSeat : undefined,
+					is_female_only: isFemaleOnly,
+					destination_tech_park: selectedTechPark || destData.address || destInput,
+					target_arrival_time: targetArrivalTime
 				}),
 			});
 
@@ -303,11 +314,47 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 							)}
 						</div>
 
+						{/* Destination Tech Park Quick Chips */}
+						<div className="space-y-1.5">
+							<div className="flex items-center justify-between">
+								<label className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+									<Building2 className="w-3.5 h-3.5 text-teal-600" />
+									Destination Tech Park
+								</label>
+								<span className="text-[10px] text-teal-600 font-bold">1-Click Presets</span>
+							</div>
+							<div className="flex flex-wrap gap-1.5">
+								{POPULAR_TECH_PARKS.slice(0, 4).map((park) => (
+									<button
+										key={park.id}
+										type="button"
+										onClick={() => {
+											setDestInput(`${park.name}, ${park.area}`);
+											setDestData({
+												lat: park.lat,
+												lng: park.lng,
+												address: `${park.name}, ${park.city}`,
+											});
+											setSelectedTechPark(park.name);
+											setShowDestDropdown(false);
+										}}
+										className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${
+											selectedTechPark === park.name
+												? "bg-slate-900 text-teal-300 border-slate-900 shadow-xs"
+												: "bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200"
+										}`}
+									>
+										{park.name.split(" ")[0]} ({park.city})
+									</button>
+								))}
+							</div>
+						</div>
+
 						{/* Destination Input */}
 						<div className="space-y-1.5 relative" ref={destRef}>
 							<label className="text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center gap-1.5">
 								<MapPin className="w-3.5 h-3.5 text-rose-600" />
-								Destination Address
+								Destination Tech Park / Office Address
 							</label>
 							<div className="relative">
 								<input
@@ -363,19 +410,62 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 							)}
 						</div>
 
-						{/* Departure Time */}
-						<div className="space-y-1.5">
-							<label className="text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center gap-1.5">
-								<Calendar className="w-3.5 h-3.5 text-gray-500" />
-								Departure Time
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+							{/* Departure Time */}
+							<div className="space-y-1.5">
+								<label className="text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center gap-1.5">
+									<Calendar className="w-3.5 h-3.5 text-gray-500" />
+									Departure Time
+								</label>
+								<input
+									required
+									type="datetime-local"
+									value={departureTime}
+									onChange={(e) => setDepartureTime(e.target.value)}
+									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
+								/>
+							</div>
+
+							{/* Target Arrival Time */}
+							<div className="space-y-1.5">
+								<label className="text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center gap-1.5">
+									<Clock className="w-3.5 h-3.5 text-teal-600" />
+									Target Arrival Time
+								</label>
+								<select
+									value={targetArrivalTime}
+									onChange={(e) => setTargetArrivalTime(e.target.value)}
+									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
+								>
+									<option value="08:30 AM">08:30 AM (Early Shift)</option>
+									<option value="08:45 AM">08:45 AM (Standard Shift)</option>
+									<option value="09:00 AM">09:00 AM (Peak Shift)</option>
+									<option value="09:15 AM">09:15 AM (Flexible Shift)</option>
+									<option value="09:30 AM">09:30 AM (Late Morning)</option>
+								</select>
+							</div>
+						</div>
+
+						{/* Female-Only Commute Toggle */}
+						<div className="p-3.5 bg-rose-50/60 border border-rose-100 rounded-2xl flex items-center justify-between">
+							<div className="flex items-center gap-2.5">
+								<div className="w-8 h-8 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+									<Heart className="w-4 h-4 fill-white" />
+								</div>
+								<div>
+									<h4 className="text-xs font-bold text-slate-900">Female-Only Commute</h4>
+									<p className="text-[11px] text-slate-500">Only verified female colleagues can view and book</p>
+								</div>
+							</div>
+							<label className="relative inline-flex items-center cursor-pointer">
+								<input
+									type="checkbox"
+									checked={isFemaleOnly}
+									onChange={(e) => setIsFemaleOnly(e.target.checked)}
+									className="sr-only peer"
+								/>
+								<div className="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-500"></div>
 							</label>
-							<input
-								required
-								type="datetime-local"
-								value={departureTime}
-								onChange={(e) => setDepartureTime(e.target.value)}
-								className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
-							/>
 						</div>
 
 						<div className="grid grid-cols-2 gap-4">
@@ -396,22 +486,37 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 								/>
 							</div>
 
-							{/* Fare Per Seat */}
+							{/* Algorithmic Fare Per Seat (Locked for Legal Compliance) */}
 							<div className="space-y-1.5">
-								<label className="text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center gap-1.5">
-									<DollarSign className="w-3.5 h-3.5 text-gray-500" />
-									Passenger Fare (₹)
-								</label>
-								<input
-									required
-									type="number"
-									min="0"
-									step="0.01"
-									value={fare}
-									onChange={(e) => setFare(e.target.value)}
-									placeholder="e.g. 150"
-									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
-								/>
+								<div className="flex items-center justify-between">
+									<label className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+										<Lock className="w-3.5 h-3.5 text-amber-600" />
+										Algorithmic Cost-Share
+									</label>
+									<span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+										Locked
+									</span>
+								</div>
+								<div className="relative">
+									<input
+										readOnly
+										type="number"
+										value={fare}
+										className="w-full px-4 py-3 bg-slate-100/80 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 cursor-not-allowed select-none font-mono"
+									/>
+									<span className="absolute right-3.5 top-3.5 text-xs text-slate-400 font-bold">
+										₹ / seat
+									</span>
+								</div>
+							</div>
+						</div>
+
+						{/* Legal Cost-Sharing Compliance Note */}
+						<div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl flex items-start gap-2 text-[11px] text-slate-600">
+							<ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+							<div>
+								<span className="font-bold text-slate-800">Legal Non-Profit Cost-Sharing: </span>
+								Drivers cannot manually increase fares. Cost is locked algorithmically by route distance, standard fuel rate, and seat split in accordance with non-commercial white-plate transit regulations.
 							</div>
 						</div>
 

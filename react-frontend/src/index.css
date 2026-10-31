@@ -60,3 +60,34 @@
 .animate-float {
   animation: floatAnim 3s ease-in-out infinite;
 }
+
+/* Route Neon Line Glow Effect */
+@keyframes neonPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 6px rgba(0, 245, 212, 0.7));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(6, 182, 212, 0.95));
+  }
+}
+
+path.leaflet-interactive[stroke="#00F5D4"],
+path.leaflet-interactive[stroke="#06B6D4"] {
+  animation: neonPulse 3s ease-in-out infinite;
+}
+
+/* Minimalist sleek scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
+}

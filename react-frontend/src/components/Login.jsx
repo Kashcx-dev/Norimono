@@ -1,14 +1,27 @@
-import React, { useState } from "react";
-import { Mail, Lock, ArrowRight, Car, Eye, EyeOff, Shield } from "lucide-react";
-// import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Mail, Lock, ArrowRight, Car, Eye, EyeOff, Shield, ShieldCheck, Sparkles, Building2 } from "lucide-react";
+import { getCompanyInfo } from "../utils/companyBadges";
 
 function Login({ onSwitchToSignup, onLoginSuccess }) {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
-	const [organization, setOrganization] = useState("Odoo");
+	const [organization, setOrganization] = useState("TCS");
 	const [showPassword, setShowPassword] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState("");
+
+	// Dynamic Company Info derived from Email
+	const detectedCompany = getCompanyInfo(email);
+	const DetectedLogo = detectedCompany.Logo;
+
+	useEffect(() => {
+		if (email && email.includes("@")) {
+			const info = getCompanyInfo(email);
+			if (info && info.shortName && info.shortName !== "CORP") {
+				setOrganization(info.shortName);
+			}
+		}
+	}, [email]);
 
 	// OTP State
 	const [showOtp, setShowOtp] = useState(false);
@@ -126,41 +139,56 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
 						)}
 
 						<div className="space-y-1.5">
-							<label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-								Select Organization
+							<label className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+								<span>Verified Partner Company</span>
+								{email.includes("@") && (
+									<span className="text-[10px] text-teal-600 font-bold flex items-center gap-1">
+										<ShieldCheck className="w-3 h-3" /> Auto-Detected
+									</span>
+								)}
 							</label>
 							<div className="relative">
 								<select
 									value={organization}
 									onChange={(e) => setOrganization(e.target.value)}
-									className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all appearance-none cursor-pointer font-medium"
+									className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all appearance-none cursor-pointer font-bold"
 								>
-									<option value="Odoo">Odoo S.A.</option>
-									<option value="Google">Google Inc.</option>
-									<option value="Microsoft">Microsoft Corp.</option>
-									<option value="Meta">Meta Platforms</option>
+									<option value="TCS">Tata Consultancy Services (TCS)</option>
+									<option value="Infosys">Infosys Technologies</option>
+									<option value="Wipro">Wipro Technologies</option>
+									<option value="Google">Google India</option>
+									<option value="Microsoft">Microsoft India</option>
+									<option value="Accenture">Accenture India</option>
+									<option value="Amazon">Amazon India</option>
+									<option value="Cognizant">Cognizant</option>
+									<option value="Odoo">Odoo India</option>
 								</select>
-								<div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-									<Shield className="w-4 h-4" />
+								<div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+									<Building2 className="w-4 h-4" />
 								</div>
 							</div>
 						</div>
 
 						<div className="space-y-1.5">
-							<label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-								Corporate Email
+							<label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+								Official Work Email
 							</label>
 							<div className="relative">
 								<input
 									type="email"
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
-									placeholder="name@company.com"
-									className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all placeholder:text-gray-400"
+									placeholder="e.g. name@tcs.com"
+									className="w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all placeholder:text-slate-400 font-medium font-mono"
 								/>
-								<div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-									<Mail className="w-5 h-5" />
+								<div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+									<Mail className="w-4 h-4" />
 								</div>
+								{email.includes("@") && detectedCompany.shortName !== "CORP" && (
+									<div className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md overflow-hidden p-0.5 border border-slate-200 bg-white shadow-xs">
+										<DetectedLogo />
+									</div>
+								)}
 							</div>
 						</div>
 

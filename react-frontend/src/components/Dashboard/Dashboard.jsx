@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { showAlert } from "../../utils/alertService";
 import { io } from "socket.io-client";
-import { Phone, PhoneOff, PhoneCall } from "lucide-react";
+import { Phone, PhoneOff, PhoneCall, X } from "lucide-react";
 import Footer from "../Footer";
 import Header from "./Header";
 import MapPlaceholder from "./MapPlaceholder";
@@ -16,6 +16,8 @@ import HistoryModal from "./HistoryModal";
 import FeedbackModal from "./FeedbackModal";
 import ProfileModal from "./ProfileModal";
 import PublishRideModal from "./PublishRideModal";
+import ImpactScreen from "./ImpactScreen";
+import AmbientBackground from "../AmbientBackground";
 
 // Initialize socket connection (connects to the same origin by default)
 const socket = io();
@@ -24,7 +26,9 @@ function Dashboard() {
 	const [viewMode, setViewMode] = useState("default"); // 'default' | 'browse'
 	const [showVehicleModal, setShowVehicleModal] = useState(false);
 	const [showPublishModal, setShowPublishModal] = useState(false);
+	const [showImpactModal, setShowImpactModal] = useState(false);
 	const [hasVehicle, setHasVehicle] = useState("0");
+	const [riderType, setRiderType] = useState("passenger");
 
 	const [userLocation, setUserLocation] = useState(null);
 	const [pickupCoords, setPickupCoords] = useState(null);
@@ -123,6 +127,7 @@ function Dashboard() {
 	useEffect(() => {
 		const user = JSON.parse(localStorage.getItem("user") || "{}");
 		setHasVehicle(user.is_vehicle_registered || "0");
+		setRiderType(user.rider_type || "passenger");
 		fetchDriverActiveRide();
 		fetchPassengerActiveRide();
 		
@@ -203,6 +208,41 @@ function Dashboard() {
 				accepted: false,
 			});
 			setIncomingCall(null);
+		}
+	};
+
+	const handleToggleRole = async (targetMode) => {
+		if (targetMode === "rider" && hasVehicle !== "2") {
+			if (hasVehicle === "1") {
+				showAlert("Your driver credentials are pending Administrator verification.", "Pending Approval", "info");
+			} else {
+				setShowVehicleModal(true);
+			}
+			return;
+		}
+
+		setRiderType(targetMode);
+		const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+		storedUser.rider_type = targetMode;
+		localStorage.setItem("user", JSON.stringify(storedUser));
+
+		const token = localStorage.getItem("token");
+		if (token) {
+			try {
+				await fetch("/auth/toggle-rider-mode", {
+					method: "POST",
+					headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+					body: JSON.stringify({ target_mode: targetMode }),
+				});
+			} catch (e) {
+				console.warn("Toggle role sync:", e);
+			}
+		}
+
+		if (targetMode === "rider") {
+			setShowPublishModal(true);
+		} else {
+			showAlert("Switched to Passenger Mode. You can now search and book seats with colleagues.", "Passenger Mode Active", "success");
 		}
 	};
 
@@ -320,9 +360,14 @@ function Dashboard() {
 	};
 
 	return (
-		<div className="min-h-screen bg-gray-50 flex flex-col w-full text-left">
+		<div className="min-h-screen bg-slate-50 flex flex-col w-full text-left relative overflow-hidden">
+			<AmbientBackground />
+
 			<Header 
 				socket={socket}
+				currentRole={riderType}
+				onToggleRole={handleToggleRole}
+				onOpenImpact={() => setShowImpactModal(true)}
 				onOpenVehicleModal={() => setShowVehicleModal(true)}
 				onOpenChat={() => setShowGlobalChat(true)}
 				onOpenVoiceCall={() => {
@@ -502,6 +547,21 @@ function Dashboard() {
 				isOpen={showProfileModal}
 				onClose={() => setShowProfileModal(false)}
 			/>
+
+			{/* Fullscreen ESG & Campus Impact Screen Modal (Pitch Deck Showcase) */}
+			{showImpactModal && (
+				<div className="fixed inset-0 z-[150] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 md:p-8 overflow-y-auto">
+					<div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 max-w-6xl w-full max-h-[92vh] overflow-y-auto relative shadow-2xl">
+						<button
+							onClick={() => setShowImpactModal(false)}
+							className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer z-20"
+						>
+							<X className="w-4 h-4" />
+						</button>
+						<ImpactScreen onClose={() => setShowImpactModal(false)} />
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }

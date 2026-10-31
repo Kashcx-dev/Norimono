@@ -30,26 +30,42 @@ router.get('/', async (req, res, next) => {
 
         const hasSpatialSearch = !isNaN(pLat) && !isNaN(pLon) && !isNaN(dLat) && !isNaN(dLon);
         const maxDetour = parseFloat(max_detour_km) || 5.0;
+        const isFemaleOnlyFilter = req.query.female_only === 'true';
+        const techParkFilter = req.query.tech_park;
         
-        const query = `
+        let query = `
             SELECT 
                 r.ride_id, r.driver_id, r.veh_no, r.origin, r.destination, 
                 r.departure_time, r.total_seats, r.available_seats, r.fare_per_seat, r.subsidy_per_seat, r.status,
-                r.polyline,
-                u.name as driver_name, u.passenger_rating, u.driving_rating,
+                r.polyline, r.is_female_only, r.destination_tech_park, r.allow_neighbor_companies, r.target_arrival_time,
+                u.name as driver_name, u.email as driver_email, u.org_name as driver_company, u.passenger_rating, u.driving_rating,
+                u.gender as driver_gender, u.designation as driver_designation, u.department as driver_department,
+                u.trust_score as driver_trust_score, u.total_rides_completed as driver_rides_count, u.co2_saved_kg as driver_co2_saved,
                 v.vehicle_model
             FROM rides r
             JOIN users u ON r.driver_id = u.emp_id
             JOIN vehicles v ON r.veh_no = v.veh_no
             WHERE r.status IN ('scheduled', 'in_progress') 
               AND r.available_seats > 0
-              AND u.org_name = $1
+              AND (u.org_name = $1 OR r.allow_neighbor_companies = TRUE)
+        `;
+        const queryParams = [org_name];
+
+        if (isFemaleOnlyFilter) {
+            query += ` AND (r.is_female_only = TRUE OR u.gender = 'female')`;
+        }
+        if (techParkFilter && techParkFilter.trim()) {
+            queryParams.push(`%${techParkFilter.trim()}%`);
+            query += ` AND (r.destination_tech_park ILIKE $${queryParams.length} OR r.destination->>'name' ILIKE $${queryParams.length})`;
+        }
+
+        query += `
             ORDER BY 
               CASE WHEN r.status = 'in_progress' THEN 0 ELSE 1 END ASC,
               r.departure_time ASC
         `;
 
-        const result = await db.query(query, [org_name]);
+        const result = await db.query(query, queryParams);
         let rides = result.rows;
 
         if (hasSpatialSearch) {
@@ -132,7 +148,16 @@ router.get('/', async (req, res, next) => {
         return res.json({
             success: true,
             total_rides: rides.length,
-            rides: rides
+            rides: rides,
+            commercial_backup: {
+                available: true,
+                title: "Engine 2: Guaranteed Commercial Backup",
+                provider: "Norimono Priority Cabs & Bikes",
+                description: "Eliminating carpool anxiety. If no peer carpool matches your exact schedule, dispatch an instant on-demand cab/bike backed by commercial reliability.",
+                eta_mins: 4,
+                estimated_fare: 89,
+                vehicle_types: ["Priority Sedan", "Eco EV Cab", "Quick Moto"]
+            }
         });
     } catch (err) {
         console.error("Error fetching rides:", err);

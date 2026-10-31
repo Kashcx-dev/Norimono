@@ -32,15 +32,18 @@ import {
 	ChevronRight,
 	RefreshCw,
 	Wallet,
+	Leaf,
+	Sparkles,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import carModels from "../data/car_models.json";
 import WalletModal from "./Dashboard/WalletModal";
+import ImpactScreen from "./Dashboard/ImpactScreen";
 import { getWalletData, subscribeToWallet } from "../utils/walletService";
 
 function AdminDashboard() {
-	const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'employees' | 'vehicles' | 'verifications' | 'settings'
+	const [activeTab, setActiveTab] = useState("impact"); // Default to impact for pitch deck presentation!
 	const [metrics, setMetrics] = useState({
 		total_employees: 48,
 		total_vehicles: 22,
@@ -495,6 +498,23 @@ function AdminDashboard() {
 						</p>
 
 						<button
+							onClick={() => setActiveTab("impact")}
+							className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+								activeTab === "impact"
+									? "bg-white text-slate-900 shadow-sm font-black"
+									: "text-white/80 hover:bg-white/10 hover:text-white"
+							}`}
+						>
+							<div className="flex items-center gap-3">
+								<Leaf className="w-4 h-4 text-emerald-400" />
+								<span>ESG Impact & Simulation</span>
+							</div>
+							<span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+								Pitch
+							</span>
+						</button>
+
+						<button
 							onClick={() => setActiveTab("overview")}
 							className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
 								activeTab === "overview"
@@ -601,15 +621,17 @@ function AdminDashboard() {
 							<span className="text-gray-400">Norimono</span>
 							<ChevronRight className="w-3.5 h-3.5 text-gray-300" />
 							<span className="text-[#00A09D] uppercase tracking-wider">
-								{activeTab === "overview"
-									? "Activity & Overview"
-									: activeTab === "employees"
-										? "Employees"
-										: activeTab === "vehicles"
-											? "Vehicles"
-											: activeTab === "verifications"
-												? "Driver Verifications"
-												: "Settings"}
+								{activeTab === "impact"
+									? "Campus ESG & Impact Simulation"
+									: activeTab === "overview"
+										? "Activity & Overview"
+										: activeTab === "employees"
+											? "Employees"
+											: activeTab === "vehicles"
+												? "Vehicles"
+												: activeTab === "verifications"
+													? "Driver Verifications"
+													: "Settings"}
 							</span>
 						</div>
 
@@ -773,6 +795,13 @@ function AdminDashboard() {
 						<div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2.5 text-emerald-800 text-xs font-bold animate-in fade-in duration-150 shadow-xs">
 							<CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
 							<span>{successToast}</span>
+						</div>
+					)}
+
+					{/* --- PITCH DECK TAB: ESG IMPACT SCREEN --- */}
+					{activeTab === "impact" && (
+						<div className="animate-in fade-in duration-150">
+							<ImpactScreen />
 						</div>
 					)}
 

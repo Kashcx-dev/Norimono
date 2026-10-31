@@ -11,8 +11,17 @@ import {
 	CheckCircle2,
 	X,
 	Wallet,
+	Heart,
+	Building2,
+	Zap,
+	Sparkles,
+	Lock,
+	Shield,
+	Award
 } from "lucide-react";
 import { deductMoneyForRide } from "../../utils/walletService";
+import { getCompanyInfo, POPULAR_TECH_PARKS } from "../../utils/companyBadges";
+import DigitalIdCard from "./DigitalIdCard";
 
 export default function BrowseRidesPanel({
 	rides = [],
@@ -26,19 +35,44 @@ export default function BrowseRidesPanel({
 }) {
 	const [searchTerm, setSearchTerm] = useState("");
 	const [filterType, setFilterType] = useState("all"); // 'all' | 'under5km' | 'seats' | 'fare'
+	const [femaleOnlyFilter, setFemaleOnlyFilter] = useState(false);
+	const [selectedTechPark, setSelectedTechPark] = useState("all");
+	const [targetArrivalFilter, setTargetArrivalFilter] = useState("all");
+	const [viewingDriverIdCard, setViewingDriverIdCard] = useState(null);
+	const [engine2Dispatched, setEngine2Dispatched] = useState(false);
+
 	const [bookingModalRide, setBookingModalRide] = useState(null);
 	const [selectedSeatPref, setSelectedSeatPref] = useState("Seat 1 (Front Window)");
 	const [bookingLoading, setBookingLoading] = useState(false);
 	const [bookingSuccess, setBookingSuccess] = useState(null); // { otp, booking_id }
 
+	const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+	const currentOrg = currentUser.org_name || "Enterprise";
+
 	// Filter rides
 	const filteredRides = rides
 		.filter((ride) => {
+			// 1. Gender Filter: Strict Female-only rides
+			if (femaleOnlyFilter) {
+				const isFemaleRide = ride.is_female_only || ride.driver_gender === "female";
+				if (!isFemaleRide) return false;
+			}
+
+			// 2. Tech Park Filter
+			if (selectedTechPark !== "all") {
+				const destStr = (ride.destination_tech_park || ride.destination?.name || JSON.stringify(ride.destination || "")).toLowerCase();
+				if (!destStr.includes(selectedTechPark.toLowerCase())) return false;
+			}
+
+			// 3. Search Term
 			const matchesSearch =
 				ride.driver_name
 					?.toLowerCase()
 					.includes(searchTerm.toLowerCase()) ||
 				ride.vehicle_model
+					?.toLowerCase()
+					.includes(searchTerm.toLowerCase()) ||
+				ride.driver_company
 					?.toLowerCase()
 					.includes(searchTerm.toLowerCase()) ||
 				ride.destination?.name
@@ -172,24 +206,38 @@ export default function BrowseRidesPanel({
 						)}
 					</div>
 
-					{/* Quick Filter Chips */}
-					<div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+					{/* Quick Filter Chips & Gender Filter */}
+					<div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs select-none">
+						{/* Strict Female-Only Rides Toggle */}
+						<button
+							onClick={() => setFemaleOnlyFilter(!femaleOnlyFilter)}
+							className={`flex items-center gap-1 px-3 py-1 rounded-lg font-bold whitespace-nowrap transition-all cursor-pointer border ${
+								femaleOnlyFilter
+									? "bg-rose-500 text-white border-rose-500 shadow-sm"
+									: "bg-rose-50 text-rose-700 hover:bg-rose-100 border-rose-200"
+							}`}
+							title="Toggle Female-Only verified carpools for safety"
+						>
+							<Heart className={`w-3 h-3 ${femaleOnlyFilter ? "fill-white" : "fill-rose-500"}`} />
+							<span>🌸 Female-Only</span>
+						</button>
+
 						<button
 							onClick={() => setFilterType("all")}
 							className={`px-3 py-1 rounded-lg font-bold whitespace-nowrap transition-all cursor-pointer ${
 								filterType === "all"
-									? "bg-[#714B67] text-white shadow-xs"
+									? "bg-slate-900 text-white shadow-xs"
 									: "bg-gray-100 text-gray-600 hover:bg-gray-200"
 							}`}
 						>
-							All Rides
+							All Corridors
 						</button>
 
 						<button
 							onClick={() => setFilterType("under5km")}
 							className={`px-3 py-1 rounded-lg font-bold whitespace-nowrap transition-all cursor-pointer ${
 								filterType === "under5km"
-									? "bg-[#00A09D] text-white shadow-xs"
+									? "bg-teal-600 text-white shadow-xs"
 									: "bg-gray-100 text-gray-600 hover:bg-gray-200"
 							}`}
 						>
@@ -200,7 +248,7 @@ export default function BrowseRidesPanel({
 							onClick={() => setFilterType("seats")}
 							className={`px-3 py-1 rounded-lg font-bold whitespace-nowrap transition-all cursor-pointer ${
 								filterType === "seats"
-									? "bg-[#00A09D] text-white shadow-xs"
+									? "bg-teal-600 text-white shadow-xs"
 									: "bg-gray-100 text-gray-600 hover:bg-gray-200"
 							}`}
 						>
@@ -211,12 +259,49 @@ export default function BrowseRidesPanel({
 							onClick={() => setFilterType("fare")}
 							className={`px-3 py-1 rounded-lg font-bold whitespace-nowrap transition-all cursor-pointer ${
 								filterType === "fare"
-									? "bg-[#00A09D] text-white shadow-xs"
+									? "bg-teal-600 text-white shadow-xs"
 									: "bg-gray-100 text-gray-600 hover:bg-gray-200"
 							}`}
 						>
-							₹ Lowest Fare
+							₹ Subsidized Fare
 						</button>
+					</div>
+
+					{/* Destination Tech Hub Filter Bar */}
+					<div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px]">
+						<span className="text-[10px] uppercase font-bold text-slate-400 shrink-0">Tech Hub:</span>
+						<button
+							onClick={() => setSelectedTechPark("all")}
+							className={`px-2 py-0.5 rounded-md font-semibold transition-colors cursor-pointer ${
+								selectedTechPark === "all"
+									? "bg-slate-800 text-white"
+									: "bg-slate-100 text-slate-600 hover:bg-slate-200"
+							}`}
+						>
+							All Hubs
+						</button>
+						{POPULAR_TECH_PARKS.slice(0, 4).map((park) => (
+							<button
+								key={park.id}
+								onClick={() => setSelectedTechPark(selectedTechPark === park.name ? "all" : park.name)}
+								className={`px-2 py-0.5 rounded-md font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+									selectedTechPark === park.name
+										? "bg-teal-700 text-white"
+										: "bg-slate-100 text-slate-600 hover:bg-slate-200"
+								}`}
+							>
+								{park.name.split(" ")[0]} ({park.city})
+							</button>
+						))}
+					</div>
+
+					{/* Zero Cash Policy Notice */}
+					<div className="px-3 py-1.5 bg-slate-50 border border-slate-200/70 rounded-xl flex items-center justify-between text-[11px] text-slate-600">
+						<span className="flex items-center gap-1.5 font-medium">
+							<Lock className="w-3 h-3 text-slate-400" />
+							<span>Zero-Cash Policy: Seamless in-app wallet auto-settlement.</span>
+						</span>
+						<span className="font-bold text-teal-700">100% Cashless</span>
 					</div>
 				</div>
 			</div>
@@ -251,51 +336,93 @@ export default function BrowseRidesPanel({
 										: "bg-white border-gray-200/90 hover:border-gray-300 hover:shadow-2xs"
 								}`}
 							>
-								{/* Driver & Vehicle Header */}
-								<div className="flex items-start justify-between gap-2 mb-2.5">
-									<div className="flex items-center gap-3">
-										<div className="w-10 h-10 rounded-xl bg-[#714B67]/10 text-[#714B67] flex items-center justify-center font-bold text-sm border border-[#714B67]/20 shrink-0 shadow-2xs">
-											{ride.driver_name
-												? ride.driver_name.charAt(0).toUpperCase()
-												: "D"}
-										</div>
-										<div>
-											<div className="flex items-center gap-1.5">
-												<span className="font-bold text-sm text-gray-900">
-													{ride.driver_name}
-												</span>
-												<ShieldCheck
-													className="w-4 h-4 text-[#00A09D]"
-													title="Verified Colleague"
-												/>
-											</div>
-											<p className="text-[11px] text-gray-500 flex items-center gap-1">
-												<span>
-													{ride.driver_dept || "Engineering"}
-												</span>
-												<span>•</span>
-												<span className="text-amber-500 font-bold flex items-center gap-0.5">
-													<Star className="w-3 h-3 fill-amber-400" />
-													{ride.driving_rating || 4.9}
-												</span>
-											</p>
-										</div>
-									</div>
+								{/* Driver & Vehicle Header with Digital ID Company Framed Ring */}
+								{(() => {
+									const driverCompany = ride.driver_company || ride.org_name || "Enterprise";
+									const compInfo = getCompanyInfo(driverCompany);
+									const DriverLogo = compInfo.Logo;
+									const isDirectColleague = driverCompany.toLowerCase() === currentOrg.toLowerCase();
+									const arrivalTime = ride.target_arrival_time || "08:50 AM";
 
-									<div className="text-right">
-										<div className="text-base font-extrabold text-[#00A09D] tracking-tight">
-											₹{ride.fare_per_seat || 45}
+									return (
+										<div className="flex items-start justify-between gap-2 mb-2.5">
+											<div className="flex items-center gap-3">
+												{/* Avatar Framed by Official Corporate Logo */}
+												<div 
+													className="relative cursor-pointer group"
+													onClick={(e) => {
+														e.stopPropagation();
+														setViewingDriverIdCard(ride);
+													}}
+													title="Click to view full Corporate Digital ID Card"
+												>
+													<div className={`w-11 h-11 rounded-2xl bg-white p-0.5 shadow-xs border-2 ${compInfo.borderRing} flex items-center justify-center`}>
+														<div className="w-full h-full rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-sm tracking-tight">
+															{ride.driver_name ? ride.driver_name.charAt(0).toUpperCase() : "D"}
+														</div>
+													</div>
+													{/* Framed Corporate Badge */}
+													<div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-md shadow-xs border border-white bg-white flex items-center justify-center p-0.5">
+														<DriverLogo />
+													</div>
+												</div>
+
+												<div>
+													<div className="flex items-center gap-1.5 flex-wrap">
+														<span className="font-extrabold text-sm text-slate-900">
+															{ride.driver_name}
+														</span>
+														<ShieldCheck className="w-4 h-4 text-emerald-600" title="Corporate SSO Verified" />
+
+														{/* Trust Badge: Colleague vs Neighboring Campus Peer */}
+														{isDirectColleague ? (
+															<span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+																🏢 {compInfo.shortName} Colleague
+															</span>
+														) : (
+															<span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
+																🌐 {compInfo.shortName} Campus Peer
+															</span>
+														)}
+
+														{ride.is_female_only && (
+															<span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-0.5">
+																<Heart className="w-2.5 h-2.5 fill-rose-500" />
+																Female-Only
+															</span>
+														)}
+													</div>
+
+													<p className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+														<span className="font-semibold text-slate-700">
+															{ride.driver_dept || ride.driver_designation || "Engineering"}
+														</span>
+														<span>•</span>
+														<span className="text-amber-500 font-bold flex items-center gap-0.5">
+															<Star className="w-3 h-3 fill-amber-400" />
+															{ride.driver_trust_score ? `${ride.driver_trust_score}% Trust` : "99.4% Trust"}
+														</span>
+													</p>
+												</div>
+											</div>
+
+											{/* Cost-Share & Target Arrival Time */}
+											<div className="text-right shrink-0">
+												<div className="text-base font-black text-slate-900 tracking-tight font-mono">
+													₹{ride.fare_per_seat || 45}
+												</div>
+												<span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-100 block mt-0.5">
+													Arrives at {arrivalTime}
+												</span>
+												{parseFloat(ride.subsidy_per_seat || 0) > 0 && (
+													<span className="text-[9px] text-emerald-600 font-semibold block mt-0.5">
+														-₹{ride.subsidy_per_seat} ESG Subsidy
+													</span>
+												)}
+											</div>
 										</div>
-										<span className="text-[10px] text-gray-400 uppercase font-semibold">
-											per seat
-										</span>
-										{parseFloat(ride.subsidy_per_seat || 0) > 0 && (
-											<span className="text-[10px] text-emerald-600 font-bold block">
-												🏢 ₹{ride.subsidy_per_seat} subsidized
-											</span>
-										)}
-									</div>
-								</div>
+									);
+								})()}
 
 								{/* En-Route & Corridor Badges */}
 								{ride.en_route_available && (
@@ -425,31 +552,72 @@ export default function BrowseRidesPanel({
 							</div>
 						);
 					})
-				) : (
-					<div className="py-12 px-6 text-center space-y-3 bg-gray-50/60 rounded-2xl border border-dashed border-gray-200">
-						<div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto text-gray-400">
-							<Car className="w-6 h-6" />
+				) : null}
+
+				{/* ENGINE 2: GUARANTEED COMMERCIAL BACKUP CARD (PITCH DECK ENGINE 2) */}
+				<div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-2xl p-5 border border-slate-800 shadow-md relative overflow-hidden mt-2 select-none">
+					<div className="absolute top-0 right-0 w-44 h-44 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
+
+					<div className="relative z-10 space-y-3">
+						<div className="flex items-center justify-between">
+							<div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-teal-400/20 text-teal-300 border border-teal-400/30">
+								<Zap className="w-3 h-3 text-teal-300" />
+								Engine 2 • Commercial Backup
+							</div>
+							<span className="text-[11px] font-bold text-slate-300 flex items-center gap-1">
+								<Clock className="w-3 h-3 text-teal-400" /> 4 min dispatch
+							</span>
 						</div>
+
 						<div>
-							<p className="text-sm font-bold text-gray-800">
-								No Carpools In This Filter
-							</p>
-							<p className="text-xs text-gray-500 mt-0.5">
-								Try switching filter tabs or clearing your search term.
+							<h3 className="text-sm font-extrabold text-white">Guaranteed Commute Dispatch</h3>
+							<p className="text-[11px] text-slate-300 leading-relaxed mt-0.5">
+								Zero carpool anxiety. If no peer schedule matches or a coworker cancels, Norimono instant priority cabs & bikes are backed by guaranteed commercial reliability.
 							</p>
 						</div>
-						<button
-							onClick={() => {
-								setSearchTerm("");
-								setFilterType("all");
-							}}
-							className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold text-[#714B67] hover:bg-gray-50 shadow-2xs cursor-pointer"
-						>
-							Reset Filters
-						</button>
+
+						<div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
+							<div className="flex flex-col">
+								<span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Corporate Capped Fare</span>
+								<span className="text-base font-black text-teal-300 font-mono">₹89.00</span>
+							</div>
+
+							{engine2Dispatched ? (
+								<span className="px-3 py-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 rounded-xl text-xs font-bold flex items-center gap-1">
+									<CheckCircle2 className="w-3.5 h-3.5" /> Dispatched (ETA 4m)
+								</span>
+							) : (
+								<button
+									onClick={() => {
+										setEngine2Dispatched(true);
+										showAlert("Engine 2 Guaranteed Commercial Cab dispatched! Driver assigned: Swift Dzire (KA-03-TR-9002), arriving in 4 mins.", "Commercial Backup Dispatched", "success");
+									}}
+									className="px-3.5 py-1.5 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1"
+								>
+									<Zap className="w-3.5 h-3.5" /> Dispatch Backup
+								</button>
+							)}
+						</div>
+					</div>
+				</div>
+
+				{/* Empty State when 0 filtered rides */}
+				{!loading && filteredRides.length === 0 && (
+					<div className="py-8 px-6 text-center space-y-2 bg-slate-50/80 rounded-2xl border border-dashed border-slate-200 mt-2">
+						<p className="text-xs font-bold text-slate-700">No colleague carpools found matching this specific filter.</p>
+						<p className="text-[11px] text-slate-500">Use Engine 2 Commercial Backup above or adjust your search.</p>
 					</div>
 				)}
 			</div>
+
+			{/* Digital ID Card Modal Preview */}
+			{viewingDriverIdCard && (
+				<DigitalIdCard
+					user={viewingDriverIdCard}
+					showModal={true}
+					onClose={() => setViewingDriverIdCard(null)}
+				/>
+			)}
 
 			{/* MODAL: CONFIRM BOOKING */}
 			{bookingModalRide && (

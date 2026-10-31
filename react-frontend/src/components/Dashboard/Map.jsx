@@ -560,23 +560,38 @@ export default function Map({
 						)}
 						{selectedRidePolyline && (
 							<>
-								{/* Polyline shadow/glow */}
+								{/* Route Neon Line: Triple-layer luminous glow */}
+								{/* 1. Outer Neon Aura Glow */}
 								<Polyline
 									positions={selectedRidePolyline}
 									pathOptions={{
-										color: "#714B67",
-										weight: 8,
-										opacity: 0.35,
+										color: "#00F5D4",
+										weight: 14,
+										opacity: 0.28,
+										lineCap: "round",
+										lineJoin: "round",
 									}}
 								/>
-								{/* Main polyline */}
+								{/* 2. Vibrant Cyan Middle Glow */}
 								<Polyline
 									positions={selectedRidePolyline}
 									pathOptions={{
-										color: "#714B67",
-										weight: 5,
+										color: "#06B6D4",
+										weight: 7,
+										opacity: 0.85,
+										lineCap: "round",
+										lineJoin: "round",
+									}}
+								/>
+								{/* 3. Pure Neon White Core Line */}
+								<Polyline
+									positions={selectedRidePolyline}
+									pathOptions={{
+										color: "#FFFFFF",
+										weight: 3,
 										opacity: 0.95,
-										dashArray: "8, 6",
+										lineCap: "round",
+										lineJoin: "round",
 									}}
 								/>
 							</>
@@ -629,25 +644,37 @@ export default function Map({
 								</Popup>
 							</Marker>
 						)}
-						{/* Active Trip Polyline */}
+						{/* Active Trip Route Neon Line */}
 						{activePolyline && activePolyline.length > 0 && (
 							<>
-								{/* Polyline Outer Glow */}
 								<Polyline
 									positions={activePolyline}
 									pathOptions={{
-										color: "#00A09D",
-										weight: 10,
+										color: "#00F5D4",
+										weight: 14,
 										opacity: 0.35,
+										lineCap: "round",
+										lineJoin: "round",
 									}}
 								/>
-								{/* Main Polyline */}
 								<Polyline
 									positions={activePolyline}
 									pathOptions={{
-										color: "#00A09D",
-										weight: 6,
+										color: "#06B6D4",
+										weight: 7,
+										opacity: 0.85,
+										lineCap: "round",
+										lineJoin: "round",
+									}}
+								/>
+								<Polyline
+									positions={activePolyline}
+									pathOptions={{
+										color: "#FFFFFF",
+										weight: 3.5,
 										opacity: 0.95,
+										lineCap: "round",
+										lineJoin: "round",
 									}}
 								/>
 							</>
@@ -655,16 +682,20 @@ export default function Map({
 					</>
 				)}
 
-				{/* User Search Route Polyline */}
+				{/* User Search Route Neon Line */}
 				{!activeTrip && normalizedSearchPolyline && normalizedSearchPolyline.length > 0 && (
 					<>
 						<Polyline
 							positions={normalizedSearchPolyline}
-							pathOptions={{ color: "#00A09D", weight: 9, opacity: 0.3 }}
+							pathOptions={{ color: "#00F5D4", weight: 12, opacity: 0.28, lineCap: "round", lineJoin: "round" }}
 						/>
 						<Polyline
 							positions={normalizedSearchPolyline}
-							pathOptions={{ color: "#00A09D", weight: 5, opacity: 0.95 }}
+							pathOptions={{ color: "#06B6D4", weight: 6, opacity: 0.85, lineCap: "round", lineJoin: "round" }}
+						/>
+						<Polyline
+							positions={normalizedSearchPolyline}
+							pathOptions={{ color: "#FFFFFF", weight: 2.5, opacity: 0.95, lineCap: "round", lineJoin: "round" }}
 						/>
 					</>
 				)}
