@@ -3,6 +3,35 @@ const router = express.Router();
 const db = require('../handlers/dbHandler');
 const crypto = require('crypto');
 
+// GET /register-vehicle - Fetch registered vehicle & current review status
+router.get('/', async (req, res, next) => {
+    try {
+        if (!req.user || !req.user.emp_id) {
+            return res.status(401).json({ success: false, message: "Unauthorized" });
+        }
+        const userRes = await db.query(
+            'SELECT is_vehicle_registered, rider_type, name, org_name FROM users WHERE emp_id = $1',
+            [req.user.emp_id]
+        );
+        const isRegistered = userRes.rows[0]?.is_vehicle_registered || '0';
+
+        const vehRes = await db.query(
+            'SELECT * FROM vehicles WHERE emp_id = $1 ORDER BY created_at DESC LIMIT 1',
+            [req.user.emp_id]
+        );
+
+        return res.json({
+            success: true,
+            is_vehicle_registered: isRegistered,
+            user: userRes.rows[0],
+            vehicle: vehRes.rows[0] || null
+        });
+    } catch (err) {
+        console.error("Error fetching registered vehicle:", err);
+        return next(err);
+    }
+});
+
 router.post('/', async (req, res, next) => {
     try {
         if(!req.user || !req.user.emp_id){

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, User, Mail, Building2, Phone, Car, Star, ShieldCheck, FileText, Droplets, CalendarDays, MapPin } from "lucide-react";
 
-export default function ProfileModal({ isOpen, onClose }) {
+export default function ProfileModal({ isOpen, onClose, onOpenVehicleModal }) {
 	const [profile, setProfile] = useState(null);
 	const [loading, setLoading] = useState(false);
 
@@ -189,10 +189,17 @@ export default function ProfileModal({ isOpen, onClose }) {
 															</div>
 														</div>
 													</div>
-													<div className="bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-lg flex items-center gap-1 text-[10px] font-black uppercase tracking-wider border border-emerald-200 shadow-sm">
-														<ShieldCheck className="w-3 h-3" />
-														Verified
-													</div>
+													{profile.is_vehicle_registered === "2" ? (
+														<div className="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider border border-emerald-200 shadow-sm">
+															<ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+															Verified
+														</div>
+													) : (
+														<div className="bg-amber-50 text-amber-800 px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider border border-amber-200 shadow-sm">
+															<span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+															Pending Review
+														</div>
+													)}
 												</div>
 												
 												<div className="grid grid-cols-2 gap-4">
@@ -247,13 +254,25 @@ export default function ProfileModal({ isOpen, onClose }) {
 										</div>
 									) : (
 										<div className="bg-white p-8 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-3 text-center">
-											<div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mb-2">
+											<div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mb-1">
 												<Car className="w-8 h-8 text-gray-300" />
 											</div>
 											<div>
 												<h4 className="text-sm font-bold text-gray-900">No Vehicle Registered</h4>
-												<p className="text-xs text-gray-500 mt-1 max-w-[200px] mx-auto">Register a vehicle from the main menu to start publishing rides.</p>
+												<p className="text-xs text-gray-500 mt-1 max-w-[220px] mx-auto">Register your car to verify as driver and publish colleague carpools.</p>
 											</div>
+											{onOpenVehicleModal && (
+												<button
+													onClick={() => {
+														onClose();
+														onOpenVehicleModal();
+													}}
+													className="mt-1 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+												>
+													<Car className="w-3.5 h-3.5" />
+													<span>Register as Driver</span>
+												</button>
+											)}
 										</div>
 									)}
 								</div>

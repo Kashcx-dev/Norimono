@@ -22,7 +22,8 @@ function Header({
 	socket, 
 	onPublishRide,
 	hasVehicle = "0",
-	onOpenVehicleModal, 
+	onOpenVehicleModal,
+	onOpenShowRegisteredVehicles,
 	onOpenChat, 
 	onOpenVoiceCall, 
 	onOpenHistory, 
@@ -159,15 +160,19 @@ function Header({
 								<div className="px-4 py-3 border-b border-slate-100 bg-slate-50/70">
 									<p className="text-xs font-extrabold text-slate-900 truncate">{user.name || "Employee"}</p>
 									<p className="text-[10px] text-slate-500 font-mono">{empId} • {companyInfo.shortName}</p>
-									<div className="mt-1.5 flex items-center gap-1.5">
+									<div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
 										<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-200">
 											<ShieldCheck className="w-2.5 h-2.5" /> Closed-Loop
 										</span>
-										{hasVehicle === "2" && (
+										{hasVehicle === "2" ? (
 											<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200">
 												🚗 Driver Verified
 											</span>
-										)}
+										) : hasVehicle === "1" ? (
+											<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
+												⏳ Driver Pending
+											</span>
+										) : null}
 									</div>
 								</div>
 
@@ -229,15 +234,52 @@ function Header({
 										</button>
 									)}
 
-									{hasVehicle !== "2" && onOpenVehicleModal && (
+									{/* Dynamic Driver / Vehicle Action */}
+									{(hasVehicle === "1" || hasVehicle === "2") ? (
 										<button
 											onClick={() => {
 												setMenuOpen(false);
-												onOpenVehicleModal();
+												if (onOpenShowRegisteredVehicles) onOpenShowRegisteredVehicles();
+											}}
+											className="w-full text-left px-3 py-2 text-xs text-slate-800 hover:bg-slate-100 rounded-xl flex items-center justify-between font-bold transition-colors cursor-pointer group"
+										>
+											<span className="flex items-center gap-2.5">
+												<Car className="w-4 h-4 text-purple-600" />
+												<span>Show Registered Vehicles</span>
+											</span>
+											{hasVehicle === "2" ? (
+												<span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+													Verified
+												</span>
+											) : (
+												<span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
+													Pending
+												</span>
+											)}
+										</button>
+									) : (
+										onOpenVehicleModal && (
+											<button
+												onClick={() => {
+													setMenuOpen(false);
+													onOpenVehicleModal();
+												}}
+												className="w-full text-left px-3 py-2 text-xs text-slate-700 hover:bg-slate-100 rounded-xl flex items-center gap-2.5 font-bold transition-colors cursor-pointer"
+											>
+												<Car className="w-4 h-4 text-purple-600" /> Register as Driver
+											</button>
+										)
+									)}
+
+									{onOpenProfile && (
+										<button
+											onClick={() => {
+												setMenuOpen(false);
+												onOpenProfile();
 											}}
 											className="w-full text-left px-3 py-2 text-xs text-slate-700 hover:bg-slate-100 rounded-xl flex items-center gap-2.5 font-bold transition-colors cursor-pointer"
 										>
-											<Car className="w-4 h-4 text-purple-600" /> Register as Driver
+											<User className="w-4 h-4 text-slate-500" /> View Account Profile
 										</button>
 									)}
 

@@ -15,6 +15,7 @@ import HistoryModal from "./HistoryModal";
 import FeedbackModal from "./FeedbackModal";
 import ProfileModal from "./ProfileModal";
 import PublishRideModal from "./PublishRideModal";
+import RegisteredVehiclesModal from "./RegisteredVehiclesModal";
 import ImpactScreen from "./ImpactScreen";
 
 // Initialize socket connection (connects to the same origin by default)
@@ -23,6 +24,7 @@ const socket = io();
 function Dashboard() {
 	const [viewMode, setViewMode] = useState("default"); // 'default' | 'browse'
 	const [showVehicleModal, setShowVehicleModal] = useState(false);
+	const [showRegisteredVehiclesModal, setShowRegisteredVehiclesModal] = useState(false);
 	const [showPublishModal, setShowPublishModal] = useState(false);
 	const [showImpactModal, setShowImpactModal] = useState(false);
 	const [hasVehicle, setHasVehicle] = useState("0");
@@ -419,6 +421,7 @@ function Dashboard() {
 				onPublishRide={handlePublishRide}
 				onOpenImpact={() => setShowImpactModal(true)}
 				onOpenVehicleModal={() => setShowVehicleModal(true)}
+				onOpenShowRegisteredVehicles={() => setShowRegisteredVehiclesModal(true)}
 				onOpenChat={() => setShowGlobalChat(true)}
 				onOpenVoiceCall={() => {
 					setIsIncomingCall(false);
@@ -562,6 +565,22 @@ function Dashboard() {
 			<ProfileModal
 				isOpen={showProfileModal}
 				onClose={() => setShowProfileModal(false)}
+				onOpenVehicleModal={() => setShowVehicleModal(true)}
+			/>
+
+			{/* Dedicated Registered Vehicles Modal (Compact & Simple) */}
+			<RegisteredVehiclesModal
+				isOpen={showRegisteredVehiclesModal}
+				onClose={() => setShowRegisteredVehiclesModal(false)}
+				hasVehicle={hasVehicle}
+				onOpenRegisterNew={() => {
+					setShowRegisteredVehiclesModal(false);
+					setShowVehicleModal(true);
+				}}
+				onPublishRide={() => {
+					setShowRegisteredVehiclesModal(false);
+					handlePublishRide();
+				}}
 			/>
 
 			{/* Fullscreen ESG & Campus Impact Screen Modal (Pitch Deck Showcase) */}
