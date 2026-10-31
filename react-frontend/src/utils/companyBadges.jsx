@@ -226,3 +226,4 @@ export function getCompanyInfo(identifier) {
 		defaultTechPark: "Tech Park Campus"
 	};
 }
+
