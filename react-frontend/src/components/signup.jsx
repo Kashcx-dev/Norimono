@@ -790,6 +790,22 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 						</div>
 					</div>
 
+					{/* Mobile Phone Number */}
+					<div className="space-y-1">
+						<label className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Mobile Phone Number</label>
+						<div className="relative">
+							<input
+								type="tel"
+								value={phone}
+								onChange={(e) => setPhone(e.target.value)}
+								placeholder="+91 98765 43210"
+								className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs font-mono font-medium focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+								required
+							/>
+							<Phone className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+						</div>
+					</div>
+
 					{/* Organization & Gender */}
 					<div className="grid grid-cols-2 gap-2.5">
 						<div className="space-y-1">

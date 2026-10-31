@@ -82,3 +82,4 @@ echo Keep this window or the background server windows open while using the app.
 echo To shut down all Norimono services, you can run stop.bat or close the windows.
 echo.
 pause
+

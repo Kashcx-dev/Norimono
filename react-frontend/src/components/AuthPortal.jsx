@@ -141,7 +141,7 @@ function AuthPortal({ onLoginSuccess }) {
 			</div>
 
 			{/* Right Panel: Auth Forms */}
-			<div className="md:w-1/2 flex items-center justify-center p-6 md:p-12 z-10">
+			<div className="md:w-1/2 flex items-center justify-center p-6 md:p-10 z-10 overflow-y-auto max-h-screen">
 				{currentView === "login" && (
 					<Login
 						onSwitchToSignup={() => setCurrentView("signup")}

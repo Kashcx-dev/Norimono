@@ -26,3 +26,4 @@ echo [DONE] Norimono services have been stopped.
 echo.
 timeout /t 2 /nobreak >nul
 exit /b 0
+
