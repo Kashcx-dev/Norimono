@@ -93,6 +93,144 @@ router.post('/vehicles/approve', async (req, res, next) => {
     }
 });
 
+// 2.80 Get all pending rider/driver credential verifications
+router.get('/rider-verifications', async (req, res, next) => {
+    try {
+        const result = await db.query(
+            `SELECT rv.*, u.name, u.email, u.phone, u.org_name, u.created_at as user_created_at 
+             FROM rider_verifications rv
+             JOIN users u ON rv.emp_id = u.emp_id
+             WHERE u.org_name = $1
+             ORDER BY rv.created_at DESC`,
+            [req.user.org_name]
+        );
+        res.json({ success: true, verifications: result.rows });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// 2.85 Approve a pending rider verification application
+router.post('/rider-verifications/approve', async (req, res, next) => {
+    const crypto = require('crypto');
+    const client = await db.getClient();
+    try {
+        const { verification_id } = req.body;
+        if (!verification_id) return res.status(400).json({ success: false, message: "verification_id is required" });
+
+        await client.query('BEGIN');
+
+        const verifRes = await client.query(
+            'SELECT * FROM rider_verifications WHERE verification_id = $1 FOR UPDATE',
+            [verification_id]
+        );
+
+        if (verifRes.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ success: false, message: "Verification application not found" });
+        }
+
+        const app = verifRes.rows[0];
+        const emp_id = app.emp_id;
+
+        // Check if vehicle already exists for this user
+        const existingVeh = await client.query('SELECT veh_id FROM vehicles WHERE emp_id = $1', [emp_id]);
+        if (existingVeh.rows.length === 0) {
+            const veh_id = 'VEH-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+            await client.query(
+                `INSERT INTO vehicles (veh_id, veh_no, emp_id, dl_no, vehicle_model, seating_capacity, fuel_consumption_ratio, insurance_no) 
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                [
+                    veh_id,
+                    app.vehicle_no,
+                    emp_id,
+                    app.dl_no,
+                    app.vehicle_model,
+                    app.seating_capacity || 4,
+                    app.fuel_consumption_ratio || 1.0,
+                    app.insurance_no || null
+                ]
+            );
+        }
+
+        // Update user status directly to '2' (Approved Rider / Driver)
+        await client.query("UPDATE users SET is_vehicle_registered = '2' WHERE emp_id = $1", [emp_id]);
+
+        // Update verification record to 'approved'
+        await client.query(
+            "UPDATE rider_verifications SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE verification_id = $1",
+            [verification_id]
+        );
+
+        await client.query('COMMIT');
+
+        const io = req.app.get("socketio");
+        if (io) {
+            io.to(`user_${emp_id}`).emit('rider_verification_status', {
+                status: 'approved',
+                message: 'Your driver credentials have been verified and approved by the Administrator!'
+            });
+            io.emit('new_notification', {
+                target_emp_id: emp_id,
+                title: "Driver Approved",
+                message: "Your vehicle & driver license are now verified. You can publish rides!",
+                type: "verification_approved",
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        res.json({ success: true, message: "Rider application approved. Vehicle registered and unlocked for publishing." });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error("Error approving rider verification:", err);
+        next(err);
+    } finally {
+        client.release();
+    }
+});
+
+// 2.90 Reject a pending rider verification application
+router.post('/rider-verifications/reject', async (req, res, next) => {
+    try {
+        const { verification_id, admin_notes } = req.body;
+        if (!verification_id) return res.status(400).json({ success: false, message: "verification_id is required" });
+
+        const verifRes = await db.query(
+            'SELECT emp_id FROM rider_verifications WHERE verification_id = $1',
+            [verification_id]
+        );
+        if (verifRes.rows.length === 0) return res.status(404).json({ success: false, message: "Application not found" });
+
+        const emp_id = verifRes.rows[0].emp_id;
+
+        await db.query(
+            "UPDATE rider_verifications SET status = 'rejected', admin_notes = $1, reviewed_at = CURRENT_TIMESTAMP WHERE verification_id = $2",
+            [admin_notes || "Document verification failed. Please resubmit valid details.", verification_id]
+        );
+
+        await db.query("UPDATE users SET is_vehicle_registered = '0' WHERE emp_id = $1", [emp_id]);
+
+        const io = req.app.get("socketio");
+        if (io) {
+            io.to(`user_${emp_id}`).emit('rider_verification_status', {
+                status: 'rejected',
+                notes: admin_notes
+            });
+            io.emit('new_notification', {
+                target_emp_id: emp_id,
+                title: "Driver Application Update",
+                message: `Your driver application requires attention: ${admin_notes || 'Please resubmit details.'}`,
+                type: "verification_rejected",
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        res.json({ success: true, message: "Rider application rejected." });
+    } catch (err) {
+        next(err);
+    }
+});
+
 // 3. Get org settings
 router.get('/settings', async (req, res, next) => {
     try {

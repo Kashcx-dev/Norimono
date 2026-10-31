@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../handlers/dbHandler');
 const { getRouting } = require('../handlers/GPS_CalcHandler');
+const { haversineDistance } = require('../utils/geoUtils');
 
 router.post('/', async (req, res, next) => {
     try {
@@ -20,6 +21,23 @@ router.post('/', async (req, res, next) => {
         }
 
         // Checking if the user has a registered and approved vehicle
+        const userResult = await db.query(
+            "SELECT is_vehicle_registered, rider_type FROM users WHERE emp_id = $1",
+            [driver_EMP_ID]
+        );
+        const userStatus = userResult.rows[0]?.is_vehicle_registered || '0';
+
+        if (userStatus === '1') {
+            return res.status(400).json({ 
+                message: "Your driver verification is currently pending Administrator review. You will be able to publish rides once approved." 
+            });
+        }
+        if (userStatus === '0') {
+            return res.status(400).json({ 
+                message: "You are registered as a passenger. Please register your vehicle credentials to offer rides." 
+            });
+        }
+
         const vehicleResult = await db.query(
             `SELECT v.veh_no, v.seating_capacity, u.is_vehicle_registered 
              FROM vehicles v 
@@ -34,12 +52,8 @@ router.post('/', async (req, res, next) => {
 
         const vehicle = vehicleResult.rows[0];
         
-        if (vehicle.is_vehicle_registered === '0') {
-            return res.status(400).json({ message: "Vehicle is not registered." });
-        } else if (vehicle.is_vehicle_registered === '1') {
-            return res.status(400).json({ message: "Your vehicle registration is pending Admin approval." });
-        } else if (vehicle.is_vehicle_registered !== '2') {
-            return res.status(400).json({ message: "Invalid vehicle registration status." });
+        if (vehicle.is_vehicle_registered !== '2') {
+            return res.status(400).json({ message: "Your vehicle registration is not yet approved." });
         }
 
         const veh_no = vehicle.veh_no;
@@ -56,14 +70,34 @@ router.post('/', async (req, res, next) => {
             polylineStr = JSON.stringify(routeCoords);
         }
 
+        // Calculate corporate green commute subsidy per seat
+        let subsidyPerSeat = parseFloat(req.body.subsidy_per_seat) || 0.00;
+        if (subsidyPerSeat <= 0) {
+            try {
+                const orgRes = await db.query(
+                    "SELECT travel_cost_per_km FROM org_settings WHERE org_name = $1",
+                    [req.user.org_name || 'Odoo']
+                );
+                const travelSubsidy = parseFloat(orgRes.rows[0]?.travel_cost_per_km || 2.00);
+                const oLat = parseFloat(origin.lat);
+                const oLon = parseFloat(origin.lng || origin.lon);
+                const dLat = parseFloat(destination.lat);
+                const dLon = parseFloat(destination.lng || destination.lon);
+                if (!isNaN(oLat) && !isNaN(oLon) && !isNaN(dLat) && !isNaN(dLon)) {
+                    const distKm = haversineDistance(oLat, oLon, dLat, dLon) * 1.3;
+                    subsidyPerSeat = Math.round(Math.min(parseFloat(fare_per_seat) * 0.45, (distKm * travelSubsidy) / total_seats));
+                }
+            } catch (e) {}
+        }
+
         // Insert the new ride into the database
         const insertQuery = `
             INSERT INTO rides (
                 driver_id, veh_no, origin, destination, 
                 departure_time, total_seats, available_seats, 
-                fare_per_seat, status, polyline
+                fare_per_seat, subsidy_per_seat, status, polyline
             ) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'scheduled', $9) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'scheduled', $10) 
             RETURNING ride_id
         `;
         
@@ -76,13 +110,15 @@ router.post('/', async (req, res, next) => {
             total_seats, 
             total_seats, // initially available = total
             fare_per_seat, 
+            subsidyPerSeat,
             polylineStr
         ]);
 
         return res.json({ 
             success: true, 
             message: 'Ride published successfully',
-            ride_id: insertResult.rows[0].ride_id
+            ride_id: insertResult.rows[0].ride_id,
+            subsidy_per_seat: subsidyPerSeat
         });
 
     } catch (error) {

@@ -26,7 +26,7 @@ const API_Limiter = (level = "standard") => {
 
 const FN_verifyTkn = (req, res, next) =>{
     const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(" ")[1];
+    const token = (authHeader && authHeader.split(" ")[1]) || (req.cookies && req.cookies.token);
     if(!token){
         res.statusCode = 401;
         return next(new Error("Unauthorized User Access! Please login"));
@@ -38,7 +38,7 @@ const FN_verifyTkn = (req, res, next) =>{
         next();
     }catch(err){
         res.statusCode = 403;
-        next(new Error("Invalid or Expiered token for session, please re Login..."))
+        next(new Error("Invalid or Expired token for session, please re-login..."))
     }
     
 };

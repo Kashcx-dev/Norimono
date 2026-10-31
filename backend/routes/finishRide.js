@@ -18,7 +18,7 @@ router.post('/', async (req, res, next) => {
         
         // 1. Verify the ride belongs to this driver and is not already completed
         const rideResult = await db.query(
-            'SELECT driver_id, status, fare_per_seat FROM rides WHERE ride_id = $1', 
+            'SELECT driver_id, status, fare_per_seat, subsidy_per_seat, destination FROM rides WHERE ride_id = $1', 
             [ride_id]
         );
 
@@ -36,42 +36,72 @@ router.post('/', async (req, res, next) => {
             return res.status(400).json({ message: "Ride is already completed" });
         }
 
-        const fare = parseFloat(ride.fare_per_seat);
+        const fare = parseFloat(ride.fare_per_seat || 0);
+        const subsidy = parseFloat(ride.subsidy_per_seat || 0);
         
         // Start Atomic Transaction
         const client = await db.getClient();
         try {
             await client.query('BEGIN');
 
-            // 2. Find all confirmed passengers
+            // 2. Find all active or completed bookings for this ride
             const bookingsResult = await client.query(
-                `SELECT booking_id, passenger_id FROM bookings 
-                 WHERE ride_id = $1 AND booking_status = 'confirmed'`,
+                `SELECT booking_id, passenger_id, booking_status, payment_status, fare_amount FROM bookings 
+                 WHERE ride_id = $1 AND booking_status IN ('confirmed', 'in_progress', 'completed')`,
                 [ride_id]
             );
 
             const bookings = bookingsResult.rows;
             let total_driver_credit = 0;
+            let total_company_subsidy = 0;
 
-            // 3. Process each passenger
+            // 3. Process each passenger that hasn't already paid
             for (const booking of bookings) {
-                // Deduct from passenger (allows negative balance as per requirements)
-                await deductAmt(booking.passenger_id, fare, client);
+                if (booking.payment_status !== 'paid' && booking.payment_status !== 'completed') {
+                    const bookingFare = parseFloat(booking.fare_amount || fare);
+                    // Deduct from passenger wallet
+                    await deductAmt(
+                        booking.passenger_id, 
+                        bookingFare, 
+                        client, 
+                        ride_id, 
+                        `Carpool Commute Ride #${ride_id} (Subsidized Fare)`
+                    );
+                    total_driver_credit += bookingFare;
+
+                    // If company subsidy is active, credit corporate green subsidy to driver
+                    if (subsidy > 0) {
+                        await creditAmt(
+                            driver_id, 
+                            subsidy, 
+                            client, 
+                            ride_id, 
+                            'company_subsidy', 
+                            `Company Green Commute Subsidy for Ride #${ride_id}`
+                        );
+                        total_company_subsidy += subsidy;
+                    }
+                }
                 
-                // Mark booking as completed and paid
+                // Mark booking as fully completed and paid
                 await client.query(
                     `UPDATE bookings 
-                     SET booking_status = 'completed', payment_status = 'paid' 
+                     SET booking_status = 'completed', payment_status = 'completed' 
                      WHERE booking_id = $1`,
                     [booking.booking_id]
                 );
-
-                total_driver_credit += fare;
             }
 
-            // 4. Credit the driver for all passengers
+            // 4. Credit the driver for the settled passenger fares
             if (total_driver_credit > 0) {
-                await creditAmt(driver_id, total_driver_credit, client);
+                await creditAmt(
+                    driver_id, 
+                    total_driver_credit, 
+                    client, 
+                    ride_id, 
+                    'driver_earnings', 
+                    `Passenger Fares for Commute Ride #${ride_id}`
+                );
             }
 
             // 5. Mark the ride itself as completed
@@ -81,11 +111,23 @@ router.post('/', async (req, res, next) => {
             );
 
             await client.query('COMMIT');
+
+            // 6. Broadcast ride completion to passengers and driver via Socket.io
+            const io = req.app.get("socketio");
+            if (io) {
+                const payload = { ride_id: Number(ride_id), status: 'completed' };
+                io.to(`ride_${ride_id}`).emit('ride_finished', payload);
+                io.emit('ride_finished', payload);
+                io.to(`ride_${ride_id}`).emit('driver_refresh_bookings');
+                io.emit('driver_refresh_bookings');
+            }
             
             return res.json({ 
                 success: true, 
-                message: "Ride completed successfully. Payments processed.",
-                earnings: total_driver_credit
+                message: "Ride completed successfully. Payments settled.",
+                earnings: total_driver_credit + total_company_subsidy,
+                fares_collected: total_driver_credit,
+                company_subsidy: total_company_subsidy
             });
 
         } catch (txnError) {

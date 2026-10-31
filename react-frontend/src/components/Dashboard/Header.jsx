@@ -40,7 +40,10 @@ function Header({ socket, onOpenVehicleModal, onOpenChat, onOpenVoiceCall, onOpe
 		return () => unsubscribe();
 	}, [empId]);
 
-	const handleLogout = () => {
+	const handleLogout = async () => {
+		try {
+			await fetch("/auth/logout", { method: "POST" });
+		} catch (err) {}
 		localStorage.removeItem("token");
 		localStorage.removeItem("user");
 		window.location.href = "/";
@@ -55,7 +58,7 @@ function Header({ socket, onOpenVehicleModal, onOpenChat, onOpenVoiceCall, onOpe
 						<Car className="w-5 h-5 text-white" />
 					</div>
 					<span className="text-xl font-bold text-gray-900 tracking-tight">
-						MakeLyft
+						Norimono
 					</span>
 				</div>
 
@@ -69,7 +72,7 @@ function Header({ socket, onOpenVehicleModal, onOpenChat, onOpenVoiceCall, onOpe
 							setNotificationsOpen(false);
 						}}
 						className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-purple-50 via-teal-50/40 to-white hover:from-purple-100/70 hover:to-teal-100/50 text-[#714B67] border border-[#714B67]/20 hover:border-[#714B67]/40 shadow-2xs hover:shadow-xs transition-all duration-200 cursor-pointer group"
-						title="Open MakeLyft Commute Wallet"
+						title="Open Norimono Commute Wallet"
 					>
 						<div className="w-6 h-6 rounded-lg bg-[#714B67] text-white flex items-center justify-center group-hover:scale-105 transition-transform">
 							<Wallet className="w-3.5 h-3.5" />
@@ -173,6 +176,23 @@ function Header({ socket, onOpenVehicleModal, onOpenChat, onOpenVoiceCall, onOpe
 								<div className="px-4 py-2 border-b border-gray-100 bg-gray-50/50">
 									<p className="text-xs font-bold text-gray-900 truncate">{user.name || "Employee"}</p>
 									<p className="text-[10px] text-gray-500 font-mono">{empId}</p>
+									<div className="mt-1">
+										{user.rider_type === "rider" ? (
+											user.is_vehicle_registered === "2" ? (
+												<span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+													🚗 Driver (Verified)
+												</span>
+											) : (
+												<span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">
+													⏳ Driver (Pending Review)
+												</span>
+											)
+										) : (
+											<span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-200">
+												🚶‍♂️ Passenger
+											</span>
+										)}
+									</div>
 								</div>
 								<button
 									onClick={() => {

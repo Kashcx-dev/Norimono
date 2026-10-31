@@ -208,14 +208,27 @@ export default function ActiveTripPanel({
 			}
 		};
 
+		const handleEnRouteAlert = (data) => {
+			if (isDriver) {
+				showAlert(
+					`⚡ En-Route Pickup: ${data.passenger_name || 'A passenger'} booked a seat along your active route!`,
+					"En-Route Passenger Added",
+					"info"
+				);
+				fetchDriverBookings();
+			}
+		};
+
 		socket.on("booking_status_updated", handleBookingStatusUpdated);
 		socket.on("booking_payment_updated", handleBookingPaymentUpdated);
+		socket.on("en_route_pickup_alert", handleEnRouteAlert);
 
 		return () => {
 			socket.off("location_update", handleLocationUpdate);
 			socket.off("driver_refresh_bookings", handleRefreshBookings);
 			socket.off("booking_status_updated", handleBookingStatusUpdated);
 			socket.off("booking_payment_updated", handleBookingPaymentUpdated);
+			socket.off("en_route_pickup_alert", handleEnRouteAlert);
 		};
 	}, [socket, activeTrip, isDriver, onRefreshPassenger]);
 
@@ -321,7 +334,7 @@ export default function ActiveTripPanel({
 		}
 	};
 
-	// 1. Pay with MakeLyft Wallet
+	// 1. Pay with Norimono Wallet
 	const handlePassengerPayWithWallet = async () => {
 		setLoading(true);
 		setInsufficientError(false);
@@ -351,7 +364,7 @@ export default function ActiveTripPanel({
 			if (data.success) {
 				setPaymentStatus("paid_pending_confirmation");
 				showAlert(
-					`Payment of ₹${fareAmount} completed via MakeLyft Wallet! Awaiting driver confirmation.`,
+					`Payment of ₹${fareAmount} completed via Norimono Wallet! Awaiting driver confirmation.`,
 					"Payment Successful", "success"
 				);
 				fetchWalletBalance();
@@ -418,7 +431,7 @@ export default function ActiveTripPanel({
 				key: rzpKey,
 				amount: orderData.order.amount,
 				currency: orderData.order.currency || "INR",
-				name: "MakeLyft Commute",
+				name: "Norimono Commute",
 				description: `Payment for Ride #${activeTrip.booking_id || activeTrip.ride?.ride_id || ""}`,
 				order_id: orderData.order.id,
 				prefill: {
@@ -955,7 +968,7 @@ export default function ActiveTripPanel({
 											payment method below:
 										</p>
 
-										{/* Option 1: Pay with MakeLyft Wallet */}
+										{/* Option 1: Pay with Norimono Wallet */}
 										<button
 											onClick={handlePassengerPayWithWallet}
 											disabled={loading}
@@ -1118,9 +1131,13 @@ export default function ActiveTripPanel({
 									className="p-3.5 rounded-xl border border-gray-200 bg-white shadow-2xs space-y-2.5"
 								>
 									<div className="flex items-center justify-between">
-										<div className="font-bold text-gray-900 text-xs">
-											{booking.passenger_name ||
-												"Colleague Passenger"}
+										<div className="font-bold text-gray-900 text-xs flex items-center gap-1.5">
+											<span>{booking.passenger_name || "Colleague Passenger"}</span>
+											{booking.is_en_route && (
+												<span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-purple-100 text-[#714B67] border border-purple-200">
+													⚡ En-Route
+												</span>
+											)}
 										</div>
 										<span
 											className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${

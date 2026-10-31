@@ -18,9 +18,19 @@ export default function VoiceCallModal({ isOpen, onClose, socket, activeTrip, us
 
 		const rideId = activeTrip?.ride?.ride_id || activeTrip?.ride_id || activeTrip?.booking_id || "DEMO_RIDE_1";
 		
-		// CRITICAL FIX: Ensure caller joins the socket room so they can receive signaling answers
+		// Ensure client joins the ride socket room
 		if (socket) {
 			socket.emit("join_ride_room", { ride_id: rideId });
+
+			if (isCaller) {
+				const targetEmpId = activeTrip?.ride?.driver_id || activeTrip?.passenger_id;
+				socket.emit("call_user", {
+					target_emp_id: targetEmpId,
+					caller_emp_id: user?.emp_id,
+					caller_name: user?.name || "Colleague",
+					ride_id: rideId,
+				});
+			}
 		}
 		
 		const vc = new VoiceCall(socket, rideId, isCaller, (state) => {

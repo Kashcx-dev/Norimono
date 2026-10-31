@@ -33,7 +33,7 @@ function AuthPortal({ onLoginSuccess }) {
 						<Car className="w-6 h-6 text-white" />
 					</div>
 					<span className="text-xl font-bold tracking-wider">
-						MakeLyft
+						Norimono
 					</span>
 				</div>
 
@@ -102,7 +102,7 @@ function AuthPortal({ onLoginSuccess }) {
 
 				{/* Footer */}
 				<div className="relative z-10 text-white/60 text-xs">
-					© {new Date().getFullYear()} MakeLyft. Powered by Odoo S.A.
+					© {new Date().getFullYear()} Norimono. Powered by Odoo S.A.
 				</div>
 			</div>
 
@@ -132,7 +132,7 @@ function AuthPortal({ onLoginSuccess }) {
 								Registration Successful
 							</h2>
 							<p className="text-sm text-gray-500">
-								Welcome to MakeLyft,{" "}
+								Welcome to Norimono,{" "}
 								<span className="font-semibold text-gray-700">
 									{userProfile?.name || userProfile?.email}
 								</span>

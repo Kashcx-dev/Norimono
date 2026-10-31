@@ -94,7 +94,7 @@ export default function WalletModal({ isOpen, onClose }) {
 		},
 		{
 			id: "Corporate Fuel Card",
-			name: "MakeLyft Fleet & Expense Card",
+			name: "Norimono Fleet & Expense Card",
 			desc: "Monthly commute allowance budget",
 			icon: CreditCard,
 			badge: "Pre-approved",
@@ -157,7 +157,7 @@ export default function WalletModal({ isOpen, onClose }) {
 						</div>
 						<div>
 							<h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-								MakeLyft Commute Wallet
+								Norimono Commute Wallet
 								<span className="text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full bg-[#00A09D]/15 text-[#00A09D] border border-[#00A09D]/30">
 									Active
 								</span>
@@ -403,7 +403,7 @@ export default function WalletModal({ isOpen, onClose }) {
 							<div className="p-3.5 bg-teal-50/60 border border-teal-100 rounded-2xl flex items-center gap-3 text-xs text-teal-800">
 								<ShieldCheck className="w-4 h-4 text-[#00A09D] shrink-0" />
 								<span>
-									MakeLyft uses 256-bit encrypted corporate banking
+									Norimono uses 256-bit encrypted corporate banking
 									routes. Fares are automatically synced with drivers
 									upon ride completion.
 								</span>

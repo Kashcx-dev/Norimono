@@ -36,7 +36,7 @@ router.post('/send_feedback', async (req, res, next) =>{
         from: process.env.EMAIL_USER,
         replyTo: user_email,
         to: process.env.EMAIL_USER,
-        subject: `Feedback for MakeLyft from ${user_name}`,
+        subject: `Feedback for Norimono from ${user_name}`,
         text: `Rating: ${rating} Stars\n\nMessage:\n${cleanMessage}`
     };
 

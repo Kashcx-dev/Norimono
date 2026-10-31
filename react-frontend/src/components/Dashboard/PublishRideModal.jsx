@@ -7,63 +7,12 @@ import {
 	DollarSign,
 	Loader2,
 	Compass,
+	Sparkles,
+	Building2,
+	Leaf,
+	ShieldCheck,
 } from "lucide-react";
-
-// Robust place search with Photon (Komoot OSM) + Nominatim fallback
-async function fetchPlaceSuggestions(query, userLoc) {
-	if (!query || query.trim().length < 2) return [];
-
-	// Try Photon with user location bias
-	try {
-		let url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query.trim())}&limit=6`;
-		if (userLoc && userLoc.length === 2) {
-			url += `&lat=${userLoc[0]}&lon=${userLoc[1]}`;
-		}
-		const res = await fetch(url);
-		const data = await res.json();
-		if (data && data.features && data.features.length > 0) {
-			return data.features.map((f) => {
-				const p = f.properties;
-				const main = p.name || p.street || p.city || "Location";
-				const parts = [
-					p.street,
-					p.city || p.town || p.district,
-					p.state,
-					p.country,
-				].filter(Boolean);
-				const sub = parts.join(", ");
-				return {
-					title: main,
-					subtitle: sub,
-					fullAddress: main + (sub ? `, ${sub}` : ""),
-					coords: [f.geometry.coordinates[1], f.geometry.coordinates[0]], // [lat, lon]
-				};
-			});
-		}
-	} catch (err) {
-		console.warn("Photon search failed, falling back to Nominatim", err);
-	}
-
-	// Fallback to Nominatim
-	try {
-		const res = await fetch(
-			`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query.trim())}&limit=5`,
-		);
-		const data = await res.json();
-		if (data && data.length > 0) {
-			return data.map((item) => ({
-				title: item.display_name.split(",")[0],
-				subtitle: item.display_name.split(",").slice(1, 4).join(","),
-				fullAddress: item.display_name,
-				coords: [parseFloat(item.lat), parseFloat(item.lon)],
-			}));
-		}
-	} catch (err) {
-		console.error("Nominatim search failed", err);
-	}
-
-	return [];
-}
+import { fetchPlaceSuggestions } from "../../utils/geoService";
 
 function PublishRideModal({ onClose, onPublish, userLocation }) {
 	const [originInput, setOriginInput] = useState("");
@@ -75,6 +24,8 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 	const [departureTime, setDepartureTime] = useState("");
 	const [seats, setSeats] = useState(4);
 	const [fare, setFare] = useState("");
+	const [fareBreakdown, setFareBreakdown] = useState(null);
+	const [estimatingFare, setEstimatingFare] = useState(false);
 
 	const [originSuggestions, setOriginSuggestions] = useState([]);
 	const [destSuggestions, setDestSuggestions] = useState([]);
@@ -169,6 +120,43 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 		return () => clearTimeout(timer);
 	}, [destInput, userLocation, destData]);
 
+	// Fetch dynamic corporate fare calculation & green subsidy estimate
+	useEffect(() => {
+		if (!originData || !destData) return;
+		let isCancelled = false;
+
+		const fetchEstimate = async () => {
+			setEstimatingFare(true);
+			try {
+				const token = localStorage.getItem("token");
+				const res = await fetch("/rides/fare-estimate", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer ${token}`
+					},
+					body: JSON.stringify({
+						origin: originData,
+						destination: destData,
+						seats: parseInt(seats, 10) || 4
+					})
+				});
+				const data = await res.json();
+				if (!isCancelled && data.success) {
+					setFareBreakdown(data);
+					setFare(data.recommendedPassengerFare.toString());
+				}
+			} catch (e) {
+				console.warn("Error fetching fare estimate:", e);
+			} finally {
+				if (!isCancelled) setEstimatingFare(false);
+			}
+		};
+
+		fetchEstimate();
+		return () => { isCancelled = true; };
+	}, [originData, destData, seats]);
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setError("");
@@ -205,6 +193,7 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 					departure_time: departureTime,
 					seats: parseInt(seats), // Passed to form body, backend handles DB sync
 					fare_per_seat: parseFloat(fare),
+					subsidy_per_seat: fareBreakdown ? fareBreakdown.subsidyPerSeat : undefined,
 				}),
 			});
 
@@ -411,7 +400,7 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 							<div className="space-y-1.5">
 								<label className="text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center gap-1.5">
 									<DollarSign className="w-3.5 h-3.5 text-gray-500" />
-									Fare Per Seat (₹)
+									Passenger Fare (₹)
 								</label>
 								<input
 									required
@@ -425,6 +414,42 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 								/>
 							</div>
 						</div>
+
+						{/* Corporate Green Commute Subsidy Breakdown Card */}
+						{fareBreakdown && (
+							<div className="bg-gradient-to-r from-teal-50/70 via-white to-purple-50/70 border border-teal-100/80 rounded-2xl p-3.5 space-y-2 text-xs animate-in fade-in duration-200">
+								<div className="flex items-center justify-between">
+									<div className="flex items-center gap-1.5 text-teal-800 font-bold">
+										<Sparkles className="w-4 h-4 text-[#00A09D]" />
+										<span>Corporate Fair-Share Commute Pricing</span>
+									</div>
+									<span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full">
+										{fareBreakdown.distanceKm} km trip
+									</span>
+								</div>
+
+								<div className="grid grid-cols-3 gap-2 pt-1 border-t border-gray-100 text-[11px]">
+									<div>
+										<span className="text-gray-400 block text-[9px] uppercase font-bold">Trip Fuel Cost</span>
+										<span className="font-bold text-gray-800 font-mono">₹{fareBreakdown.totalTripFuelCost}</span>
+									</div>
+									<div>
+										<span className="text-gray-400 block text-[9px] uppercase font-bold">Org Green Subsidy</span>
+										<span className="font-bold text-emerald-600 font-mono">+₹{fareBreakdown.subsidyPerSeat}/seat</span>
+									</div>
+									<div>
+										<span className="text-gray-400 block text-[9px] uppercase font-bold">Total Driver Payout</span>
+										<span className="font-bold text-[#714B67] font-mono">
+											₹{(parseFloat(fare) || 0) + (fareBreakdown.subsidyPerSeat || 0)}/seat
+										</span>
+									</div>
+								</div>
+
+								<p className="text-[10px] text-gray-500 leading-tight">
+									💡 Your organization covers <strong>₹{fareBreakdown.subsidyPerSeat}</strong> per passenger as an eco-friendly travel subsidy. Passengers pay only <strong>₹{fare || 0}</strong>.
+								</p>
+							</div>
+						)}
 
 						{/* Submit button */}
 						<div className="pt-4">

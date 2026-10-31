@@ -1,9 +1,9 @@
 import { showAlert } from "./alertService";
 
-// MakeLyft Corporate Wallet Service
+// Norimono Corporate Wallet Service
 // Connects with backend /wallet endpoints with persistent client caching and real-time event broadcasting
 
-const WALLET_EVENT = "makelyft_wallet_updated";
+const WALLET_EVENT = "norimono_wallet_updated";
 
 // Helper to load Razorpay SDK
 const loadRazorpaySDK = () => {
@@ -44,7 +44,7 @@ const DEFAULT_INITIAL_WALLET = {
 			date: new Date(Date.now() - 1 * 24 * 3600 * 1000).toISOString(),
 			status: "Success",
 			category: "Ride Fare",
-			method: "MakeLyft Wallet",
+			method: "Norimono Wallet",
 		},
 		{
 			id: "TXN-729013",
@@ -64,13 +64,13 @@ const DEFAULT_INITIAL_WALLET = {
 			date: new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString(),
 			status: "Success",
 			category: "Ride Fare",
-			method: "MakeLyft Wallet",
+			method: "Norimono Wallet",
 		},
 	],
 };
 
 function getStorageKey(empId) {
-	return `makelyft_wallet_${empId || "default"}`;
+	return `norimono_wallet_${empId || "default"}`;
 }
 
 export const getWalletData = async (empId) => {
@@ -90,10 +90,35 @@ export const getWalletData = async (empId) => {
 		if (response.ok) {
 			const data = await response.json();
 			if (data && data.success && data.wallet) {
-				// Preserve existing transaction history from local storage if available
+				// Fetch live backend transactions
+				let liveTxns = [];
+				try {
+					const txnRes = await fetch("/wallet/transactions", {
+						headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+					});
+					if (txnRes.ok) {
+						const txnData = await txnRes.json();
+						if (txnData.success && Array.isArray(txnData.transactions) && txnData.transactions.length > 0) {
+							liveTxns = txnData.transactions.map(t => ({
+								id: `TXN-${t.transaction_id}`,
+								type: t.type === 'fare_deduction' ? 'debit' : 'credit',
+								title: t.description || (t.type === 'fare_deduction' ? 'Carpool Fare' : 'Commute Credit'),
+								amount: parseFloat(t.amount),
+								date: t.created_at,
+								status: 'Success',
+								category: t.type === 'company_subsidy' ? 'Enterprise Subsidy' : t.type === 'wallet_topup' ? 'Top-Up' : 'Commute',
+								method: t.type === 'company_subsidy' ? 'Corporate Green Subsidy' : 'Norimono Wallet'
+							}));
+						}
+					}
+				} catch (e) {
+					console.warn("Could not fetch live txns:", e);
+				}
+
+				// Fallback to local storage if no live transactions exist yet
 				const existingLocal = localStorage.getItem(key);
-				let existingTxns = DEFAULT_INITIAL_WALLET.transactions;
-				if (existingLocal) {
+				let existingTxns = liveTxns.length > 0 ? liveTxns : DEFAULT_INITIAL_WALLET.transactions;
+				if (liveTxns.length === 0 && existingLocal) {
 					try {
 						const parsedLocal = JSON.parse(existingLocal);
 						if (parsedLocal && Array.isArray(parsedLocal.transactions)) {
@@ -177,7 +202,7 @@ export const addMoneyToWallet = async (empId, amount, paymentMethod = "UPI") => 
 			key: keyData.key,
 			amount: orderData.order.amount,
 			currency: orderData.order.currency,
-			name: "MakeLyft Wallet",
+			name: "Norimono Wallet",
 			description: "Wallet Top-Up",
 			order_id: orderData.order.id,
 			handler: async function (response) {
@@ -254,8 +279,8 @@ export const addMoneyToWallet = async (empId, amount, paymentMethod = "UPI") => 
 				}
 			},
 			prefill: {
-				name: "MakeLyft User",
-				email: "user@makelyft.corp",
+				name: "Norimono User",
+				email: "user@norimono.corp",
 				contact: "9999999999"
 			},
 			theme: {
@@ -354,7 +379,7 @@ export const deductMoneyForRide = async (empId, fare, rideDetails = {}) => {
 		date: new Date().toISOString(),
 		status: "Success",
 		category: "Ride Fare",
-		method: "MakeLyft Wallet",
+		method: "Norimono Wallet",
 	};
 
 	const updatedWallet = {

@@ -20,7 +20,7 @@ router.post('/', async (req, res, next) => {
         // Check if the user already has a vehicle registered
         const existingVehicle = await db.query('SELECT veh_id FROM vehicles WHERE emp_id = $1', [driver_id]);
         if(existingVehicle.rows.length > 0) {
-            return res.status(400).json({message: "You already have a vehicle registered. MakeLyft currently supports one vehicle per user."});
+            return res.status(400).json({message: "You already have a vehicle registered. Norimono currently supports one vehicle per user."});
         }
 
         // Generate unique vehicle ID

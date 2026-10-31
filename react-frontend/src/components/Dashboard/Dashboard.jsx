@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { showAlert } from "../../utils/alertService";
 import { io } from "socket.io-client";
+import { Phone, PhoneOff, PhoneCall } from "lucide-react";
 import Footer from "../Footer";
 import Header from "./Header";
 import MapPlaceholder from "./MapPlaceholder";
@@ -41,6 +42,7 @@ function Dashboard() {
 	const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 	const [showProfileModal, setShowProfileModal] = useState(false);
 	const [isIncomingCall, setIsIncomingCall] = useState(false);
+	const [incomingCall, setIncomingCall] = useState(null);
 
 	const user = JSON.parse(localStorage.getItem("user") || "{}");
 
@@ -124,15 +126,85 @@ function Dashboard() {
 		fetchDriverActiveRide();
 		fetchPassengerActiveRide();
 		
-		// Listen for incoming voice calls
-		socket.on("voice_signal", (data) => {
-			if (data.type === "offer") {
+		if (user && user.emp_id) {
+			socket.emit("register_user", { emp_id: user.emp_id });
+		}
+
+		// Listen for incoming call invites
+		const handleIncomingCall = (data) => {
+			setIncomingCall(data);
+		};
+
+		// Listen for incoming voice call WebRTC signals
+		const handleVoiceSignal = (data) => {
+			if (data.type === "offer" && !showGlobalVoiceCall) {
 				setIsIncomingCall(true);
 				setShowGlobalVoiceCall(true);
 			}
-		});
-		return () => socket.off("voice_signal");
+		};
+
+		// Listen for admin rider verification updates
+		const handleVerificationUpdate = (data) => {
+			if (data.status === "approved") {
+				setHasVehicle("2");
+				const stored = JSON.parse(localStorage.getItem("user") || "{}");
+				stored.is_vehicle_registered = "2";
+				localStorage.setItem("user", JSON.stringify(stored));
+				showAlert(
+					data.message || "Your driver credentials have been verified and approved by the Administrator!",
+					"Driver Verification Approved",
+					"success"
+				);
+			} else if (data.status === "rejected") {
+				setHasVehicle("0");
+				const stored = JSON.parse(localStorage.getItem("user") || "{}");
+				stored.is_vehicle_registered = "0";
+				localStorage.setItem("user", JSON.stringify(stored));
+				showAlert(
+					data.message || "Your driver verification was rejected by Administrator.",
+					"Verification Update",
+					"warning"
+				);
+			}
+		};
+
+		socket.on("incoming_call", handleIncomingCall);
+		socket.on("voice_signal", handleVoiceSignal);
+		socket.on("rider_verification_status", handleVerificationUpdate);
+
+		return () => {
+			socket.off("incoming_call", handleIncomingCall);
+			socket.off("voice_signal", handleVoiceSignal);
+			socket.off("rider_verification_status", handleVerificationUpdate);
+		};
 	}, []);
+
+	const handleAcceptIncomingCall = () => {
+		if (incomingCall) {
+			if (incomingCall.ride_id) {
+				socket.emit("join_ride_room", { ride_id: incomingCall.ride_id });
+			}
+			socket.emit("call_response", {
+				caller_emp_id: incomingCall.caller_emp_id,
+				ride_id: incomingCall.ride_id,
+				accepted: true,
+			});
+			setIsIncomingCall(true);
+			setShowGlobalVoiceCall(true);
+			setIncomingCall(null);
+		}
+	};
+
+	const handleDeclineIncomingCall = () => {
+		if (incomingCall) {
+			socket.emit("call_response", {
+				caller_emp_id: incomingCall.caller_emp_id,
+				ride_id: incomingCall.ride_id,
+				accepted: false,
+			});
+			setIncomingCall(null);
+		}
+	};
 
 	const handlePublishRide = () => {
 		if (hasVehicle === "0" || !hasVehicle) {
@@ -202,9 +274,20 @@ function Dashboard() {
 		setLoadingNearby(true);
 		try {
 			const token = localStorage.getItem("token");
-			const lat = userLocation ? userLocation[0] : 22.5726;
-			const lng = userLocation ? userLocation[1] : 88.3639;
-			const res = await fetch(`/rides`, {
+			let queryUrl = "/rides";
+			const params = new URLSearchParams();
+			if (pickupCoords && pickupCoords.length === 2) {
+				params.append("pickup_lat", pickupCoords[0]);
+				params.append("pickup_lng", pickupCoords[1]);
+			}
+			if (dropoffCoords && dropoffCoords.length === 2) {
+				params.append("dropoff_lat", dropoffCoords[0]);
+				params.append("dropoff_lng", dropoffCoords[1]);
+			}
+			if (params.toString()) {
+				queryUrl += `?${params.toString()}`;
+			}
+			const res = await fetch(queryUrl, {
 				headers: token ? { Authorization: `Bearer ${token}` } : {},
 			});
 			const data = await res.json();
@@ -332,6 +415,37 @@ function Dashboard() {
 			<Footer />
 
 			{/* Modals */}
+			{incomingCall && (
+				<div className="fixed top-6 right-6 z-[200] bg-white border border-gray-200 rounded-2xl shadow-2xl p-4 max-w-sm w-full flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
+					<div className="flex items-center gap-3">
+						<div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center animate-pulse shrink-0">
+							<PhoneCall className="w-5 h-5" />
+						</div>
+						<div className="min-w-0">
+							<p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Incoming Call</p>
+							<p className="text-sm font-bold text-gray-900 truncate">{incomingCall.caller_name || "Colleague"}</p>
+							<p className="text-xs text-gray-500">Commute Voice Call</p>
+						</div>
+					</div>
+					<div className="flex items-center gap-2 shrink-0">
+						<button
+							onClick={handleAcceptIncomingCall}
+							className="p-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all cursor-pointer shadow-sm hover:scale-105"
+							title="Accept Call"
+						>
+							<Phone className="w-4 h-4" />
+						</button>
+						<button
+							onClick={handleDeclineIncomingCall}
+							className="p-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl transition-all cursor-pointer shadow-sm hover:scale-105"
+							title="Decline Call"
+						>
+							<PhoneOff className="w-4 h-4" />
+						</button>
+					</div>
+				</div>
+			)}
+
 			{showVehicleModal && (
 				<VehicleRegistrationModal
 					onClose={() => setShowVehicleModal(false)}

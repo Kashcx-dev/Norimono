@@ -2,6 +2,7 @@
 require("dotenv").config({ path: require("path").join(__dirname, "../.env") });
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const path = require("path");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -23,6 +24,7 @@ const finishRideRoutes = require("../routes/finishRide");
 const ridesRoutes = require("../routes/rides");
 const historyRoutes = require("../routes/history");
 const rateRoutes = require("../routes/rate");
+const h3Routes = require("../routes/h3routing");
 const { getRouting } = require("../handlers/GPS_CalcHandler");
 const { startLiveTracking } = require("../routes/GPS_fetch");
 
@@ -38,6 +40,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "../../react-frontend")));
 
 // Global limiter (optional)
@@ -56,11 +59,20 @@ app.use("/finish-ride", FN_verifyTkn, API_Limiter("standard"), finishRideRoutes)
 app.use("/rides", FN_verifyTkn, API_Limiter("standard"), ridesRoutes);
 app.use("/history", FN_verifyTkn, API_Limiter("standard"), historyRoutes);
 app.use("/rate", FN_verifyTkn, API_Limiter("standard"), rateRoutes);
+app.use("/h3", API_Limiter("standard"), h3Routes);
 
-// Socket.io connection logic for GPS Tracking
+// Socket.io connection logic for GPS Tracking, Chat, Voice Calls & Notifications
 io.on("connection", (socket) => {
 	console.log(`[Socket.io] Client connected: ${socket.id}`);
 	
+	// User personal room for private notifications & direct call invites
+	socket.on("register_user", (data) => {
+		if (data && data.emp_id) {
+			socket.join(`user_${data.emp_id}`);
+			console.log(`[Socket.io] Client ${socket.id} registered in room user_${data.emp_id}`);
+		}
+	});
+
 	socket.on("join_ride_room", (data) => {
 		if (data && data.ride_id) {
 			socket.join(`ride_${data.ride_id}`);
@@ -78,7 +90,6 @@ io.on("connection", (socket) => {
 
     // Chat functionality
     socket.on('send_chat_message', (data) => {
-        // data should contain: ride_id, sender_id, sender_name, text, timestamp, and potentially public_key for E2EE
         const { ride_id, ...messageData } = data;
         if (messageData.text) {
             messageData.text = sanitizeInput(messageData.text);
@@ -89,7 +100,28 @@ io.on("connection", (socket) => {
         io.to(roomName).emit('new_chat_message', messageData);
     });
 
-    // WebRTC Voice Call Signaling
+    // WebRTC Voice Call Signaling & Invites
+    socket.on('call_user', (data) => {
+        // data: { target_emp_id, caller_emp_id, caller_name, ride_id }
+        const { target_emp_id, ...callData } = data;
+        if (target_emp_id) {
+            io.to(`user_${target_emp_id}`).emit('incoming_call', callData);
+        }
+        if (callData.ride_id) {
+            socket.to(`ride_${callData.ride_id}`).emit('incoming_call', callData);
+        }
+    });
+
+    socket.on('call_response', (data) => {
+        // data: { caller_emp_id, accepted: boolean, ride_id }
+        if (data.caller_emp_id) {
+            io.to(`user_${data.caller_emp_id}`).emit('call_response', data);
+        }
+        if (data.ride_id) {
+            socket.to(`ride_${data.ride_id}`).emit('call_response', data);
+        }
+    });
+
     socket.on('voice_signal', (data) => {
         const { ride_id, ...signalData } = data;
         const roomName = `ride_${ride_id}`;
@@ -108,3 +140,5 @@ app.use(masterErrorHandler);
 server.listen(PORT, () => {
     console.log(`[Backend] is running on http://localhost:${PORT}`);
 });
+
+module.exports = { app, server, io };

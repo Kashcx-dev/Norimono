@@ -26,6 +26,7 @@ export default defineConfig({
 			"/admin": "http://localhost:3000",
 			"/wallet": "http://localhost:3000",
 			"/finish-ride": "http://localhost:3000",
+			"/h3": "http://localhost:3000",
 			"/socket.io": {
 				target: "http://localhost:3000",
 				ws: true,

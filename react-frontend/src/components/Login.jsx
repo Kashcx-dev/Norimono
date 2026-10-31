@@ -50,6 +50,7 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
 				if (data.requires2FA) {
 					setShowOtp(true);
 					setResolvedEmail(data.resolvedEmail || email);
+					if (data.devOtp) setOtp(data.devOtp);
 				} else if (data.token) {
 					localStorage.setItem("token", data.token);
 					localStorage.setItem("user", JSON.stringify(data.user));
@@ -108,7 +109,7 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
 						<Car className="w-8 h-8" />
 					</div>
 					<h2 className="text-2xl font-bold text-gray-900 tracking-tight">
-						Welcome to MakeLyft
+						Welcome to Norimono
 					</h2>
 					<p className="text-sm text-gray-500 mt-1">
 						Enterprise Carpooling Platform

@@ -13,7 +13,7 @@ async function runInit() {
 		console.log("Database schema initialized successfully!");
 
 		// Seed default Admin user
-		const adminEmail = "admin@makelyft.com";
+		const adminEmail = "admin@norimono.com";
 		const salt = await bcrypt.genSalt(10);
 		const adminHash = await bcrypt.hash("admin123", salt);
 		await db.query(
@@ -29,7 +29,7 @@ async function runInit() {
 				adminHash,
 			],
 		);
-		console.log("Default Admin user created (admin@makelyft.com / admin123)");
+		console.log("Default Admin user created (admin@norimono.com / admin123)");
 
 		// Let's verify the tables exist
 		const result = await db.query(`

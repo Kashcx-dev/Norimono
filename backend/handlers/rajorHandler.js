@@ -3,9 +3,12 @@ const crypto = require('crypto');
 
 const env = process.env;
 
+const key_id = env.RAZORPAY_KEY_ID || 'rzp_test_dev1234567890';
+const key_secret = env.RAZORPAY_KEY_SECRET || 'dummy_secret_for_development';
+
 const razorpay = new Razorpay({
-  key_id: env.RAZORPAY_KEY_ID,
-  key_secret: env.RAZORPAY_KEY_SECRET,
+  key_id,
+  key_secret,
 });
 
 // Create Order Handler

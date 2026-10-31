@@ -87,7 +87,7 @@ export default function BrowseRidesPanel({
 
 			const data = await res.json();
 			if (data.success) {
-				// Deduct fare from MakeLyft wallet
+				// Deduct fare from Norimono wallet
 				try {
 					await deductMoneyForRide(empId, fare, ride);
 				} catch (wErr) {
@@ -289,10 +289,42 @@ export default function BrowseRidesPanel({
 										<span className="text-[10px] text-gray-400 uppercase font-semibold">
 											per seat
 										</span>
+										{parseFloat(ride.subsidy_per_seat || 0) > 0 && (
+											<span className="text-[10px] text-emerald-600 font-bold block">
+												🏢 ₹{ride.subsidy_per_seat} subsidized
+											</span>
+										)}
 									</div>
 								</div>
 
-								{/* Car Details Badge */}
+								{/* En-Route & Corridor Badges */}
+								{ride.en_route_available && (
+									<div className="mb-2 flex items-center justify-between px-2.5 py-1 bg-purple-50 border border-purple-200 rounded-lg text-[#714B67] text-[11px] font-bold animate-in fade-in">
+										<span className="flex items-center gap-1.5">
+											<span className="relative flex h-2 w-2">
+												<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+												<span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+											</span>
+											<span>⚡ Active Driver on Road • Instant En-Route Hop-In</span>
+										</span>
+										<span className="text-[9px] uppercase tracking-wider bg-[#714B67] text-white px-1.5 py-0.5 rounded font-black">
+											En-Route
+										</span>
+									</div>
+								)}
+
+								{ride.is_h3_matched && (
+									<div className="mb-2 flex items-center gap-1.5 px-2.5 py-1 bg-teal-50 border border-teal-200 rounded-lg text-teal-800 text-[11px] font-semibold">
+										<span>🔷 Uber H3 Corridor Verified (Resolution 8 Hexagonal Match)</span>
+									</div>
+								)}
+
+								{ride.corridor_match && !ride.is_h3_matched && (
+									<div className="mb-2 flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200/80 rounded-lg text-emerald-800 text-[11px] font-semibold">
+										<CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+										<span>Direct Route Match • ~{ride.total_detour_km ?? 0} km detour</span>
+									</div>
+								)}
 								<div className="mb-3 flex items-center justify-between text-xs py-1.5 px-2.5 bg-gray-50 rounded-lg border border-gray-100">
 									<div className="flex items-center gap-1.5 text-gray-700 font-semibold">
 										<Car className="w-3.5 h-3.5 text-[#714B67]" />
@@ -478,7 +510,7 @@ export default function BrowseRidesPanel({
 											₹{bookingModalRide.fare_per_seat || 45}
 										</span>
 										<span className="block text-[10px] text-gray-500 font-medium">
-											from MakeLyft Wallet
+											from Norimono Wallet
 										</span>
 									</div>
 								</div>
@@ -570,7 +602,7 @@ export default function BrowseRidesPanel({
 						{/* Wallet Payment confirmation tag */}
 						<div className="p-2.5 bg-purple-50 rounded-xl border border-purple-100 flex items-center justify-between text-xs">
 							<span className="text-gray-600 font-medium flex items-center gap-1.5">
-								<Wallet className="w-3.5 h-3.5 text-[#714B67]" /> MakeLyft Wallet
+								<Wallet className="w-3.5 h-3.5 text-[#714B67]" /> Norimono Wallet
 							</span>
 							<span className="font-bold text-[#714B67]">
 								-₹{bookingSuccess.fare || 45}.00 Deducted

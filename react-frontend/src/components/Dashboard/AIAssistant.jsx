@@ -4,7 +4,7 @@ import { Bot, X, Send, Loader2 } from "lucide-react";
 function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: "assistant", content: "Hi! I'm your AI travel assistant powered by MakeLyft. How can I help you with your ride or travel plans today?" }
+    { role: "assistant", content: "Hi! I'm your AI travel assistant powered by Norimono. How can I help you with your ride or travel plans today?" }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -37,7 +37,7 @@ function AIAssistant() {
         headers["Authorization"] = `Bearer ${token}`;
       }
 
-      const res = await fetch("http://localhost:3000/chat", {
+      const res = await fetch("/chat", {
         method: "POST",
         headers,
         body: JSON.stringify({ message: userMessage })
@@ -88,7 +88,7 @@ function AIAssistant() {
           <div className="bg-[#714B67] text-white p-4 flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-2">
               <Bot className="w-5 h-5" />
-              <h3 className="font-semibold text-sm">MakeLyft AI Assistant</h3>
+              <h3 className="font-semibold text-sm">Norimono AI Assistant</h3>
             </div>
             <button onClick={() => setIsOpen(false)} className="text-white/80 hover:text-white transition-colors cursor-pointer">
               <X className="w-5 h-5" />

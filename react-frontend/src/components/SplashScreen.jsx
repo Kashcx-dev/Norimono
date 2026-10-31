@@ -82,7 +82,7 @@ const SplashScreen = () => {
 				{/* Text Content - Positioned BELOW car */}
 				<div className="absolute bottom-[40%] z-20 w-full px-4 font-sans">
 					<h1 className="text-white text-2xl md:text-4xl font-light drop-shadow-lg max-w-2xl mx-auto text-center leading-relaxed tracking-wide">
-						Lyft up your travel mood with <span className="text-teal-300 font-semibold">MakeLyft</span>
+						Lyft up your travel mood with <span className="text-teal-300 font-semibold">Norimono</span>
 					</h1>
 					<p className="text-purple-200/80 mt-4 text-xs md:text-sm font-light tracking-[0.2em] uppercase">
 						Your premium commuting experience

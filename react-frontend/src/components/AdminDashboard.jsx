@@ -12,7 +12,7 @@ import {
 	// User,
 	// Shield,
 	CheckCircle2,
-	// Clock,
+	Clock,
 	LayoutDashboard,
 	TrendingUp,
 	// Fuel,
@@ -21,23 +21,26 @@ import {
 	Plus,
 	X,
 	// Sparkles,
-	// AlertTriangle,
+	AlertTriangle,
 	// Building2,
 	// MapPin,
 	// UserCheck,
-	// ShieldCheck,
+	ShieldCheck,
+	Check,
+	FileText,
 	// ShieldAlert,
 	ChevronRight,
 	RefreshCw,
 	Wallet,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
 import carModels from "../data/car_models.json";
 import WalletModal from "./Dashboard/WalletModal";
 import { getWalletData, subscribeToWallet } from "../utils/walletService";
 
 function AdminDashboard() {
-	const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'employees' | 'vehicles' | 'settings'
+	const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'employees' | 'vehicles' | 'verifications' | 'settings'
 	const [metrics, setMetrics] = useState({
 		total_employees: 48,
 		total_vehicles: 22,
@@ -46,6 +49,9 @@ function AdminDashboard() {
 	});
 	const [employees, setEmployees] = useState([]);
 	const [vehicles, setVehicles] = useState([]);
+	const [verifications, setVerifications] = useState([]);
+	const [verifFilter, setVerifFilter] = useState("all"); // 'all' | 'pending' | 'approved' | 'rejected'
+	const [actionLoadingId, setActionLoadingId] = useState(null);
 	const [settings, setSettings] = useState({
 		fuel_cost_per_km: "5.50",
 		travel_cost_per_km: "2.00",
@@ -108,7 +114,22 @@ function AdminDashboard() {
 			}
 		});
 
-		return () => unsubscribe();
+		// Listen for real-time rider applications
+		let socket;
+		try {
+			socket = io(window.location.origin);
+			socket.on("new_rider_application", (data) => {
+				showToast(`🚗 New Driver Application: ${data.name} (${data.vehicle_model})`);
+				fetchVerifications();
+			});
+		} catch (err) {
+			console.warn("Socket initialization error:", err);
+		}
+
+		return () => {
+			unsubscribe();
+			if (socket) socket.disconnect();
+		};
 	}, [token, navigate]);
 
 	const showToast = (msg) => {
@@ -122,6 +143,7 @@ function AdminDashboard() {
 			fetchMetrics(),
 			fetchEmployees(),
 			fetchVehicles(),
+			fetchVerifications(),
 			fetchSettings(),
 		]);
 		setLoading(false);
@@ -166,6 +188,75 @@ function AdminDashboard() {
 			}
 		} catch (err) {
 			console.error("Error fetching vehicles", err);
+		}
+	};
+
+	const fetchVerifications = async () => {
+		try {
+			const res = await fetch("/admin/rider-verifications", {
+				headers: { Authorization: `Bearer ${token}` },
+			});
+			const data = await res.json();
+			if (data.success && data.verifications) {
+				setVerifications(data.verifications);
+			}
+		} catch (err) {
+			console.error("Error fetching rider verifications", err);
+		}
+	};
+
+	const handleApproveVerification = async (verification_id) => {
+		setActionLoadingId(verification_id);
+		try {
+			const res = await fetch("/admin/rider-verifications/approve", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+				body: JSON.stringify({ verification_id }),
+			});
+			const data = await res.json();
+			if (data.success) {
+				showToast("Driver verification approved! Vehicle added to fleet.");
+				await Promise.all([fetchVerifications(), fetchVehicles(), fetchEmployees()]);
+			} else {
+				showToast("Approval failed: " + (data.message || "Unknown error"));
+			}
+		} catch (err) {
+			console.error("Error approving rider:", err);
+			showToast("Network error approving driver");
+		} finally {
+			setActionLoadingId(null);
+		}
+	};
+
+	const handleRejectVerification = async (verification_id) => {
+		setActionLoadingId(verification_id);
+		try {
+			const res = await fetch("/admin/rider-verifications/reject", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+				body: JSON.stringify({ 
+					verification_id, 
+					admin_notes: "Driver license or vehicle details could not be verified with enterprise policy." 
+				}),
+			});
+			const data = await res.json();
+			if (data.success) {
+				showToast("Driver application rejected.");
+				await Promise.all([fetchVerifications(), fetchEmployees()]);
+			} else {
+				showToast("Rejection failed: " + (data.message || "Unknown error"));
+			}
+		} catch (err) {
+			console.error("Error rejecting rider:", err);
+			showToast("Network error rejecting driver");
+		} finally {
+			setActionLoadingId(null);
 		}
 	};
 
@@ -386,7 +477,7 @@ function AdminDashboard() {
 						</div>
 						<div>
 							<div className="font-extrabold text-lg tracking-tight flex items-center gap-1.5">
-								MakeLyft
+								Norimono
 								<span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 bg-[#00A09D] text-white rounded font-black">
 									Admin
 								</span>
@@ -440,6 +531,25 @@ function AdminDashboard() {
 						</button>
 
 						<button
+							onClick={() => setActiveTab("verifications")}
+							className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+								activeTab === "verifications"
+									? "bg-white text-[#714B67] shadow-sm font-black"
+									: "text-white/80 hover:bg-white/10 hover:text-white"
+							}`}
+						>
+							<div className="flex items-center gap-3">
+								<ShieldCheck className="w-4 h-4" />
+								<span>Driver Verifications</span>
+							</div>
+							{verifications.filter((v) => v.status === "pending").length > 0 && (
+								<span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500 text-white animate-pulse">
+									{verifications.filter((v) => v.status === "pending").length}
+								</span>
+							)}
+						</button>
+
+						<button
 							onClick={() => setActiveTab("settings")}
 							className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
 								activeTab === "settings"
@@ -465,7 +575,7 @@ function AdminDashboard() {
 									{user.name || "System Admin"}
 								</p>
 								<p className="text-[10px] text-white/60 truncate w-28">
-									{user.email || "admin@makelyft.com"}
+									{user.email || "admin@norimono.com"}
 								</p>
 							</div>
 						</div>
@@ -488,7 +598,7 @@ function AdminDashboard() {
 					{/* Left: Breadcrumbs and Search */}
 					<div className="flex items-center gap-4">
 						<div className="flex items-center gap-2 text-xs font-bold">
-							<span className="text-gray-400">MakeLyft</span>
+							<span className="text-gray-400">Norimono</span>
 							<ChevronRight className="w-3.5 h-3.5 text-gray-300" />
 							<span className="text-[#00A09D] uppercase tracking-wider">
 								{activeTab === "overview"
@@ -497,12 +607,14 @@ function AdminDashboard() {
 										? "Employees"
 										: activeTab === "vehicles"
 											? "Vehicles"
-											: "Settings"}
+											: activeTab === "verifications"
+												? "Driver Verifications"
+												: "Settings"}
 							</span>
 						</div>
 
 						{/* Quick search input */}
-						{(activeTab === "employees" || activeTab === "vehicles") && (
+						{(activeTab === "employees" || activeTab === "vehicles" || activeTab === "verifications") && (
 							<div className="relative w-64 ml-4 hidden sm:block">
 								<Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
 								<input
@@ -526,7 +638,7 @@ function AdminDashboard() {
 								setNotificationsOpen(false);
 							}}
 							className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-50/70 hover:bg-purple-100/70 text-[#714B67] border border-[#714B67]/20 transition-all cursor-pointer group"
-							title="Open MakeLyft Commute Wallet"
+							title="Open Norimono Commute Wallet"
 						>
 							<div className="w-5 h-5 rounded-lg bg-[#714B67] text-white flex items-center justify-center group-hover:scale-105 transition-transform">
 								<Wallet className="w-3 h-3" />
@@ -1071,6 +1183,163 @@ function AdminDashboard() {
 														className="py-8 text-center text-gray-400"
 													>
 														No vehicles registered yet.
+													</td>
+												</tr>
+											)}
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					)}
+
+					{/* --- TAB: DRIVER VERIFICATIONS QUEUE --- */}
+					{activeTab === "verifications" && (
+						<div className="space-y-6 animate-in fade-in duration-150">
+							{/* Header Banner & Metrics */}
+							<div className="bg-white border border-gray-200/90 rounded-2xl p-6 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+								<div>
+									<div className="flex items-center gap-2 mb-1">
+										<ShieldCheck className="w-5 h-5 text-[#714B67]" />
+										<h3 className="text-lg font-bold text-gray-900">
+											Driver Verification Applications
+										</h3>
+										<span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-purple-50 text-[#714B67] border border-purple-100">
+											{verifications.filter(v => v.status === "pending").length} Pending Review
+										</span>
+									</div>
+									<p className="text-xs text-gray-500">
+										Review and verify employee driving credentials, license validity, and vehicle safety before approving them to publish carpools.
+									</p>
+								</div>
+
+								{/* Filter Tabs */}
+								<div className="flex items-center gap-1.5 p-1 bg-gray-100 rounded-xl">
+									{["all", "pending", "approved", "rejected"].map((f) => (
+										<button
+											key={f}
+											onClick={() => setVerifFilter(f)}
+											className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${
+												verifFilter === f
+													? "bg-white text-gray-900 shadow-xs"
+													: "text-gray-500 hover:text-gray-900"
+											}`}
+										>
+											{f}
+										</button>
+									))}
+								</div>
+							</div>
+
+							{/* Verification Applications List / Table */}
+							<div className="bg-white border border-gray-200/90 rounded-2xl overflow-hidden shadow-2xs">
+								<div className="overflow-x-auto">
+									<table className="w-full text-left border-collapse">
+										<thead>
+											<tr className="border-b border-gray-100 bg-gray-50/60 text-[10px] font-extrabold uppercase tracking-wider text-gray-500">
+												<th className="py-3 px-5">Employee / Driver</th>
+												<th className="py-3 px-4">Vehicle Model</th>
+												<th className="py-3 px-4">Plate No.</th>
+												<th className="py-3 px-4">Driver's License</th>
+												<th className="py-3 px-4">Capacity & Fuel</th>
+												<th className="py-3 px-4">Insurance No.</th>
+												<th className="py-3 px-4">Status</th>
+												<th className="py-3 px-5 text-right">Actions</th>
+											</tr>
+										</thead>
+										<tbody className="divide-y divide-gray-100 text-xs">
+											{verifications
+												.filter((v) => verifFilter === "all" || v.status === verifFilter)
+												.filter((v) => {
+													if (!searchTerm.trim()) return true;
+													const q = searchTerm.toLowerCase();
+													return (
+														(v.name && v.name.toLowerCase().includes(q)) ||
+														(v.email && v.email.toLowerCase().includes(q)) ||
+														(v.vehicle_no && v.vehicle_no.toLowerCase().includes(q)) ||
+														(v.dl_no && v.dl_no.toLowerCase().includes(q)) ||
+														(v.vehicle_model && v.vehicle_model.toLowerCase().includes(q))
+													);
+												})
+												.map((v) => (
+													<tr key={v.verification_id} className="hover:bg-purple-50/30 transition-colors">
+														<td className="py-3.5 px-5">
+															<div className="font-bold text-gray-900">{v.name}</div>
+															<div className="text-[11px] text-gray-500 font-mono">{v.email}</div>
+															<div className="text-[10px] text-gray-400 font-mono">{v.emp_id}</div>
+														</td>
+														<td className="py-3.5 px-4 font-semibold text-gray-800">
+															<div className="flex items-center gap-1.5">
+																<Car className="w-3.5 h-3.5 text-[#714B67]" />
+																<span>{v.vehicle_model}</span>
+															</div>
+														</td>
+														<td className="py-3.5 px-4 font-mono font-bold text-gray-800">
+															<span className="px-2 py-0.5 bg-gray-100 rounded border border-gray-200">
+																{v.vehicle_no}
+															</span>
+														</td>
+														<td className="py-3.5 px-4 font-mono text-gray-700">
+															{v.dl_no}
+														</td>
+														<td className="py-3.5 px-4 text-gray-600">
+															<div>{v.seating_capacity} Seats</div>
+															<div className="text-[10px] text-gray-400">Ratio: {v.fuel_consumption_ratio || 1.0}x</div>
+														</td>
+														<td className="py-3.5 px-4 font-mono text-gray-500 text-[11px]">
+															{v.insurance_no || "N/A"}
+														</td>
+														<td className="py-3.5 px-4">
+															<span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+																v.status === "approved"
+																	? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+																	: v.status === "rejected"
+																	? "bg-rose-50 text-rose-700 border border-rose-200"
+																	: "bg-amber-50 text-amber-700 border border-amber-200 animate-pulse"
+															}`}>
+																<span className={`w-1.5 h-1.5 rounded-full ${
+																	v.status === "approved" ? "bg-emerald-500" : v.status === "rejected" ? "bg-rose-500" : "bg-amber-500"
+																}`}></span>
+																{v.status}
+															</span>
+														</td>
+														<td className="py-3.5 px-5 text-right">
+															{v.status === "pending" ? (
+																<div className="flex items-center justify-end gap-2">
+																	<button
+																		onClick={() => handleApproveVerification(v.verification_id)}
+																		disabled={actionLoadingId === v.verification_id}
+																		className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-lg shadow-xs flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50"
+																		title="Approve Driver & Add Vehicle to Fleet"
+																	>
+																		<Check className="w-3.5 h-3.5" />
+																		<span>{actionLoadingId === v.verification_id ? "..." : "Approve"}</span>
+																	</button>
+																	<button
+																		onClick={() => handleRejectVerification(v.verification_id)}
+																		disabled={actionLoadingId === v.verification_id}
+																		className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] rounded-lg border border-rose-200 flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50"
+																		title="Reject Driver Application"
+																	>
+																		<X className="w-3.5 h-3.5" />
+																		<span>Reject</span>
+																	</button>
+																</div>
+															) : (
+																<span className="text-[11px] text-gray-400 italic">
+																	{v.status === "approved" ? "Approved" : "Rejected"}
+																</span>
+															)}
+														</td>
+													</tr>
+												))}
+
+											{verifications.length === 0 && (
+												<tr>
+													<td colSpan={8} className="py-12 text-center text-gray-400">
+														<ShieldCheck className="w-8 h-8 mx-auto text-gray-300 mb-2" />
+														<p className="font-semibold text-gray-600">No driver verification applications found.</p>
+														<p className="text-[11px] text-gray-400 mt-0.5">When employees register as riders/drivers, their applications will appear here for review.</p>
 													</td>
 												</tr>
 											)}

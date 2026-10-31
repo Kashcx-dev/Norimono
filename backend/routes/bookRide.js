@@ -7,6 +7,7 @@ router.post('/', async (req, res, next) => {
     const client = await db.getClient();
     try {
         const { ride_id, pickup_location, dropoff_location } = req.body;
+        const requestedSeats = Math.max(1, parseInt(req.body.seats_count || 1));
 
         // Ensure user is authenticated
         if (!req.user || !req.user.emp_id) {
@@ -26,7 +27,7 @@ router.post('/', async (req, res, next) => {
 
         // Check if the ride exists and fetch metadata (locks the row with FOR UPDATE to prevent concurrent booking)
         const rideResult = await client.query(
-            `SELECT r.available_seats, r.driver_id, u.org_name 
+            `SELECT r.available_seats, r.driver_id, r.status, r.departure_time, r.fare_per_seat, r.subsidy_per_seat, u.org_name 
              FROM rides r
              JOIN users u ON r.driver_id = u.emp_id
              WHERE r.ride_id = $1
@@ -54,28 +55,39 @@ router.post('/', async (req, res, next) => {
             return res.status(403).json({ message: "You can only book rides within your own organization." });
         }
 
-        // Atomic seat decrement — only succeeds if seats are still available
+        // Allow booking scheduled rides or en-route active rides
+        if (ride.status !== 'scheduled' && ride.status !== 'in_progress') {
+            await client.query('ROLLBACK');
+            client.release();
+            return res.status(400).json({ message: `Cannot book ride: This ride is currently ${ride.status}.` });
+        }
+
+        const isEnRoute = ride.status === 'in_progress';
+        const fareAmount = parseFloat(ride.fare_per_seat || 0);
+
+        // Atomic seat decrement — only succeeds if requestedSeats are still available
         const seatResult = await client.query(
-            'UPDATE rides SET available_seats = available_seats - 1 WHERE ride_id = $1 AND available_seats > 0 RETURNING available_seats',
-            [ride_id]
+            'UPDATE rides SET available_seats = available_seats - $1 WHERE ride_id = $2 AND available_seats >= $1 RETURNING available_seats',
+            [requestedSeats, ride_id]
         );
 
         if (seatResult.rows.length === 0) {
             await client.query('ROLLBACK');
             client.release();
-            return res.status(400).json({ message: "Sorry, this ride is fully booked!" });
+            return res.status(400).json({ message: `Sorry, there are not enough available seats (requested: ${requestedSeats}).` });
         }
 
         // Generate a 4-digit OTP for the driver to verify pickup
         const otp = crypto.randomInt(1000, 9999).toString();
 
-        // Insert booking into the bookings table
+        // Insert booking into the bookings table with confirmed status for immediate pickup verification
         const insertQuery = `
             INSERT INTO bookings (
                 ride_id, passenger_id, pickup_location, 
-                dropoff_location, booking_status, payment_status, otp
+                dropoff_location, booking_status, payment_status, otp,
+                fare_amount, is_en_route
             ) 
-            VALUES ($1, $2, $3, $4, 'pending', 'pending', $5) 
+            VALUES ($1, $2, $3, $4, 'confirmed', 'pending', $5, $6, $7) 
             RETURNING booking_id
         `;
         
@@ -84,7 +96,9 @@ router.post('/', async (req, res, next) => {
             passenger_id, 
             pickup_location, 
             dropoff_location, 
-            otp
+            otp,
+            fareAmount,
+            isEnRoute
         ]);
 
         await client.query('COMMIT');
@@ -94,11 +108,25 @@ router.post('/', async (req, res, next) => {
         if (io) {
             io.to(`ride_${ride_id}`).emit('driver_refresh_bookings');
             
+            if (isEnRoute) {
+                io.to(`ride_${ride_id}`).emit('en_route_pickup_alert', {
+                    ride_id: Number(ride_id),
+                    booking_id: insertResult.rows[0].booking_id,
+                    passenger_id,
+                    passenger_name: req.user.name,
+                    pickup_location,
+                    otp,
+                    message: `⚡ En-route passenger ${req.user.name} booked a seat on your active commute route!`
+                });
+            }
+
             // Emit notification to driver
             io.emit('new_notification', {
                 target_emp_id: ride.driver_id,
-                title: "New Ride Request",
-                message: `${req.user.name || 'A passenger'} wants to join your ride.`,
+                title: isEnRoute ? "⚡ En-Route Pickup Request" : "New Ride Booking",
+                message: isEnRoute
+                    ? `${req.user.name || 'A colleague'} booked an en-route pickup on your active ride.`
+                    : `${req.user.name || 'A passenger'} confirmed a seat in your carpool.`,
                 type: "request",
                 timestamp: new Date().toISOString()
             });

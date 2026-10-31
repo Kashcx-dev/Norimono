@@ -39,7 +39,7 @@ export default function FeedbackModal({ isOpen, onClose }) {
 							</div>
 							<div>
 								<h2 className="text-xl font-bold text-white leading-tight drop-shadow-md">Share Feedback</h2>
-								<p className="text-white/80 text-xs font-semibold uppercase tracking-wider mt-1">Help us improve MakeLyft</p>
+								<p className="text-white/80 text-xs font-semibold uppercase tracking-wider mt-1">Help us improve Norimono</p>
 							</div>
 						</div>
 						<button 

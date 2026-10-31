@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const db = require('../handlers/dbHandler');
 const { deductAmt, creditAmt } = require('../handlers/WalletHandler');
+const { matchRideCorridor, haversineDistance } = require('../utils/geoUtils');
+const h3Engine = require('../handlers/h3Engine');
 
 // GET /rides
-// Fetch available scheduled rides for the user's organization
+// Fetch available scheduled rides for the user's organization with optional spatial corridor search
 router.get('/', async (req, res, next) => {
     try {
         if (!req.user || !req.user.emp_id || !req.user.org_name) {
@@ -12,28 +14,125 @@ router.get('/', async (req, res, next) => {
         }
 
         const org_name = req.user.org_name;
+        const { 
+            pickup_lat, pickup_lng, 
+            dropoff_lat, dropoff_lng,
+            origin_lat, origin_lng,
+            dest_lat, dest_lng,
+            max_detour_km,
+            filter_corridor_only
+        } = req.query;
+
+        const pLat = parseFloat(pickup_lat || origin_lat);
+        const pLon = parseFloat(pickup_lng || origin_lng);
+        const dLat = parseFloat(dropoff_lat || dest_lat);
+        const dLon = parseFloat(dropoff_lng || dest_lng);
+
+        const hasSpatialSearch = !isNaN(pLat) && !isNaN(pLon) && !isNaN(dLat) && !isNaN(dLon);
+        const maxDetour = parseFloat(max_detour_km) || 5.0;
         
         const query = `
             SELECT 
                 r.ride_id, r.driver_id, r.veh_no, r.origin, r.destination, 
-                r.departure_time, r.total_seats, r.available_seats, r.fare_per_seat, r.status,
+                r.departure_time, r.total_seats, r.available_seats, r.fare_per_seat, r.subsidy_per_seat, r.status,
                 r.polyline,
                 u.name as driver_name, u.passenger_rating, u.driving_rating,
                 v.vehicle_model
             FROM rides r
             JOIN users u ON r.driver_id = u.emp_id
             JOIN vehicles v ON r.veh_no = v.veh_no
-            WHERE r.status = 'scheduled' 
+            WHERE r.status IN ('scheduled', 'in_progress') 
               AND r.available_seats > 0
               AND u.org_name = $1
-            ORDER BY r.departure_time ASC
+            ORDER BY 
+              CASE WHEN r.status = 'in_progress' THEN 0 ELSE 1 END ASC,
+              r.departure_time ASC
         `;
 
         const result = await db.query(query, [org_name]);
+        let rides = result.rows;
+
+        if (hasSpatialSearch) {
+            const passengerPickup = { lat: pLat, lng: pLon };
+            const passengerDropoff = { lat: dLat, lng: dLon };
+
+            const scoredRides = [];
+            for (const ride of rides) {
+                const match = matchRideCorridor(
+                    passengerPickup,
+                    passengerDropoff,
+                    ride.polyline,
+                    ride.origin,
+                    ride.destination,
+                    maxDetour
+                );
+
+                // Check H3 resolution 8 hexagonal corridor match
+                let isH3Match = false;
+                if (ride.polyline) {
+                    try {
+                        let poly = typeof ride.polyline === 'string' ? JSON.parse(ride.polyline) : ride.polyline;
+                        if (Array.isArray(poly) && poly.length > 0) {
+                            const corridor = h3Engine.polylineCoordsToHexCorridor(poly, 8, 1);
+                            const h3Res = h3Engine.matchCarpoolH3(passengerPickup, passengerDropoff, corridor.coreHexes, 1, 8);
+                            isH3Match = h3Res.isMatch;
+                        }
+                    } catch (e) {}
+                }
+
+                const isAnyMatch = match.isMatch || isH3Match;
+
+                if (isAnyMatch) {
+                    scoredRides.push({
+                        ...ride,
+                        corridor_match: true,
+                        is_h3_matched: isH3Match,
+                        en_route_available: ride.status === 'in_progress',
+                        pickup_distance_km: match.pickupDistanceKm,
+                        dropoff_distance_km: match.dropoffDistanceKm,
+                        total_detour_km: match.totalDetourKm,
+                        passenger_travel_km: match.passengerTravelKm
+                    });
+                } else if (filter_corridor_only !== 'true') {
+                    // Include with corridor_match: false if not strictly filtered
+                    const oLat = parseFloat(ride.origin?.lat);
+                    const oLon = parseFloat(ride.origin?.lng || ride.origin?.lon);
+                    const directDist = (!isNaN(oLat) && !isNaN(oLon)) ? haversineDistance(pLat, pLon, oLat, oLon) : 999;
+                    scoredRides.push({
+                        ...ride,
+                        corridor_match: false,
+                        is_h3_matched: false,
+                        en_route_available: ride.status === 'in_progress',
+                        total_detour_km: parseFloat(directDist.toFixed(2))
+                    });
+                }
+            }
+
+            // Sort matched rides first (en-route first if active, then lowest detour distance)
+            scoredRides.sort((a, b) => {
+                if (a.corridor_match && !b.corridor_match) return -1;
+                if (!a.corridor_match && b.corridor_match) return 1;
+                if (a.en_route_available && !b.en_route_available) return -1;
+                if (!a.en_route_available && b.en_route_available) return 1;
+                if ((a.total_detour_km || 0) !== (b.total_detour_km || 0)) {
+                    return (a.total_detour_km || 0) - (b.total_detour_km || 0);
+                }
+                return new Date(a.departure_time) - new Date(b.departure_time);
+            });
+
+            rides = scoredRides;
+        } else {
+            // No spatial search - tag en-route flag
+            rides = rides.map(r => ({
+                ...r,
+                en_route_available: r.status === 'in_progress'
+            }));
+        }
 
         return res.json({
             success: true,
-            rides: result.rows
+            total_rides: rides.length,
+            rides: rides
         });
     } catch (err) {
         console.error("Error fetching rides:", err);
@@ -179,6 +278,172 @@ router.post('/driver/booking/decline', async (req, res, next) => {
         return res.json({ success: true, message: "Booking declined." });
     } catch (err) {
         console.error("Error declining booking:", err);
+        return next(err);
+    }
+});
+
+// POST /rides/passenger/cancel
+// Passenger cancels their booking before pickup
+router.post('/passenger/cancel', async (req, res, next) => {
+    try {
+        if (!req.user || !req.user.emp_id) return res.status(401).json({ success: false, message: "Unauthorized." });
+        const { booking_id } = req.body;
+        const passenger_id = req.user.emp_id;
+
+        const bookingRes = await db.query(
+            `SELECT b.booking_id, b.ride_id, b.booking_status, b.payment_status, r.fare_per_seat, r.driver_id
+             FROM bookings b
+             JOIN rides r ON b.ride_id = r.ride_id
+             WHERE b.booking_id = $1 AND b.passenger_id = $2`,
+            [booking_id, passenger_id]
+        );
+
+        if (bookingRes.rows.length === 0) {
+            return res.status(404).json({ success: false, message: "Booking not found or unauthorized." });
+        }
+
+        const booking = bookingRes.rows[0];
+
+        if (booking.booking_status === 'cancelled') {
+            return res.status(400).json({ success: false, message: "Booking is already cancelled." });
+        }
+
+        if (booking.booking_status === 'in_progress' || booking.booking_status === 'completed') {
+            return res.status(400).json({ success: false, message: "Cannot cancel a ride that is already in progress or completed." });
+        }
+
+        const client = await db.getClient();
+        try {
+            await client.query('BEGIN');
+
+            // 1. Mark booking cancelled
+            await client.query(`UPDATE bookings SET booking_status = 'cancelled' WHERE booking_id = $1`, [booking_id]);
+
+            // 2. Increment available seats back to the ride
+            await client.query(`UPDATE rides SET available_seats = available_seats + 1 WHERE ride_id = $1`, [booking.ride_id]);
+
+            // 3. If pre-paid, refund to passenger wallet
+            if (booking.payment_status === 'paid' || booking.payment_status === 'completed' || booking.payment_status === 'paid_pending_confirmation') {
+                const fare = parseFloat(booking.fare_per_seat || 0);
+                if (fare > 0) {
+                    await creditAmt(passenger_id, fare, client);
+                }
+            }
+
+            await client.query('COMMIT');
+
+            const io = req.app.get("socketio");
+            if (io) {
+                const payload = { booking_id: Number(booking_id), booking_status: 'cancelled', ride_id: booking.ride_id };
+                io.to(`ride_${booking.ride_id}`).emit('booking_status_updated', payload);
+                io.emit('booking_status_updated', payload);
+                io.to(`ride_${booking.ride_id}`).emit('driver_refresh_bookings');
+                io.emit('driver_refresh_bookings');
+
+                io.emit('new_notification', {
+                    target_emp_id: booking.driver_id,
+                    title: "Booking Cancelled",
+                    message: "A passenger has cancelled their seat reservation.",
+                    type: "cancelled",
+                    timestamp: new Date().toISOString()
+                });
+            }
+
+            return res.json({ success: true, message: "Booking cancelled successfully and seat restored." });
+        } catch (txnErr) {
+            await client.query('ROLLBACK');
+            throw txnErr;
+        } finally {
+            client.release();
+        }
+    } catch (err) {
+        console.error("Error cancelling passenger booking:", err);
+        return next(err);
+    }
+});
+
+// POST /rides/driver/cancel
+// Driver cancels the scheduled ride
+router.post('/driver/cancel', async (req, res, next) => {
+    try {
+        if (!req.user || !req.user.emp_id) return res.status(401).json({ success: false, message: "Unauthorized." });
+        const { ride_id } = req.body;
+        const driver_id = req.user.emp_id;
+
+        const rideRes = await db.query(
+            `SELECT ride_id, status FROM rides WHERE ride_id = $1 AND driver_id = $2`,
+            [ride_id, driver_id]
+        );
+
+        if (rideRes.rows.length === 0) {
+            return res.status(404).json({ success: false, message: "Ride not found or unauthorized." });
+        }
+
+        const ride = rideRes.rows[0];
+        if (ride.status === 'completed' || ride.status === 'cancelled') {
+            return res.status(400).json({ success: false, message: `Cannot cancel a ride that is already ${ride.status}.` });
+        }
+
+        const client = await db.getClient();
+        try {
+            await client.query('BEGIN');
+
+            // 1. Mark ride as cancelled
+            await client.query(`UPDATE rides SET status = 'cancelled' WHERE ride_id = $1`, [ride_id]);
+
+            // 2. Fetch all bookings to cancel and refund if needed
+            const bookingsRes = await client.query(
+                `SELECT booking_id, passenger_id, payment_status, r.fare_per_seat 
+                 FROM bookings b
+                 JOIN rides r ON b.ride_id = r.ride_id
+                 WHERE b.ride_id = $1 AND b.booking_status IN ('pending', 'confirmed', 'in_progress')`,
+                [ride_id]
+            );
+
+            // Cancel bookings
+            await client.query(
+                `UPDATE bookings SET booking_status = 'cancelled' WHERE ride_id = $1 AND booking_status IN ('pending', 'confirmed', 'in_progress')`,
+                [ride_id]
+            );
+
+            // Refund any pre-paid passengers
+            for (const b of bookingsRes.rows) {
+                if (b.payment_status === 'paid' || b.payment_status === 'completed' || b.payment_status === 'paid_pending_confirmation') {
+                    const fare = parseFloat(b.fare_per_seat || 0);
+                    if (fare > 0) {
+                        await creditAmt(b.passenger_id, fare, client);
+                    }
+                }
+            }
+
+            await client.query('COMMIT');
+
+            const io = req.app.get("socketio");
+            if (io) {
+                const payload = { ride_id: Number(ride_id), status: 'cancelled' };
+                io.to(`ride_${ride_id}`).emit('ride_cancelled', payload);
+                io.emit('ride_cancelled', payload);
+
+                for (const b of bookingsRes.rows) {
+                    io.emit('new_notification', {
+                        target_emp_id: b.passenger_id,
+                        title: "Ride Cancelled",
+                        message: "The driver has cancelled this scheduled commute. Any deducted fares have been refunded.",
+                        type: "cancelled",
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            }
+
+            return res.json({ success: true, message: "Ride cancelled successfully. All booked passengers notified." });
+        } catch (txnErr) {
+            await client.query('ROLLBACK');
+            throw txnErr;
+        } finally {
+            client.release();
+        }
+    } catch (err) {
+        console.error("Error cancelling ride by driver:", err);
         return next(err);
     }
 });
@@ -403,6 +668,73 @@ router.post('/driver/confirm-payment', async (req, res, next) => {
         }
     } catch (err) {
         console.error("Error confirming payment by driver:", err);
+        return next(err);
+    }
+});
+
+// POST /rides/fare-estimate
+// Computes dynamic fair commute pricing, vehicle consumption split, and corporate green commute subsidy
+router.post('/fare-estimate', async (req, res, next) => {
+    try {
+        if (!req.user || !req.user.emp_id) {
+            return res.status(401).json({ success: false, message: "Unauthorized. Please log in." });
+        }
+
+        const { origin, destination, seats } = req.body;
+        if (!origin || !destination) {
+            return res.status(400).json({ success: false, message: "origin and destination are required" });
+        }
+
+        const oLat = parseFloat(origin.lat);
+        const oLon = parseFloat(origin.lng || origin.lon);
+        const dLat = parseFloat(destination.lat);
+        const dLon = parseFloat(destination.lng || destination.lon);
+
+        let distanceKm = 15.0; // fallback default
+        if (!isNaN(oLat) && !isNaN(oLon) && !isNaN(dLat) && !isNaN(dLon)) {
+            const rawDist = haversineDistance(oLat, oLon, dLat, dLon);
+            distanceKm = parseFloat((rawDist * 1.3).toFixed(1));
+        }
+
+        const orgName = req.user.org_name || 'Odoo';
+        // Fetch org settings (fuel reimbursement & green commute subsidy)
+        const orgRes = await db.query(
+            "SELECT fuel_cost_per_km, travel_cost_per_km FROM org_settings WHERE org_name = $1",
+            [orgName]
+        );
+        const fuelCostPerKm = parseFloat(orgRes.rows[0]?.fuel_cost_per_km || 5.50);
+        const travelSubsidyPerKm = parseFloat(orgRes.rows[0]?.travel_cost_per_km || 2.00);
+
+        // Fetch driver's vehicle fuel consumption ratio if available
+        const vehRes = await db.query(
+            "SELECT fuel_consumption_ratio, seating_capacity FROM vehicles WHERE emp_id = $1",
+            [req.user.emp_id]
+        );
+        const fuelRatio = parseFloat(vehRes.rows[0]?.fuel_consumption_ratio || 1.0);
+        const totalSeats = parseInt(seats) || parseInt(vehRes.rows[0]?.seating_capacity || 4);
+
+        // Dynamic Fare Split Formula
+        const totalTripFuelCost = Math.round(distanceKm * fuelCostPerKm * fuelRatio);
+        const baseFarePerSeat = Math.max(15, Math.round(totalTripFuelCost / totalSeats));
+        const subsidyPerSeat = Math.round(Math.min(baseFarePerSeat * 0.45, (distanceKm * travelSubsidyPerKm) / totalSeats));
+        const recommendedPassengerFare = Math.max(10, baseFarePerSeat - subsidyPerSeat);
+        const driverEarningsPerSeat = baseFarePerSeat; // driver receives passenger fare + company subsidy
+
+        return res.json({
+            success: true,
+            distanceKm,
+            fuelCostPerKm,
+            travelSubsidyPerKm,
+            fuelRatio,
+            totalSeats,
+            totalTripFuelCost,
+            baseFarePerSeat,
+            subsidyPerSeat,
+            recommendedPassengerFare,
+            driverEarningsPerSeat
+        });
+    } catch (err) {
+        console.error("Error calculating fare estimate:", err);
         return next(err);
     }
 });

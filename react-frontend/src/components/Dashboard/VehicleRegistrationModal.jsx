@@ -1,14 +1,28 @@
 import React, { useState } from "react";
-import { X, Car } from "lucide-react";
-import carModels from "../../data/car_models.json";
+import { X, Car, Fuel, Users, Gauge, Check } from "lucide-react";
+import vehicleCatalog from "../../data/vehicle_catalog.json";
 
 function VehicleRegistrationModal({ onClose, onRegister }) {
 	const [vehicle_model, setVehicleModel] = useState("");
+	const [selectedVehicleSpec, setSelectedVehicleSpec] = useState(null);
 	const [vehicle_no, setVehicleNo] = useState("");
 	const [max_seating_cap, setCapacity] = useState(4);
 	const [DL_no, setDlNo] = useState("");
 	const [insurance_no, setInsuranceNo] = useState("");
-	const [fuel_consumption_ratio, setFuelConsumption] = useState("");
+	const [fuel_consumption_ratio, setFuelConsumption] = useState("1.0");
+
+	const handleModelChange = (e) => {
+		const selectedName = e.target.value;
+		setVehicleModel(selectedName);
+		const found = vehicleCatalog.find((v) => v.name === selectedName);
+		if (found) {
+			setSelectedVehicleSpec(found);
+			setCapacity(found.seats || 4);
+			setFuelConsumption(found.fuel_consumption_ratio || 1.0);
+		} else {
+			setSelectedVehicleSpec(null);
+		}
+	};
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
@@ -30,9 +44,14 @@ function VehicleRegistrationModal({ onClose, onRegister }) {
 						<div className="w-10 h-10 bg-[#714B67]/10 rounded-full flex items-center justify-center text-[#714B67]">
 							<Car className="w-5 h-5" />
 						</div>
-						<h2 className="text-xl font-bold text-gray-900">
-							Register Vehicle
-						</h2>
+						<div>
+							<h2 className="text-xl font-bold text-gray-900">
+								Register Vehicle
+							</h2>
+							<p className="text-xs text-gray-500">
+								Verify your personal car to publish employee commute rides
+							</p>
+						</div>
 					</div>
 					<button
 						onClick={onClose}
@@ -44,24 +63,50 @@ function VehicleRegistrationModal({ onClose, onRegister }) {
 
 				<div className="overflow-y-auto p-6">
 					<form onSubmit={handleSubmit} className="space-y-4">
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-							<div className="space-y-1.5">
-								<label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-									Vehicle Make & Model
-								</label>
-								<select
-									required
-									value={vehicle_model}
-									onChange={(e) => setVehicleModel(e.target.value)}
-									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
-								>
-									<option value="" disabled>Select a vehicle model</option>
-									{carModels.map(model => (
-										<option key={model} value={model}>{model}</option>
-									))}
-								</select>
-							</div>
+						<div className="space-y-1.5">
+							<label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+								Vehicle Make & Model
+							</label>
+							<select
+								required
+								value={vehicle_model}
+								onChange={handleModelChange}
+								className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
+							>
+								<option value="" disabled>Select vehicle model (2,000+ certified models)</option>
+								{vehicleCatalog.map((v) => (
+									<option key={v.name} value={v.name}>
+										{v.name} ({v.fuel_type})
+									</option>
+								))}
+							</select>
+						</div>
 
+						{/* Auto-filled vehicle spec pill */}
+						{selectedVehicleSpec && (
+							<div className="p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-xl flex items-center justify-between text-xs text-emerald-900">
+								<div className="flex items-center gap-2">
+									<Check className="w-4 h-4 text-emerald-600" />
+									<span className="font-semibold">Auto-detected Specs:</span>
+								</div>
+								<div className="flex items-center gap-3 text-[11px] font-medium text-emerald-800">
+									<span className="flex items-center gap-1">
+										<Users className="w-3.5 h-3.5 text-emerald-600" />
+										{selectedVehicleSpec.seats} Seats
+									</span>
+									<span className="flex items-center gap-1">
+										<Fuel className="w-3.5 h-3.5 text-emerald-600" />
+										{selectedVehicleSpec.fuel_type}
+									</span>
+									<span className="flex items-center gap-1">
+										<Gauge className="w-3.5 h-3.5 text-emerald-600" />
+										{selectedVehicleSpec.mileage_kmpl} kmpl
+									</span>
+								</div>
+							</div>
+						)}
+
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 							<div className="space-y-1.5">
 								<label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
 									Vehicle No (License Plate)
@@ -71,14 +116,14 @@ function VehicleRegistrationModal({ onClose, onRegister }) {
 									type="text"
 									value={vehicle_no}
 									onChange={(e) => setVehicleNo(e.target.value)}
-									placeholder="ABC-1234"
+									placeholder="GJ-01-AB-1234"
 									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all uppercase"
 								/>
 							</div>
 
 							<div className="space-y-1.5">
 								<label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-									Max Seating Capacity
+									Passenger Seating Capacity
 								</label>
 								<input
 									required
@@ -107,7 +152,7 @@ function VehicleRegistrationModal({ onClose, onRegister }) {
 
 							<div className="space-y-1.5">
 								<label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-									Insurance No
+									Insurance Policy No
 								</label>
 								<input
 									required
@@ -119,29 +164,33 @@ function VehicleRegistrationModal({ onClose, onRegister }) {
 								/>
 							</div>
 
-							<div className="space-y-1.5">
+							<div className="space-y-1.5 md:col-span-2">
 								<label className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-									Fuel Consumption Ratio (km/l)
+									Fuel Consumption Ratio (relative to 15 km/l)
 								</label>
 								<input
 									required
 									type="number"
-									min="1"
-									step="0.1"
+									min="0.3"
+									max="3.0"
+									step="0.05"
 									value={fuel_consumption_ratio}
 									onChange={(e) => setFuelConsumption(e.target.value)}
-									placeholder="e.g. 15.5"
+									placeholder="1.0"
 									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
 								/>
+								<p className="text-[11px] text-gray-400">
+									Standard ratio is 1.0. Efficient cars (20+ kmpl) are ~0.75, larger SUVs are ~1.30. Used for corporate fuel reimbursement.
+								</p>
 							</div>
 						</div>
 
 						<div className="pt-4">
 							<button
 								type="submit"
-								className="w-full py-3 px-4 bg-[#714B67] hover:bg-[#5c3c54] text-white font-semibold rounded-xl transition-all shadow-sm"
+								className="w-full py-3.5 px-4 bg-[#714B67] hover:bg-[#5c3c54] text-white font-semibold rounded-xl transition-all shadow-sm cursor-pointer"
 							>
-								Complete Registration
+								Submit Vehicle For Admin Approval
 							</button>
 						</div>
 					</form>

@@ -8,7 +8,7 @@ const Footer = () => {
 					{/* Logo / Branding */}
 					<div className="flex flex-col items-center md:items-start opacity-90">
 						<span className="text-xl font-bold tracking-widest text-[#714B67] drop-shadow-sm">
-							MakeLyft
+							Norimono
 						</span>
 						<span className="text-gray-500 text-[10px] uppercase tracking-[0.3em] mt-1 font-semibold">
 							The Future of Travel
@@ -30,7 +30,7 @@ const Footer = () => {
 				</div>
 
 				<div className="mt-8 pt-6 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-					<span className="text-gray-400 text-xs">&copy; {new Date().getFullYear()} MakeLyft. Powered by Odoo.</span>
+					<span className="text-gray-400 text-xs">&copy; {new Date().getFullYear()} Norimono. Powered by Odoo.</span>
 					<div className="flex gap-4 text-xs text-gray-400">
 						<a href="#" className="hover:text-[#714B67] transition-colors">Privacy Policy</a>
 						<a href="#" className="hover:text-[#714B67] transition-colors">Terms of Service</a>

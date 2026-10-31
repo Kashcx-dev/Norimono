@@ -5,6 +5,7 @@ import {
 	Marker,
 	Popup,
 	Polyline,
+	Polygon,
 	Circle,
 	useMap,
 } from "react-leaflet";
@@ -42,11 +43,15 @@ export function parseAndNormalizePolyline(raw) {
 			b = parseFloat(b);
 			if (isNaN(a) || isNaN(b)) continue;
 			// Leaflet expects [latitude, longitude].
-			// Standard GPS latitude is -90..90; longitude is -180..180.
+			// Standard GPS latitude range: -90..90; longitude range: -180..180.
 			// GeoJSON returns [longitude, latitude].
-			// In India / Kolkata: longitude ~88.x, latitude ~22.x.
-			// If `a` (first element) is > 50 and `b` (second element) <= 50, then `a` is longitude and `b` is latitude -> flip to [b, a].
-			if (Math.abs(a) > 50 && Math.abs(b) <= 50) {
+			// If |a| > 90, 'a' cannot be latitude, so it MUST be longitude -> flip to [b, a].
+			if (Math.abs(a) > 90) {
+				normalized.push([b, a]);
+			} else if (Math.abs(b) > 90) {
+				normalized.push([a, b]);
+			} else if (Math.abs(a) > 50 && Math.abs(b) <= 50) {
+				// Detection for coordinates where Longitude > 50 and Latitude <= 50 (e.g. South/Central Asia)
 				normalized.push([b, a]);
 			} else {
 				normalized.push([a, b]);
@@ -207,19 +212,32 @@ function MapUpdater({
 }) {
 	const map = useMap();
 
-	// Resize map when layout splits / animates
+	// Resize map whenever container dimensions change
 	useEffect(() => {
+		const container = map.getContainer();
+		if (!container) return;
+		const observer = new ResizeObserver(() => {
+			map.invalidateSize();
+		});
+		observer.observe(container);
+
 		const timer = setTimeout(() => {
 			map.invalidateSize();
 		}, 300);
-		return () => clearTimeout(timer);
+
+		return () => {
+			observer.disconnect();
+			clearTimeout(timer);
+		};
 	}, [viewMode, activeTrip, map]);
 
 	useEffect(() => {
 		// 1. If active trip has a valid polyline
 		if (activePolyline && activePolyline.length > 0) {
 			const bounds = L.latLngBounds(activePolyline);
-			map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+			if (bounds.isValid()) {
+				map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+			}
 			return;
 		}
 
@@ -227,22 +245,28 @@ function MapUpdater({
 		if (selectedRidePolyline && selectedRidePolyline.length > 0) {
 			const bounds = L.latLngBounds(selectedRidePolyline);
 			if (routePolyline && routePolyline.length > 0) {
-				bounds.extend(L.latLngBounds(routePolyline));
+				const searchBounds = L.latLngBounds(routePolyline);
+				if (searchBounds.isValid()) bounds.extend(searchBounds);
 			}
-			map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+			if (bounds.isValid()) {
+				map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+			}
 			return;
 		}
 
 		// 3. If selected ride has origin and destination
 		if (selectedRide && selectedRide.origin && selectedRide.destination) {
-			const p1 = [selectedRide.origin.lat, selectedRide.origin.lng];
-			const p2 = [selectedRide.destination.lat, selectedRide.destination.lng];
+			const p1 = [parseFloat(selectedRide.origin.lat), parseFloat(selectedRide.origin.lng)];
+			const p2 = [parseFloat(selectedRide.destination.lat), parseFloat(selectedRide.destination.lng)];
 			if (!isNaN(p1[0]) && !isNaN(p2[0])) {
 				const bounds = L.latLngBounds([p1, p2]);
 				if (routePolyline && routePolyline.length > 0) {
-					bounds.extend(L.latLngBounds(routePolyline));
+					const searchBounds = L.latLngBounds(routePolyline);
+					if (searchBounds.isValid()) bounds.extend(searchBounds);
 				}
-				map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+				if (bounds.isValid()) {
+					map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+				}
 				return;
 			}
 		}
@@ -250,25 +274,29 @@ function MapUpdater({
 		// 4. User's searched route
 		if (routePolyline && routePolyline.length > 0) {
 			const bounds = L.latLngBounds(routePolyline);
-			map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+			if (bounds.isValid()) {
+				map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+			}
 			return;
 		}
 
 		// 5. Browse mode with 10km circle
-		if (viewMode === "browse" && userLocation) {
+		if (viewMode === "browse" && userLocation && !isNaN(userLocation[0])) {
 			map.setView(userLocation, 12);
 			return;
 		}
 
 		// 6. Source + Destination points
-		if (pickupCoords && dropoffCoords) {
+		if (pickupCoords && dropoffCoords && !isNaN(pickupCoords[0]) && !isNaN(dropoffCoords[0])) {
 			const bounds = L.latLngBounds([pickupCoords, dropoffCoords]);
-			map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
-		} else if (pickupCoords) {
+			if (bounds.isValid()) {
+				map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+			}
+		} else if (pickupCoords && !isNaN(pickupCoords[0])) {
 			map.setView(pickupCoords, 14);
-		} else if (dropoffCoords) {
+		} else if (dropoffCoords && !isNaN(dropoffCoords[0])) {
 			map.setView(dropoffCoords, 14);
-		} else if (userLocation) {
+		} else if (userLocation && !isNaN(userLocation[0])) {
 			map.setView(userLocation, 14);
 		}
 	}, [
@@ -297,6 +325,7 @@ export default function Map({
 	selectedRide = null,
 	onSelectRide,
 	activeTrip = null,
+	h3Hexagons = [],
 }) {
 	// Fallback coordinates: Kolkata Hub
 	const defaultPosition = [22.5726, 88.3639];
@@ -411,6 +440,21 @@ export default function Map({
 					activePolyline={activePolyline}
 					selectedRidePolyline={selectedRidePolyline}
 				/>
+
+				{/* H3 Hexagonal Grid & Corridor Layer */}
+				{h3Hexagons && h3Hexagons.length > 0 && h3Hexagons.map((boundary, i) => (
+					<Polygon
+						key={`h3-poly-${i}`}
+						positions={boundary}
+						pathOptions={{
+							color: "#00A09D",
+							fillColor: "#00A09D",
+							weight: 1.5,
+							fillOpacity: 0.12,
+							dashArray: "4, 4"
+						}}
+					/>
+				))}
 
 				{/* 10km Radius Geofence Circle (Browse Mode) */}
 				{viewMode === "browse" && userLocation && (
@@ -627,8 +671,8 @@ export default function Map({
 
 				{/* Default fallback marker if no GPS permission and no points */}
 				{!userLocation && !pickupCoords && !dropoffCoords && !activeTrip && (
-					<Marker position={defaultPosition}>
-						<Popup>MakeLyft Hub</Popup>
+					<Marker position={defaultPosition} icon={createLocationPinIcon("#714B67", "🏢 Hub")}>
+						<Popup>Norimono Hub</Popup>
 					</Marker>
 				)}
 			</MapContainer>

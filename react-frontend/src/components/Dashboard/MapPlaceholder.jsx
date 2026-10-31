@@ -11,6 +11,7 @@ function MapPlaceholder({
 	selectedRide = null,
 	onSelectRide,
 	activeTrip = null,
+	h3Hexagons = [],
 }) {
 	return (
 		<div className="w-full h-full min-h-[580px] bg-gray-100 rounded-2xl border border-gray-200 shadow-sm flex flex-col items-center justify-center text-gray-400 relative overflow-hidden transition-all duration-300">
@@ -24,6 +25,7 @@ function MapPlaceholder({
 				selectedRide={selectedRide}
 				onSelectRide={onSelectRide}
 				activeTrip={activeTrip}
+				h3Hexagons={h3Hexagons}
 			/>
 		</div>
 	);

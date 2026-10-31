@@ -1,16 +1,49 @@
-# React + Vite
+# Norimono (乗り物)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Norimono** is an enterprise-grade carpooling and ridesharing platform built for corporate ecosystems (a reverse-Uber / BlaBlaCar model for verified employees).
 
-Currently, two official plugins are available:
+## ✨ Key Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Two-Step Registration & Driver Verification Queue**:
+  - Separate flows for Passengers and Riders.
+  - Driver credential verification (Driver's License, Vehicle details with catalog auto-fill, plate number, and insurance).
+  - Admin review dashboard with real-time approval/rejection.
+- **Uber H3 Spatial Grid & A\* Routing**:
+  - Resolution 8 hexagonal spatial indexing for commuter corridors.
+  - O(1) set-based corridor matching with Haversine cross-track detour calculation.
+  - Hexagonal polygon boundaries on interactive Leaflet maps.
+- **Active En-Route Passenger Hop-In**:
+  - Passengers can discover and book seats on active drivers currently driving along their route (`in_progress`).
+  - Real-time waypoint notifications with 4-digit boarding OTP verification.
+- **Corporate Commute Wallet & Subsidized Fare Split**:
+  - Automated fair-share pricing based on organization reimbursement settings and vehicle fuel efficiency.
+  - Enterprise green commute subsidies automatically credited to drivers upon ride completion.
+  - In-app commute wallet with live transaction ledger.
+- **Enterprise Safety & Real-Time Communication**:
+  - WebRTC voice calling between co-commuters.
+  - Real-time ride tracking and Socket.io signaling.
+  - Verified corporate domain authentication and HTTP-only JWT sessions.
 
-## React Compiler
+## 🚀 Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Frontend**: React 19, Vite, Tailwind CSS, Leaflet, Lucide Icons, Socket.io Client
+- **Backend**: Node.js, Express, PostgreSQL, Socket.io, Uber H3 (`h3-js`), OSRM Routing
+- **Database**: PostgreSQL (Compatible with local Postgres and Supabase Cloud)
 
-## Expanding the ESLint configuration
+## 🛠️ Quick Start
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 1. Backend Setup
+```bash
+cd backend
+npm install
+cp .env.example .env
+# Configure your DB_URI in .env
+npm start
+```
+
+### 2. Frontend Setup
+```bash
+cd react-frontend
+npm install
+npm run dev
+```
