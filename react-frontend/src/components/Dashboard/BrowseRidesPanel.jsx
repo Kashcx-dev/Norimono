@@ -153,35 +153,35 @@ export default function BrowseRidesPanel({
 	};
 
 	return (
-		<div className="flex flex-col h-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden text-left">
+		<div className="flex flex-col h-full text-left">
 			{/* Header */}
-			<div className="p-5 border-b border-gray-100 bg-gradient-to-r from-teal-50/40 via-white to-purple-50/30">
-				<div className="flex items-center justify-between gap-3 mb-3">
+			<div className="p-3.5 border-b border-slate-100 bg-slate-50/80">
+				<div className="flex items-center justify-between gap-2 mb-2">
 					<button
 						onClick={onBack}
-						className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#714B67] bg-white border border-[#714B67]/20 hover:bg-[#714B67] hover:text-white rounded-xl shadow-2xs transition-all duration-200 cursor-pointer group"
+						className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-slate-800 bg-white border border-slate-200 hover:bg-slate-100 rounded-xl shadow-xs transition-all cursor-pointer group"
 					>
-						<ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-						<span>Back to Search</span>
+						<ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+						<span>Edit Route</span>
 					</button>
 
 					<div className="flex items-center gap-2">
-						<span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#00A09D]/10 text-[#00A09D] border border-[#00A09D]/20">
-							<span className="w-2 h-2 rounded-full bg-[#00A09D] animate-pulse"></span>
-							10 km Radius
+						<span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">
+							<span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></span>
+							10km Radius
 						</span>
-						<span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-bold">
-							{filteredRides.length} Found
+						<span className="px-2 py-0.5 bg-slate-200 text-slate-800 rounded-md text-[10px] font-extrabold">
+							{filteredRides.length} Available
 						</span>
 					</div>
 				</div>
 
 				<div>
-					<h2 className="text-lg font-extrabold text-gray-900 tracking-tight">
-						Available Carpools Nearby
+					<h2 className="text-sm font-black text-slate-900 tracking-tight">
+						Colleague Commute Matches
 					</h2>
-					<p className="text-xs text-gray-500 mt-0.5">
-						Verified colleagues travelling within 10 km of your location.
+					<p className="text-[11px] text-slate-500 font-medium">
+						Verified colleagues driving along your corridor
 					</p>
 				</div>
 

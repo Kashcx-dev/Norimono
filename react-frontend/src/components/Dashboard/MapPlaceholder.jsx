@@ -14,7 +14,7 @@ function MapPlaceholder({
 	h3Hexagons = [],
 }) {
 	return (
-		<div className="w-full h-full min-h-[580px] bg-gray-100 rounded-2xl border border-gray-200 shadow-sm flex flex-col items-center justify-center text-gray-400 relative overflow-hidden transition-all duration-300">
+		<div className="w-full h-full relative overflow-hidden bg-slate-900">
 			<Map 
 				pickupCoords={pickupCoords} 
 				dropoffCoords={dropoffCoords} 

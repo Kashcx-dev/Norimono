@@ -176,13 +176,7 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 		if (password !== confirmPassword) return setError("Passwords do not match.");
 		if (!agreeTerms) return setError("Please agree to the Terms of Service & Corporate Commute Policy.");
 
-		if (riderType === "rider") {
-			// Advance to Page 2 (Driver Credentials)
-			setCurrentStep(2);
-		} else {
-			// Passenger can directly request OTP
-			triggerSignupOtp();
-		}
+		triggerSignupOtp();
 	};
 
 	// Trigger OTP request
@@ -866,56 +860,6 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 						</div>
 					</div>
 
-					{/* Role Selection: Passenger vs Rider (TWO OPTIONS) */}
-					<div className="space-y-1.5 pt-1">
-						<label className="text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">
-							I am joining Norimono as:
-						</label>
-						<div className="grid grid-cols-2 gap-2.5">
-							{/* Passenger Card */}
-							<div
-								onClick={() => setRiderType("passenger")}
-								className={`p-3 rounded-xl border-2 transition-all cursor-pointer relative ${
-									riderType === "passenger"
-										? "border-[#00A09D] bg-teal-50/60 shadow-xs"
-										: "border-gray-200 bg-white hover:border-gray-300"
-								}`}
-							>
-								<div className="flex items-center justify-between mb-1">
-									<span className="text-base">🚶‍♂️</span>
-									{riderType === "passenger" && (
-										<CheckCircle2 className="w-4 h-4 text-[#00A09D]" />
-									)}
-								</div>
-								<p className="text-xs font-bold text-gray-900">Passenger</p>
-								<p className="text-[10px] text-gray-500 mt-0.5 leading-tight">
-									Find & book shared rides to office.
-								</p>
-							</div>
-
-							{/* Rider / Driver Card */}
-							<div
-								onClick={() => setRiderType("rider")}
-								className={`p-3 rounded-xl border-2 transition-all cursor-pointer relative ${
-									riderType === "rider"
-										? "border-[#714B67] bg-purple-50/60 shadow-xs"
-										: "border-gray-200 bg-white hover:border-gray-300"
-								}`}
-							>
-								<div className="flex items-center justify-between mb-1">
-									<span className="text-base">🚗</span>
-									{riderType === "rider" && (
-										<CheckCircle2 className="w-4 h-4 text-[#714B67]" />
-									)}
-								</div>
-								<p className="text-xs font-bold text-gray-900">Rider / Driver</p>
-								<p className="text-[10px] text-gray-500 mt-0.5 leading-tight">
-									Offer seats in my car & offset fuel.
-								</p>
-							</div>
-						</div>
-					</div>
-
 					{/* Password & Confirm */}
 					<div className="grid grid-cols-2 gap-2.5 pt-1">
 						<div className="space-y-1">
@@ -976,14 +920,12 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 					<button
 						type="submit"
 						disabled={isLoading}
-						className="w-full py-3 px-4 bg-[#714B67] hover:bg-[#5c3c54] text-white font-bold text-xs rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-75"
+						className="w-full py-3 px-4 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-75"
 					>
 						{isLoading ? (
 							<div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-						) : riderType === "rider" ? (
-							<>Continue to Driver Verification (Step 2) <ArrowRight className="w-4 h-4" /></>
 						) : (
-							<>Register as Passenger <ArrowRight className="w-4 h-4" /></>
+							<>Create Norimono Account <ArrowRight className="w-4 h-4" /></>
 						)}
 					</button>
 				</form>

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { showAlert } from "../../utils/alertService";
 import { io } from "socket.io-client";
 import { Phone, PhoneOff, PhoneCall, X } from "lucide-react";
-import Footer from "../Footer";
 import Header from "./Header";
 import MapPlaceholder from "./MapPlaceholder";
 import RideActions from "./RideActions";
@@ -17,7 +16,6 @@ import FeedbackModal from "./FeedbackModal";
 import ProfileModal from "./ProfileModal";
 import PublishRideModal from "./PublishRideModal";
 import ImpactScreen from "./ImpactScreen";
-import AmbientBackground from "../AmbientBackground";
 
 // Initialize socket connection (connects to the same origin by default)
 const socket = io();
@@ -360,13 +358,27 @@ function Dashboard() {
 	};
 
 	return (
-		<div className="min-h-screen bg-slate-50 flex flex-col w-full text-left relative overflow-hidden">
-			<AmbientBackground />
+		<div className="relative w-screen h-screen overflow-hidden bg-slate-950 text-left select-none font-sans">
+			{/* Fullscreen Map Canvas */}
+			<div className="absolute inset-0 w-full h-full z-0">
+				<MapPlaceholder
+					pickupCoords={pickupCoords}
+					dropoffCoords={dropoffCoords}
+					routePolyline={routePolyline}
+					userLocation={userLocation}
+					viewMode={viewMode}
+					nearbyRides={nearbyRides}
+					selectedRide={selectedRide}
+					onSelectRide={setSelectedRide}
+					activeTrip={activeTrip}
+				/>
+			</div>
 
+			{/* Uber-Style Floating Top Bar */}
 			<Header 
 				socket={socket}
-				currentRole={riderType}
-				onToggleRole={handleToggleRole}
+				hasVehicle={hasVehicle}
+				onPublishRide={handlePublishRide}
 				onOpenImpact={() => setShowImpactModal(true)}
 				onOpenVehicleModal={() => setShowVehicleModal(true)}
 				onOpenChat={() => setShowGlobalChat(true)}
@@ -379,85 +391,51 @@ function Dashboard() {
 				onOpenProfile={() => setShowProfileModal(true)}
 			/>
 
-			{/* Main Content Area */}
-			<main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 md:p-8">
-				<div className="relative flex flex-col lg:flex-row gap-6 items-stretch transition-all duration-500 ease-in-out">
-					{viewMode === "browse" ? (
-						<>
-							{/* BROWSE MODE: Available Rides on Left */}
-							<div className="w-full lg:w-[48%] h-[680px] transition-all duration-500 ease-in-out animate-in fade-in slide-in-from-left-6">
-								<BrowseRidesPanel
-									rides={nearbyRides}
-									loading={loadingNearby}
-									selectedRide={selectedRide}
-									onSelectRide={setSelectedRide}
-									onBack={handleBackToSearch}
-									userLocation={userLocation}
-									activeTrip={activeTrip}
-									onRideBooked={(bookingData) => {
-										setViewMode("default");
-										handleRideBooked(bookingData);
-									}}
-								/>
-							</div>
+			{/* Uber-Style Bottom Sheet / Floating Drawer */}
+			<div className="fixed z-30 bottom-0 left-0 right-0 md:left-6 md:bottom-6 md:w-[440px] max-h-[85vh] flex flex-col pointer-events-none">
+				<div className="bg-white/95 backdrop-blur-2xl rounded-t-3xl md:rounded-3xl border border-slate-200/90 shadow-[0_-12px_40px_rgba(0,0,0,0.18)] md:shadow-2xl overflow-hidden flex flex-col max-h-[85vh] pointer-events-auto transition-all duration-300">
+					{/* Mobile drag handle */}
+					<div className="w-10 h-1.5 bg-slate-300 rounded-full mx-auto mt-2.5 mb-1 md:hidden shrink-0" />
 
-							{/* BROWSE MODE: Panel on Left */}
-							<div className="w-full lg:w-[48%] h-[680px] flex flex-col slide-in-panel page-transition">
-								<MapPlaceholder
-									pickupCoords={pickupCoords}
-									dropoffCoords={dropoffCoords}
-									routePolyline={routePolyline}
-									userLocation={userLocation}
-									viewMode={viewMode}
-									nearbyRides={nearbyRides}
-									selectedRide={selectedRide}
-									onSelectRide={setSelectedRide}
-									activeTrip={activeTrip}
-								/>
-							</div>
-						</>
+					{activeTrip ? (
+						<div className="overflow-y-auto p-4 max-h-[75vh]">
+							<ActiveTripPanel
+								activeTrip={activeTrip}
+								socket={socket}
+								onTripEnded={handleTripEnded}
+								onRefreshPassenger={fetchPassengerActiveRide}
+							/>
+						</div>
+					) : viewMode === "browse" ? (
+						<div className="overflow-y-auto max-h-[75vh]">
+							<BrowseRidesPanel
+								rides={nearbyRides}
+								loading={loadingNearby}
+								selectedRide={selectedRide}
+								onSelectRide={setSelectedRide}
+								onBack={handleBackToSearch}
+								userLocation={userLocation}
+								activeTrip={activeTrip}
+								onRideBooked={(bookingData) => {
+									setViewMode("default");
+									handleRideBooked(bookingData);
+								}}
+							/>
+						</div>
 					) : (
-						<>
-							{/* DEFAULT MODE: Map on Left */}
-							<div className="w-full lg:w-2/3 h-[680px] transition-all duration-500 ease-in-out">
-								<MapPlaceholder
-									pickupCoords={pickupCoords}
-									dropoffCoords={dropoffCoords}
-									routePolyline={routePolyline}
-									userLocation={userLocation}
-									viewMode={viewMode}
-									activeTrip={activeTrip}
-								/>
-							</div>
-
-							{/* DEFAULT MODE: Search / Ride Actions / Active Trip on Right */}
-							<div className="w-full lg:w-1/3 flex flex-col h-[680px] max-h-[680px] overflow-hidden slide-in-panel">
-								{activeTrip ? (
-									<ActiveTripPanel
-										activeTrip={activeTrip}
-										socket={socket}
-										onTripEnded={handleTripEnded}
-										onRefreshPassenger={fetchPassengerActiveRide}
-									/>
-								) : (
-									<RideActions
-										onPublishRide={handlePublishRide}
-										onLocationUpdate={handleLocationUpdate}
-										pickupCoords={pickupCoords}
-										dropoffCoords={dropoffCoords}
-										userLocation={userLocation}
-										onSearchRoute={setRoutePolyline}
-										onBrowseRides={handleBrowseRides}
-									/>
-								)}
-							</div>
-						</>
+						<div className="overflow-y-auto p-4 md:p-5 max-h-[75vh]">
+							<RideActions
+								onLocationUpdate={handleLocationUpdate}
+								pickupCoords={pickupCoords}
+								dropoffCoords={dropoffCoords}
+								userLocation={userLocation}
+								onSearchRoute={setRoutePolyline}
+								onBrowseRides={handleBrowseRides}
+							/>
+						</div>
 					)}
 				</div>
-			</main>
-
-			{/* Footer */}
-			<Footer />
+			</div>
 
 			{/* Modals */}
 			{incomingCall && (
