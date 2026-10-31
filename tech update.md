@@ -1,0 +1,241 @@
+# Norimono (乗り物) — Comprehensive Technical Handover & Update
+
+> **Document Version:** 1.0.0  
+> **Date:** October 31, 2026  
+> **Product Name:** Norimono Technologies — Enterprise Dual-Engine Mobility Platform  
+> **Repository:** [https://github.com/Kashcx-dev/Norimono](https://github.com/Kashcx-dev/Norimono) (`main` branch)  
+> **Target Production Platforms:** Web, Responsive Mobile (PWA / Capacitor / React Native WebView)
+
+---
+
+## 1. Executive Summary & Product Vision
+
+**Norimono** is a closed-loop corporate mobility platform engineered to solve the daily office commute crisis for enterprise tech workers, tech park campuses, and corporate HR/Facility teams. 
+
+Traditional ridesharing (Ola/Uber) suffers from surge pricing, driver cancellations, and lack of safety vetting. Traditional carpooling fails because of manual fare negotiation awkwardness, driver unreliability, and commercial transport licensing restrictions.
+
+### The Dual-Engine Platform Architecture
+1. **Engine 1: Closed-Loop Colleague Carpooling (P2P Non-Profit Cost Sharing)**
+   - Only employees with verified corporate work emails (`@tcs.com`, `@infosys.com`, `@wipro.com`, etc.) can enter.
+   - Drivers cannot arbitrarily set fares: algorithmic pricing strictly locks cost-sharing to actual fuel and toll split, keeping the platform **100% compliant with white-plate private vehicle laws**.
+2. **Engine 2: Guaranteed Commercial Backup (Safety Net)**
+   - Solves the primary cause of carpool abandonment: *carpool anxiety* (what if my colleague cancels last-minute?).
+   - If a coworker cancels or no ride matches, Engine 2 automatically dispatches on-demand commercial cabs or autos with company corporate subsidies.
+
+---
+
+## 2. Technical Stack & Architecture
+
+| Tier | Technologies Used | Details / Responsibilities |
+| :--- | :--- | :--- |
+| **Frontend** | React 19, Vite, Tailwind CSS, Lucide React, React Router v7 | Responsive Uber-style mobile-first SPA, obsidian glassmorphic theme, zero horizontal scroll, tactile micro-interactions |
+| **Mapping & Geospatial** | Leaflet, React-Leaflet, OpenStreetMap, OSRM API, Uber H3 | Fullscreen edge-to-edge canvas, custom SVG vehicle markers, triple-layer Neon Route Line, H3 hexagonal corridor matching |
+| **Backend API** | Node.js, Express.js | RESTful routing, modular endpoints, JWT auth, input validation, role enforcement |
+| **Real-Time & Telemetry** | Socket.io, WebRTC | Live corridor location streaming, room-based ride chat, browser-to-browser voice calling, instant admin verification updates |
+| **Database & Persistence** | PostgreSQL / Supabase, `pg` connection pool | Relational schema with JSONB coordinates, double-entry wallet ledger, transactional consistency |
+| **Payments & Wallets** | In-App Wallet Engine, Razorpay SDK | Zero-cash policy, automatic trip auto-settlement, UPI/Card top-up |
+| **Security & Safety** | DOMPurify, bcrypt, Corporate OTP Email Wall, Strict Gender Filters | XSS protection across chat/AI, verified corporate domain gating, female-only commute isolation |
+| **DevOps & Windows Tooling** | Batch scripts (`run.bat`, `start.bat`, `stop.bat`) | One-click service orchestration, port auto-cleanup, dual-process window management |
+
+---
+
+## 3. Exhaustive Feature Inventory (What We Have Built)
+
+### A. The Verification Wall & Authentication Flow
+- **Corporate Work Email Gating**: Users must register with official work emails. Public domains (`@gmail.com`, `@yahoo.com`, `@hotmail.com`) are rejected at the verification wall.
+- **Dynamic Corporate Domain Detection**: Typing an email auto-detects corporate affiliation (e.g. `@tcs.in` -> **Tata Consultancy Services**, `@infosys.com` -> **Infosys**, `@wipro.com` -> **Wipro**, etc.).
+- **Frictionless 1-Step Onboarding**: Removed premature passenger vs. driver split during signup. All employees create their account with Name, Work Email, Mobile Phone, Company, Gender, and Password, then verify with a one-time OTP.
+- **Two-Factor Authentication (OTP)**: Generates secure corporate verification codes with dev fallback hints for seamless testing.
+
+### B. The Digital ID Card & Trust Badges
+- **Corporate Logo Framing**: Every colleague profile avatar is dynamically ringed with their official SVG corporate badge (TCS navy blue, Infosys sky blue, Wipro multi-dot, Google quad-color, Microsoft 4-square, Accenture purple, Odoo fuchsia, etc.).
+- **Digital ID Card Modal**: Inspectable badge displaying verified employee ID, designation, department, corporate domain, safety rating, and closed-loop enterprise verification stamp.
+
+### C. Uber-Style Mobile-First UI Redesign
+- **Fullscreen Edge-to-Edge Map Canvas**: The interactive Leaflet map covers 100% of the screen (`100vw`, `100vh`), replacing the legacy 2-column cluttered boxed layout.
+- **Floating Glass Top Bar**:
+  - Left: `Norimono` brand wordmark with live status pulse + Corporate affiliation pill (e.g., `TCS • Verified`).
+  - Right: Dedicated **"Offer a Ride"** smart button, **In-App Wallet balance pill**, and **Profile Avatar / Digital ID**.
+- **Uber-Style Docked Bottom Sheet (Drawer)**:
+  - Mobile: Docked to bottom with a native-style pull indicator, smooth scrolling, and compact touch targets.
+  - Desktop: Floats cleanly on bottom-left (`w-[440px]`), allowing the map to remain visible across the screen.
+- **"Where to?" Search Flow**:
+  - Connected origin (green dot with GPS auto-location) and destination (black square with autocomplete suggestions).
+  - **1-Tap Tech Hub Shortcuts**: Quick pills for top tech parks (`Ecospace`, `Manyata`, `ETV`, `Electronic City`, `Cyber City`, `BKC`, `Hinjewadi`).
+  - **Live OSRM Distance & Drive Duration Pill**: Calculates real road routes with turn-by-turn geometry.
+  - High-contrast tactile action button: `Find Colleague Rides →`.
+
+### D. Colleague Match Feed & Filtering
+- **Match Cards**: Displays colleague photo, company badge, car model, departure time, ETA, distance, and locked cost-share price.
+- **Strict Female-Only Safety Filter**: Toggle (`[ 🌸 Female-Only ]`) that filters the feed strictly for female drivers and female colleague passengers.
+- **Direct 1-Tap Booking**: Instantly reserves seat, debits the wallet in escrow, generates a unique 4-digit pickup OTP, and switches to active trip tracking.
+
+### E. White-Plate Non-Profit Algorithmic Pricing
+- **Zero Surge / Anti-Commercial Exploitation**: Drivers cannot manually set fares.
+- **Cost-Split Formula**:
+  $$\text{Fare per seat} = \frac{\text{OSRM Distance (km)} \times \text{Standard Fuel/Toll Rate}}{\text{Total Available Seats}}$$
+- Strictly complies with private vehicle non-commercial carpooling regulations.
+
+### F. Triple-Layer Glowing Route Neon Line
+- Leaflet map rendering with a glowing 3-tier polyline stroke:
+  1. Outer halo: 12px width, `#00F5D4` cyan, 28% opacity.
+  2. Vibrant core: 6px width, `#06B6D4` teal, 85% opacity.
+  3. Inner spine: 2.5px width, `#FFFFFF` crisp white, 95% opacity.
+
+### G. Smart Driver Onboarding & Commute Publisher
+- Dedicated `[ 🚗 Offer Ride ]` button in the top navigation:
+  - If **unregistered (`hasVehicle === "0"`)**: Opens the **Vehicle & Driver License Registration Modal** (DL number, vehicle plate, certified catalog of 2,000+ car models, seat capacity, fuel consumption ratio).
+  - If **pending approval (`hasVehicle === "1"`)**: Alerts user that credentials are being vetted by the corporate administrator.
+  - If **verified driver (`hasVehicle === "2"`)**: Opens the **Algorithmic Route Publisher Modal** (origin, destination tech park, departure time, seat count, and auto-calculated fuel split).
+
+### H. Zero-Cash Policy & Wallet System
+- **In-App Commute Wallet**: Eliminates awkward cash payments between colleagues at drop-off.
+- **Automated Drop-Off Settlement**: When a ride completes, the rider's wallet is debited and the driver's wallet is credited automatically.
+- **Razorpay SDK Integration**: Dynamic top-up modal with predefined amounts (`₹100`, `₹250`, `₹500`, `₹1,000`).
+- **Double-Entry Ledger**: Tracks all transactions (`fare_deduction`, `driver_earnings`, `company_subsidy`, `wallet_topup`, `refund`).
+
+### I. Real-Time Communications & Safety
+- **WebRTC Voice Calling**: Free, direct browser-to-browser voice calling without exposing personal phone numbers.
+- **Socket.io Live Ride Chat**: Encrypted room-isolated chat between booked passengers and the driver.
+- **Driver Pickup OTP Handshake**: Driver cannot start the ride without entering the passenger's 4-digit OTP, preventing ghost pickups.
+- **Emergency SOS Modal**: Instant broadcast to campus security and emergency contacts.
+
+### J. B2B Corporate HR & ESG Impact Dashboard
+- Dedicated campus portal for HR and corporate facility managers (`/admin`):
+  - **Live Metrics**: Total carpool rides completed, Total CO₂ emissions saved (kg), and Campus parking spaces freed today.
+  - **Campus Congestion Simulator**: Interactive slider (0 to 1,000 employees) dynamically calculating peak-hour traffic reduction.
+  - **Driver Verification Queue**: Administrator interface to approve or reject pending driver licenses and car registrations in real-time via WebSockets.
+
+### K. One-Click Windows Launch Scripts
+- `run.bat`: Master Windows startup script that launches the Node backend on port 5000 and Vite frontend on port 5173 in separate, cleanly titled consoles, checks health, and auto-opens the browser at `http://localhost:5173`.
+- `start.bat`: Convenience wrapper for `run.bat`.
+- `stop.bat`: One-click process termination that frees ports 5000 and 5173 cleanly.
+
+---
+
+## 4. Database Schema Overview
+
+```
++---------------------------------------------------------------------------------+
+|                                 DATABASE SCHEMA                                 |
++---------------------------------------------------------------------------------+
+
+  +----------------------+          +----------------------+
+  |        users         |          | rider_verifications  |
+  +----------------------+          +----------------------+
+  | emp_id (PK)          |<---------| emp_id (FK)          |
+  | name                 |          | dl_no                |
+  | email (UNIQUE)       |          | vehicle_no           |
+  | org_name             |          | vehicle_model        |
+  | phone                |          | seating_capacity     |
+  | role (employee/admin)|          | fuel_consumption_ratio|
+  | rider_type           |          | insurance_no         |
+  | password_hash        |          | status (pending/appr)|
+  | is_vehicle_registered|          +----------------------+
+  | passenger_rating     |
+  | driving_rating       |          +----------------------+
+  +----------------------+          |       vehicles       |
+            |                       +----------------------+
+            +---------------------->| veh_id (PK)          |
+            |                       | veh_no (UNIQUE)      |
+            |                       | emp_id (FK)          |
+            |                       | vehicle_model        |
+            |                       | seating_capacity     |
+            |                       +----------------------+
+            |                                  |
+            v                                  v
+  +----------------------+          +----------------------+
+  |       wallets        |          |        rides         |
+  +----------------------+          +----------------------+
+  | wallet_id (PK)       |          | ride_id (PK)         |
+  | emp_id (FK, UNIQUE)  |          | driver_id (FK)       |
+  | balance              |          | veh_no (FK)          |
+  +----------------------+          | origin (JSONB)       |
+            |                       | destination (JSONB)  |
+            v                       | departure_time       |
+  +----------------------+          | available_seats      |
+  | wallet_transactions  |          | fare_per_seat        |
+  +----------------------+          | status               |
+  | transaction_id (PK)  |          | polyline (TEXT)      |
+  | emp_id (FK)          |          +----------------------+
+  | ride_id (FK)         |                     |
+  | type                 |                     v
+  | amount               |          +----------------------+
+  | description          |          |       bookings       |
+  +----------------------+          +----------------------+
+                                    | booking_id (PK)      |
+                                    | ride_id (FK)         |
+                                    | passenger_id (FK)    |
+                                    | pickup_location      |
+                                    | dropoff_location     |
+                                    | booking_status       |
+                                    | payment_status       |
+                                    | otp                  |
+                                    | fare_amount          |
+                                    +----------------------+
+```
+
+---
+
+## 5. API Routes Reference
+
+### Authentication (`/auth`)
+- `POST /auth/signup` — Registers employee, validates corporate domain, hashes password, triggers OTP.
+- `POST /auth/verify-2fa` — Verifies corporate OTP and returns JWT token + user profile.
+- `POST /auth/login` — Corporate email + password authentication.
+- `GET /auth/me` — Fetches active profile, wallet balance, and driver verification state.
+- `POST /auth/logout` — Destroys session token.
+
+### Rides & Commute (`/rides`)
+- `GET /rides` — Geospatial discovery within 10 km radius with gender, tech park, and seat filtering.
+- `POST /publish-ride` — Publishes commute with algorithmic price calculation.
+- `POST /book-ride` — Locks available seat, places fare in escrow, generates pickup OTP.
+- `GET /rides/driver/active` — Fetches driver's currently active ride, route, and booked passengers.
+- `GET /rides/passenger/active` — Fetches passenger's booked ride status, driver details, and OTP.
+- `POST /pickup-ride` — Driver enters passenger OTP to verify physical onboarding.
+- `POST /finish-ride` — Completes trip, executes wallet settlement, opens star ratings.
+
+### Vehicle Verification (`/register-vehicle`, `/admin`)
+- `POST /register-vehicle` — Enters vehicle and DL into administrative approval queue.
+- `GET /admin/verifications` — Lists pending driver applications for campus admins.
+- `POST /admin/verify-rider` — Approves or rejects driver with real-time WebSocket alert.
+- `GET /admin/impact-metrics` — Supplies ESG carbon savings and parking space analytics.
+
+### Wallet & Payments (`/wallet`)
+- `GET /wallet/balance` — Returns user's balance and ledger history.
+- `POST /wallet/topup` — Simulates/processes Razorpay gateway wallet recharge.
+- `POST /wallet/transfer` — Executes escrow release and fuel cost-split transfer.
+
+---
+
+## 6. Git Commit Highlights (Chronological Track)
+
+- `390ea59` — **feat(ui):** Complete Uber-style mobile-first redesign with fullscreen map canvas and dedicated smart ride publisher.
+- `5cc0c1e` — **fix(signup):** Restore mobile phone number input in registration form with phone icon and validation.
+- `12e2368` — **feat:** Add one-click Windows launch and stop batch scripts (`run.bat`, `start.bat`, `stop.bat`).
+- `ae31ef3` — **feat:** Implement Pitch Deck specifications: Digital ID card, Work Email Wall, Algorithmic Pricing, Glowing Route Neon Line, Female-only filter, Engine 2 backup, and B2B Impact Screen.
+- `6ffecac` — **feat:** Full product rebrand to Norimono, corporate wallet subsidies, and H3 corridor en-route ridesharing.
+- `94e5e5f` — **fix:** Seat booking race condition resolution, chat socket integration, and custom alert modals.
+- `f23dd91` — **security:** Add DOMPurify sanitization across chat, AI responses, live sockets, and feedback endpoints.
+
+---
+
+## 7. Next Phase Roadmap: Dedicated Driver Cockpit UI Prototype
+
+The next development phase will focus on creating the **Dedicated Driver Cockpit Experience**:
+
+1. **Driver Switch & Status Toggle**:
+   - Clean "Driver Mode" interface launched from the header's `[ 🚗 Offer Ride ]` button.
+   - Status toggle: `Offline` vs `Online (Ready for Commute Passengers)`.
+2. **Reverse Uber Turn-by-Turn Corridor View**:
+   - Driver sees their exact daily commute route locked in glowing Neon.
+   - Real-time pop-up notifications when a verified coworker requests a pickup directly along that specific line.
+3. **Driver Pickup Keypad**:
+   - Quick 4-digit keypad UI for the driver to enter passenger OTP upon boarding.
+4. **Instant Fuel Offset Settlement Screen**:
+   - Summary card upon dropping off coworkers: "₹135 credited to fuel wallet • 2 coworkers dropped off at Ecospace • 8.4 kg CO₂ prevented".
+5. **Mobile PWA / Native App Export Configuration**:
+   - Capacitor configuration files for 1-click APK and iOS packaging.
+
+---
+*Created by Google DeepMind Advanced Agentic Coding for the Norimono Engineering Team.*
