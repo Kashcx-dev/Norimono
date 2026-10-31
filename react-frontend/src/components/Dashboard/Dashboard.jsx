@@ -171,14 +171,52 @@ function Dashboard() {
 			}
 		};
 
+		// Real-time seat count updates across all browsing clients
+		const handleSeatsUpdated = (data) => {
+			if (!data || !data.ride_id) return;
+			setNearbyRides((prev) =>
+				prev.map((r) =>
+					Number(r.ride_id) === Number(data.ride_id)
+						? { ...r, available_seats: Number(data.available_seats) }
+						: r
+				)
+			);
+			setSelectedRide((curr) => {
+				if (curr && Number(curr.ride_id) === Number(data.ride_id)) {
+					return { ...curr, available_seats: Number(data.available_seats) };
+				}
+				return curr;
+			});
+		};
+
+		// Real-time refresh for driver when any passenger books or updates
+		const handleDriverRefresh = (data) => {
+			fetchDriverActiveRide();
+		};
+
+		// Direct notification when someone books the driver's ride
+		const handleNotification = (data) => {
+			const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+			if (data && data.target_emp_id === currentUser.emp_id) {
+				showAlert(data.message, data.title || "Norimono Alert", "info");
+				fetchDriverActiveRide();
+			}
+		};
+
 		socket.on("incoming_call", handleIncomingCall);
 		socket.on("voice_signal", handleVoiceSignal);
 		socket.on("rider_verification_status", handleVerificationUpdate);
+		socket.on("ride_seats_updated", handleSeatsUpdated);
+		socket.on("driver_refresh_bookings", handleDriverRefresh);
+		socket.on("new_notification", handleNotification);
 
 		return () => {
 			socket.off("incoming_call", handleIncomingCall);
 			socket.off("voice_signal", handleVoiceSignal);
 			socket.off("rider_verification_status", handleVerificationUpdate);
+			socket.off("ride_seats_updated", handleSeatsUpdated);
+			socket.off("driver_refresh_bookings", handleDriverRefresh);
+			socket.off("new_notification", handleNotification);
 		};
 	}, []);
 

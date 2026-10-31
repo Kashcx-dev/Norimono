@@ -192,12 +192,13 @@ router.get('/driver/active', async (req, res, next) => {
 
         const activeRide = rideResult.rows[0];
 
-        // Query to get bookings for this ride
+        // Query to get bookings for this ride with individual passenger profiles
         const bookingsQuery = `
             SELECT b.booking_id, b.passenger_id, b.pickup_location, b.dropoff_location, 
-                   b.booking_status, b.payment_status, 
+                   b.booking_status, b.payment_status, b.is_en_route, b.created_at as booking_time,
                    r.fare_per_seat,
-                   u.name as passenger_name, u.phone as passenger_phone
+                   u.name as passenger_name, u.phone as passenger_phone, u.org_name, 
+                   u.gender, u.designation, u.department, u.email as passenger_email
             FROM bookings b
             JOIN rides r ON b.ride_id = r.ride_id
             JOIN users u ON b.passenger_id = u.emp_id

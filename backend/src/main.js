@@ -38,10 +38,17 @@ app.set("socketio", io);
 app.set('trust proxy', 1); // Trust first proxy (solves the X-Forwarded-For rate limit error)
 const PORT = process.env.PORT || 3000;
 
+const fs = require("fs");
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "../../react-frontend")));
+
+const distPath = path.join(__dirname, "../../react-frontend/dist");
+if (fs.existsSync(distPath)) {
+    app.use(express.static(distPath));
+} else {
+    app.use(express.static(path.join(__dirname, "../../react-frontend")));
+}
 
 // Global limiter (optional)
 // app.use(API_Limiter("standard")); 
@@ -131,6 +138,18 @@ io.on("connection", (socket) => {
 	socket.on("disconnect", () => {
 		console.log(`[Socket.io] Client disconnected: ${socket.id}`);
 	});
+});
+
+// SPA fallback for frontend client routing
+app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/auth") || req.path.startsWith("/rides") || req.path.startsWith("/book-ride") || req.path.startsWith("/publish-ride") || req.path.startsWith("/pickup-ride") || req.path.startsWith("/finish-ride") || req.path.startsWith("/drop-passenger") || req.path.startsWith("/admin") || req.path.startsWith("/wallet") || req.path.startsWith("/feedback") || req.path.startsWith("/chat") || req.path.startsWith("/history") || req.path.startsWith("/rate") || req.path.startsWith("/h3")) {
+        return next();
+    }
+    const indexPath = path.join(__dirname, "../../react-frontend/dist/index.html");
+    if (fs.existsSync(indexPath)) {
+        return res.sendFile(indexPath);
+    }
+    next();
 });
 
 // error handlers

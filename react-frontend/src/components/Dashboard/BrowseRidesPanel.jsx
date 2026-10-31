@@ -103,6 +103,12 @@ export default function BrowseRidesPanel({
 		const empId = user.emp_id || "EMP-DEFAULT";
 		const fare = ride.fare_per_seat || 45;
 
+		const seatsRemaining = ride.available_seats !== undefined && ride.available_seats !== null ? Number(ride.available_seats) : 3;
+		if (seatsRemaining <= 0) {
+			showAlert("Sorry, this ride is already fully booked! No seats remaining.", "Ride Full", "warning");
+			return;
+		}
+
 		setBookingLoading(true);
 
 		try {
@@ -501,10 +507,20 @@ export default function BrowseRidesPanel({
 											<Clock className="w-3.5 h-3.5 text-gray-400" />
 											{timeStr}
 										</span>
-										<span className="flex items-center gap-1 font-semibold text-[#00A09D]">
-											<Users className="w-3.5 h-3.5" />
-											{ride.available_seats || 3} seats left
-										</span>
+										{(() => {
+											const seatsLeft = ride.available_seats !== undefined && ride.available_seats !== null ? Number(ride.available_seats) : 3;
+											return seatsLeft <= 0 ? (
+												<span className="flex items-center gap-1 font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+													<Users className="w-3.5 h-3.5" />
+													Full (0 seats left)
+												</span>
+											) : (
+												<span className="flex items-center gap-1 font-semibold text-[#00A09D]">
+													<Users className="w-3.5 h-3.5" />
+													{seatsLeft} {seatsLeft === 1 ? "seat" : "seats"} left
+												</span>
+											);
+										})()}
 									</div>
 
 									<div className="flex items-center gap-2">
@@ -518,35 +534,59 @@ export default function BrowseRidesPanel({
 											Map View
 										</button>
 
-										{activeTrip && (activeTrip.ride?.ride_id === ride.ride_id || activeTrip.ride_id === ride.ride_id) ? (
-											<button
-												onClick={(e) => {
-													e.stopPropagation();
-													if (onBack) onBack();
-												}}
-												className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-extrabold rounded-lg shadow-xs transition-all flex items-center gap-1 cursor-pointer"
-											>
-												⏳ Seat Requested (View Request)
-											</button>
-										) : activeTrip ? (
-											<button
-												disabled
-												className="px-3.5 py-1.5 bg-gray-100 border border-gray-200 text-gray-400 text-xs font-bold rounded-lg cursor-not-allowed flex items-center gap-1"
-												title="You already have an active seat request in this time slot!"
-											>
-												Slot Requested
-											</button>
-										) : (
-											<button
-												onClick={(e) => {
-													e.stopPropagation();
-													setBookingModalRide(ride);
-												}}
-												className="px-3.5 py-1.5 bg-[#00A09D] hover:bg-[#008f8c] text-white text-xs font-bold rounded-lg shadow-xs transition-all flex items-center gap-1 cursor-pointer"
-											>
-												Request Seat
-											</button>
-										)}
+										{(() => {
+											const seatsLeft = ride.available_seats !== undefined && ride.available_seats !== null ? Number(ride.available_seats) : 3;
+
+											if (activeTrip && (activeTrip.ride?.ride_id === ride.ride_id || activeTrip.ride_id === ride.ride_id)) {
+												return (
+													<button
+														onClick={(e) => {
+															e.stopPropagation();
+															if (onBack) onBack();
+														}}
+														className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-extrabold rounded-lg shadow-xs transition-all flex items-center gap-1 cursor-pointer"
+													>
+														⏳ Seat Requested (View Request)
+													</button>
+												);
+											}
+
+											if (activeTrip) {
+												return (
+													<button
+														disabled
+														className="px-3.5 py-1.5 bg-gray-100 border border-gray-200 text-gray-400 text-xs font-bold rounded-lg cursor-not-allowed flex items-center gap-1"
+														title="You already have an active seat request in this time slot!"
+													>
+														Slot Requested
+													</button>
+												);
+											}
+
+											if (seatsLeft <= 0) {
+												return (
+													<button
+														disabled
+														className="px-3.5 py-1.5 bg-slate-100 border border-slate-200 text-slate-400 text-xs font-bold rounded-lg cursor-not-allowed select-none"
+														title="This ride is completely full. No seats available."
+													>
+														Ride Full
+													</button>
+												);
+											}
+
+											return (
+												<button
+													onClick={(e) => {
+														e.stopPropagation();
+														setBookingModalRide(ride);
+													}}
+													className="px-3.5 py-1.5 bg-[#00A09D] hover:bg-[#008f8c] text-white text-xs font-bold rounded-lg shadow-xs transition-all flex items-center gap-1 cursor-pointer"
+												>
+													Request Seat
+												</button>
+											);
+										})()}
 									</div>
 								</div>
 							</div>

@@ -106,7 +106,10 @@ router.post('/', async (req, res, next) => {
 
         const io = req.app.get("socketio");
         if (io) {
+            // Notify driver both on the ride room and on their personal user socket room
             io.to(`ride_${ride_id}`).emit('driver_refresh_bookings');
+            io.to(`user_${ride.driver_id}`).emit('driver_refresh_bookings', { ride_id: Number(ride_id) });
+            io.emit('driver_refresh_bookings', { ride_id: Number(ride_id) });
             
             if (isEnRoute) {
                 io.to(`ride_${ride_id}`).emit('en_route_pickup_alert', {
@@ -120,8 +123,8 @@ router.post('/', async (req, res, next) => {
                 });
             }
 
-            // Emit notification to driver
-            io.emit('new_notification', {
+            // Emit direct notification to driver
+            io.to(`user_${ride.driver_id}`).emit('new_notification', {
                 target_emp_id: ride.driver_id,
                 title: isEnRoute ? "⚡ En-Route Pickup Request" : "New Ride Booking",
                 message: isEnRoute
@@ -131,10 +134,10 @@ router.post('/', async (req, res, next) => {
                 timestamp: new Date().toISOString()
             });
 
-            // Emit seat count update so browse panels refresh
+            // Emit seat count update globally so browse panels refresh live for all users
             io.emit('ride_seats_updated', {
-                ride_id: ride_id,
-                available_seats: seatResult.rows[0].available_seats
+                ride_id: Number(ride_id),
+                available_seats: Number(seatResult.rows[0].available_seats)
             });
         }
 
