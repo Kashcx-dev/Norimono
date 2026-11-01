@@ -448,7 +448,7 @@ function Dashboard() {
 							/>
 						</div>
 					) : viewMode === "browse" ? (
-						<div className="overflow-y-auto max-h-[75vh]">
+						<div className="flex flex-col max-h-[82vh] overflow-hidden">
 							<BrowseRidesPanel
 								rides={nearbyRides}
 								loading={loadingNearby}

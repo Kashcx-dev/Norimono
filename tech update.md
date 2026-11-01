@@ -250,7 +250,9 @@ Traditional ridesharing (Ola/Uber) suffers from surge pricing, driver cancellati
 
 ## 6. Git Commit Highlights (Chronological Track)
 
-- `[Current]` — **feat(blablacar):** Full BlaBlaCar replica features: Chattiness Meter (Bla/BlaBla/BlaBlaBla), Ride Amenities (AC, No Smoking, Music, Max 2 in back comfort guarantee), En-Route Corridor Stopovers, Luggage capacity tiers, Instant Booking, and Recurring Commutes.
+- `[Current]` — **feat(ui):** Minimalist search results view: stripped bulky covers, search inputs, and disclaimers from `BrowseRidesPanel.jsx`; added ultra-compact header with `Edit Route`, `Female-Only` toggle, and small results count pill so colleague rides are immediately visible and scrollable.
+- `ee64b24` — **fix(auth):** Streamline login flow, auto-align corporate organization, and support global top-level domains (`.in`, `.org`, `.co.in`).
+- `6a94ec6` — **feat(blablacar):** Full BlaBlaCar replica features: Chattiness Meter (Bla/BlaBla/BlaBlaBla), Ride Amenities (AC, No Smoking, Music, Max 2 in back comfort guarantee), En-Route Corridor Stopovers, Luggage capacity tiers, Instant Booking, and Recurring Commutes.
 - `addeabf` — **feat(ui):** Convert verification alerts to auto-fading glass toasts; add dynamic "Show Registered Vehicles" modal to Profile and Navigation with real-time status tracking.
 - `622220e` — **fix(backend):** Fix Node 24 / Express 5 `path-to-regexp` crash by replacing unparameterized wildcard route with pathless SPA middleware.
 - `c65e4d5` — **feat(driver):** Implement dedicated Driver Cockpit UI, individual passenger entity isolation, real-time Socket.io seat count synchronization, and PostgreSQL row-level transaction locks (`FOR UPDATE`) preventing double-booking and double-settlement race conditions.
