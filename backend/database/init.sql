@@ -83,6 +83,14 @@ CREATE TABLE rides (
     subsidy_per_seat DECIMAL(10, 2) DEFAULT 0.00,
     status VARCHAR(20) DEFAULT 'scheduled', -- scheduled, in_progress, completed, cancelled
     polyline TEXT, -- To store OSRM route data later
+    is_female_only BOOLEAN DEFAULT FALSE,
+    destination_tech_park VARCHAR(150),
+    allow_neighbor_companies BOOLEAN DEFAULT TRUE,
+    target_arrival_time VARCHAR(20) DEFAULT '08:50 AM',
+    preferences JSONB DEFAULT '{"chattiness":"blabla","ac":true,"smoking":false,"music":true,"luggage":"medium","max_two_back":true}',
+    stopovers JSONB DEFAULT '[]',
+    is_recurring BOOLEAN DEFAULT FALSE,
+    instant_booking BOOLEAN DEFAULT TRUE,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -101,6 +109,9 @@ CREATE TABLE bookings (
     otp VARCHAR(10), -- For driver verification upon pickup
     fare_amount DECIMAL(10, 2),
     is_en_route BOOLEAN DEFAULT FALSE,
+    luggage_size VARCHAR(20) DEFAULT 'medium', -- small, medium, large
+    passenger_notes TEXT,
+    selected_stopover VARCHAR(100),
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

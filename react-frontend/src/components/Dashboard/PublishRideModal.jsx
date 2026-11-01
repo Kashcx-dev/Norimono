@@ -14,7 +14,16 @@ import {
 	Lock,
 	CheckCircle2,
 	Clock,
-	Heart
+	Heart,
+	MessageSquare,
+	Wind,
+	Cigarette,
+	Music,
+	Briefcase,
+	Zap,
+	Repeat,
+	Plus,
+	Trash2
 } from "lucide-react";
 import { fetchPlaceSuggestions } from "../../utils/geoService";
 import { POPULAR_TECH_PARKS } from "../../utils/companyBadges";
@@ -34,6 +43,20 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 	const [fare, setFare] = useState("45");
 	const [fareBreakdown, setFareBreakdown] = useState(null);
 	const [estimatingFare, setEstimatingFare] = useState(false);
+
+	// BlaBlaCar Preferences
+	const [chattiness, setChattiness] = useState("blabla"); // 'bla', 'blabla', 'blablabla'
+	const [acEnabled, setAcEnabled] = useState(true);
+	const [noSmoking, setNoSmoking] = useState(true);
+	const [musicEnabled, setMusicEnabled] = useState(true);
+	const [maxTwoBack, setMaxTwoBack] = useState(true);
+	const [luggageSize, setLuggageSize] = useState("medium"); // 'small', 'medium', 'large'
+	const [instantBooking, setInstantBooking] = useState(true);
+	const [isRecurring, setIsRecurring] = useState(false);
+
+	// Intermediate Stopovers
+	const [stopovers, setStopovers] = useState([]);
+	const [stopoverInput, setStopoverInput] = useState("");
 
 	const [originSuggestions, setOriginSuggestions] = useState([]);
 	const [destSuggestions, setDestSuggestions] = useState([]);
@@ -204,7 +227,18 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 					subsidy_per_seat: fareBreakdown ? fareBreakdown.subsidyPerSeat : undefined,
 					is_female_only: isFemaleOnly,
 					destination_tech_park: selectedTechPark || destData.address || destInput,
-					target_arrival_time: targetArrivalTime
+					target_arrival_time: targetArrivalTime,
+					preferences: {
+						chattiness,
+						ac: acEnabled,
+						smoking: !noSmoking,
+						music: musicEnabled,
+						luggage: luggageSize,
+						max_two_back: maxTwoBack
+					},
+					stopovers,
+					is_recurring: isRecurring,
+					instant_booking: instantBooking
 				}),
 			});
 
@@ -466,6 +500,248 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 								/>
 								<div className="w-10 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-500"></div>
 							</label>
+						</div>
+
+						{/* Recurring Commute & Instant Booking Quick Toggles */}
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+							<div className="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-between">
+								<div className="flex items-center gap-2">
+									<Repeat className={`w-4 h-4 ${isRecurring ? "text-teal-600" : "text-slate-400"}`} />
+									<div>
+										<p className="text-xs font-bold text-slate-800">Recurring Commute</p>
+										<p className="text-[10px] text-slate-500">Mon-Fri Daily Office</p>
+									</div>
+								</div>
+								<input
+									type="checkbox"
+									checked={isRecurring}
+									onChange={(e) => setIsRecurring(e.target.checked)}
+									className="w-4 h-4 accent-teal-600 rounded cursor-pointer"
+								/>
+							</div>
+
+							<div className="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-between">
+								<div className="flex items-center gap-2">
+									<Zap className={`w-4 h-4 ${instantBooking ? "text-amber-500" : "text-slate-400"}`} />
+									<div>
+										<p className="text-xs font-bold text-slate-800">Instant Booking</p>
+										<p className="text-[10px] text-slate-500">Auto-confirm seats</p>
+									</div>
+								</div>
+								<input
+									type="checkbox"
+									checked={instantBooking}
+									onChange={(e) => setInstantBooking(e.target.checked)}
+									className="w-4 h-4 accent-teal-600 rounded cursor-pointer"
+								/>
+							</div>
+						</div>
+
+						{/* BlaBlaCar Commute Preferences & Chattiness Meter */}
+						<div className="p-4 bg-slate-50/80 border border-slate-200 rounded-2xl space-y-3">
+							<div className="flex items-center justify-between pb-2 border-b border-slate-200/60">
+								<div className="flex items-center gap-2">
+									<MessageSquare className="w-4 h-4 text-purple-600" />
+									<span className="text-xs font-black uppercase tracking-wider text-slate-800">
+										BlaBlaCar Commute Preferences
+									</span>
+								</div>
+								<span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
+									BlaBla Meter
+								</span>
+							</div>
+
+							{/* Chattiness Meter (Bla / BlaBla / BlaBlaBla) */}
+							<div className="space-y-1.5">
+								<label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+									Chattiness Preference
+								</label>
+								<div className="grid grid-cols-3 gap-1.5 text-center">
+									{[
+										{ id: "bla", label: "Bla", desc: "Quiet & focused" },
+										{ id: "blabla", label: "BlaBla", desc: "Friendly chat" },
+										{ id: "blablabla", label: "BlaBlaBla", desc: "Super chatty" }
+									].map((item) => (
+										<button
+											key={item.id}
+											type="button"
+											onClick={() => setChattiness(item.id)}
+											className={`p-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+												chattiness === item.id
+													? "bg-[#714B67] text-white border-[#714B67] shadow-xs"
+													: "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
+											}`}
+										>
+											<span className="block font-black text-xs">{item.label}</span>
+											<span className={`block text-[9px] font-normal mt-0.5 ${chattiness === item.id ? "text-purple-200" : "text-slate-400"}`}>
+												{item.desc}
+											</span>
+										</button>
+									))}
+								</div>
+							</div>
+
+							{/* Amenities Chips (AC, Smoking, Music, Max 2 in back) */}
+							<div className="space-y-1.5 pt-1">
+								<label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+									Ride Amenities & Rules
+								</label>
+								<div className="flex flex-wrap gap-1.5">
+									<button
+										type="button"
+										onClick={() => setAcEnabled(!acEnabled)}
+										className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
+											acEnabled
+												? "bg-sky-50 text-sky-700 border-sky-300"
+												: "bg-white text-slate-400 border-slate-200 opacity-60"
+										}`}
+									>
+										<Wind className="w-3.5 h-3.5" />
+										<span>❄️ AC {acEnabled ? "On" : "Off"}</span>
+									</button>
+
+									<button
+										type="button"
+										onClick={() => setNoSmoking(!noSmoking)}
+										className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
+											noSmoking
+												? "bg-emerald-50 text-emerald-700 border-emerald-300"
+												: "bg-white text-slate-400 border-slate-200 opacity-60"
+										}`}
+									>
+										<Cigarette className="w-3.5 h-3.5" />
+										<span>🚭 {noSmoking ? "No Smoking" : "Smoking Allowed"}</span>
+									</button>
+
+									<button
+										type="button"
+										onClick={() => setMusicEnabled(!musicEnabled)}
+										className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
+											musicEnabled
+												? "bg-purple-50 text-purple-700 border-purple-300"
+												: "bg-white text-slate-400 border-slate-200 opacity-60"
+										}`}
+									>
+										<Music className="w-3.5 h-3.5" />
+										<span>🎵 {musicEnabled ? "Music / Podcasts" : "Quiet Ride"}</span>
+									</button>
+
+									<button
+										type="button"
+										onClick={() => setMaxTwoBack(!maxTwoBack)}
+										className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
+											maxTwoBack
+												? "bg-teal-50 text-teal-700 border-teal-300"
+												: "bg-white text-slate-400 border-slate-200 opacity-60"
+										}`}
+										title="Guarantees the middle rear seat is empty for coworker comfort"
+									>
+										<Users className="w-3.5 h-3.5" />
+										<span>👥 Max 2 in Back {maxTwoBack ? "✓" : "✕"}</span>
+									</button>
+								</div>
+							</div>
+
+							{/* Luggage Allowance */}
+							<div className="space-y-1.5 pt-1">
+								<label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+									Luggage Allowance
+								</label>
+								<div className="grid grid-cols-3 gap-1.5">
+									{[
+										{ id: "small", label: "🎒 Small", sub: "Backpack / Laptop" },
+										{ id: "medium", label: "🧳 Medium", sub: "Cabin Trolley" },
+										{ id: "large", label: "📦 Large", sub: "Full Trunk Luggage" }
+									].map((lug) => (
+										<button
+											key={lug.id}
+											type="button"
+											onClick={() => setLuggageSize(lug.id)}
+											className={`p-2 rounded-xl border text-left transition-all cursor-pointer ${
+												luggageSize === lug.id
+													? "bg-teal-50 border-teal-500 text-teal-900"
+													: "bg-white border-slate-200 text-slate-600 hover:bg-slate-100"
+											}`}
+										>
+											<span className="text-xs font-extrabold block">{lug.label}</span>
+											<span className="text-[9px] text-slate-400 block truncate">{lug.sub}</span>
+										</button>
+									))}
+								</div>
+							</div>
+						</div>
+
+						{/* Intermediate Corridor Stopovers (BlaBlaCar Waypoints) */}
+						<div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-2">
+							<div className="flex items-center justify-between">
+								<label className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+									<MapPin className="w-3.5 h-3.5 text-teal-600" /> En-Route Stopovers
+								</label>
+								<span className="text-[10px] text-slate-400 font-medium">Pickup/drop along the way</span>
+							</div>
+
+							{/* Current Stopovers List */}
+							{stopovers.length > 0 && (
+								<div className="space-y-1.5">
+									{stopovers.map((stop, idx) => (
+										<div key={idx} className="flex items-center justify-between px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs">
+											<span className="flex items-center gap-2 font-semibold text-slate-800">
+												<span className="w-4 h-4 rounded-full bg-teal-100 text-teal-800 text-[10px] font-black flex items-center justify-center">{idx + 1}</span>
+												{stop}
+											</span>
+											<button
+												type="button"
+												onClick={() => setStopovers(stopovers.filter((_, i) => i !== idx))}
+												className="text-slate-400 hover:text-rose-500 transition-colors cursor-pointer"
+											>
+												<Trash2 className="w-3.5 h-3.5" />
+											</button>
+										</div>
+									))}
+								</div>
+							)}
+
+							{/* Add Stopover input */}
+							<div className="flex gap-2">
+								<input
+									type="text"
+									placeholder="e.g. Silk Board Junction or Bellandur Gate"
+									value={stopoverInput}
+									onChange={(e) => setStopoverInput(e.target.value)}
+									className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+								/>
+								<button
+									type="button"
+									onClick={() => {
+										if (stopoverInput.trim() && !stopovers.includes(stopoverInput.trim())) {
+											setStopovers([...stopovers, stopoverInput.trim()]);
+											setStopoverInput("");
+										}
+									}}
+									className="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer flex items-center gap-1"
+								>
+									<Plus className="w-3.5 h-3.5" /> Add
+								</button>
+							</div>
+
+							{/* Quick Preset Tech Park Chips */}
+							<div className="flex items-center gap-1 overflow-x-auto pt-1 pb-0.5 text-[10px]">
+								<span className="text-slate-400 shrink-0 font-bold uppercase text-[9px]">Corridor Presets:</span>
+								{POPULAR_TECH_PARKS.slice(0, 4).map((park) => (
+									<button
+										key={park.id}
+										type="button"
+										onClick={() => {
+											if (!stopovers.includes(park.name)) {
+												setStopovers([...stopovers, park.name]);
+											}
+										}}
+										className="px-2 py-0.5 bg-white hover:bg-teal-50 text-slate-600 hover:text-teal-700 border border-slate-200 rounded-md whitespace-nowrap cursor-pointer transition-colors"
+									>
+										+ {park.name.split(" ")[0]}
+									</button>
+								))}
+							</div>
 						</div>
 
 						<div className="grid grid-cols-2 gap-4">

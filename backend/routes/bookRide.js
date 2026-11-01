@@ -6,7 +6,7 @@ const crypto = require('crypto');
 router.post('/', async (req, res, next) => {
     const client = await db.getClient();
     try {
-        const { ride_id, pickup_location, dropoff_location } = req.body;
+        const { ride_id, pickup_location, dropoff_location, luggage_size, passenger_notes, selected_stopover } = req.body;
         const requestedSeats = Math.max(1, parseInt(req.body.seats_count || 1));
 
         // Ensure user is authenticated
@@ -85,9 +85,9 @@ router.post('/', async (req, res, next) => {
             INSERT INTO bookings (
                 ride_id, passenger_id, pickup_location, 
                 dropoff_location, booking_status, payment_status, otp,
-                fare_amount, is_en_route
+                fare_amount, is_en_route, luggage_size, passenger_notes, selected_stopover
             ) 
-            VALUES ($1, $2, $3, $4, 'confirmed', 'pending', $5, $6, $7) 
+            VALUES ($1, $2, $3, $4, 'confirmed', 'pending', $5, $6, $7, $8, $9, $10) 
             RETURNING booking_id
         `;
         
@@ -98,7 +98,10 @@ router.post('/', async (req, res, next) => {
             dropoff_location, 
             otp,
             fareAmount,
-            isEnRoute
+            isEnRoute,
+            luggage_size || 'medium',
+            passenger_notes || null,
+            selected_stopover || null
         ]);
 
         await client.query('COMMIT');

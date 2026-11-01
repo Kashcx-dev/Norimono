@@ -111,6 +111,39 @@ Traditional ridesharing (Ola/Uber) suffers from surge pricing, driver cancellati
 - `start.bat`: Convenience wrapper for `run.bat`.
 - `stop.bat`: One-click process termination that frees ports 5000 and 5173 cleanly.
 
+### L. BlaBlaCar Replica Features & Ride Customizations
+- **The "BlaBla" Chattiness Scale**:
+  - `Bla` (Quiet): Prefer a peaceful commute, work focus, or quiet journey.
+  - `BlaBla` (Friendly): Open to casual conversations and light workplace chat.
+  - `BlaBlaBla` (Chatty): Enjoys lively conversations, storytelling, and networking.
+  - Displayed visually as badges on every ride card in the browse feed.
+- **Commute Comfort & Amenity Toggles**:
+  - `❄️ AC Enabled`: Guaranteed air conditioning for Bangalore/Hyderabad/Pune summers.
+  - `🚭 Strictly No Smoking`: Tobacco and vape-free vehicle environment.
+  - `🎵 Music / Podcasts Allowed`: Commute with music or podcasts enabled.
+  - `👥 Max 2 in the Back`: BlaBlaCar's signature comfort guarantee leaving the middle rear seat empty.
+  - `⚡ Instant Booking`: Guaranteed 1-tap immediate confirmation without waiting for driver manual approval.
+- **En-Route Corridor Stopovers & Intermediate Waypoints**:
+  - Drivers can declare intermediate tech-park waypoints (e.g. Silk Board, Marathahalli, Bellandur, Hebbal, HSR Layout, Tin Factory, Phoenix Marketcity).
+  - Stored in JSONB and displayed as waypoint corridor badges on ride cards.
+  - Passengers can select specific en-route stopovers as their pickup location during booking.
+- **Luggage Capacity Tiers**:
+  - Drivers define maximum allowed luggage size; passengers select their luggage size when booking:
+    - `🎒 Small` (Backpack / Laptop bag)
+    - `🧳 Medium` (Cabin roller / duffel bag)
+    - `📦 Large` (Large suitcase / travel bag)
+- **Passenger Pickup Notes**:
+  - When requesting a seat, passengers can provide specific pickup instructions (e.g., "Waiting by Main Gate 2 next to the ATM").
+- **Daily Office Commute (Mon-Fri) Recurring Flag**:
+  - Toggle to indicate recurring corporate commute patterns for carpooling circles.
+
+### M. Driver Verification Management & Profile Vehicles Modal
+- **Subtle Glass Notification Toasts**:
+  - Converted blocking modal verification alerts into auto-fading glass toasts (`AlertModal.jsx`) that disappear smoothly after 3.2 seconds.
+- **Dynamic "Show Registered Vehicles" Action**:
+  - Drivers who have completed registration (`hasVehicle >= 1`) now have a dedicated "Show Registered Vehicles" button in the Top Navigation and Profile Modal.
+  - Modal (`RegisteredVehiclesModal.jsx`) displays license plate, car model, seating capacity, fuel ratio, and live approval status (`Pending Verification` vs. `Corporate Verified`).
+
 ---
 
 ## 4. Database Schema Overview
@@ -134,11 +167,11 @@ Traditional ridesharing (Ola/Uber) suffers from surge pricing, driver cancellati
   | is_vehicle_registered|          +----------------------+
   | passenger_rating     |
   | driving_rating       |          +----------------------+
-  +----------------------+          |       vehicles       |
-            |                       +----------------------+
-            +---------------------->| veh_id (PK)          |
+  | reset_otp            |          |       vehicles       |
+  | reset_otp_expiry     |          +----------------------+
+  +----------------------+          | veh_id (PK)          |
             |                       | veh_no (UNIQUE)      |
-            |                       | emp_id (FK)          |
+            +---------------------->| emp_id (FK)          |
             |                       | vehicle_model        |
             |                       | seating_capacity     |
             |                       +----------------------+
@@ -157,12 +190,16 @@ Traditional ridesharing (Ola/Uber) suffers from surge pricing, driver cancellati
   | wallet_transactions  |          | fare_per_seat        |
   +----------------------+          | status               |
   | transaction_id (PK)  |          | polyline (TEXT)      |
-  | emp_id (FK)          |          +----------------------+
-  | ride_id (FK)         |                     |
-  | type                 |                     v
-  | amount               |          +----------------------+
-  | description          |          |       bookings       |
-  +----------------------+          +----------------------+
+  | emp_id (FK)          |          | preferences (JSONB)  | <-- Chattiness, AC, Smoking, Music, Max2Back, Luggage
+  | ride_id (FK)         |          | stopovers (JSONB)    | <-- En-route corridor waypoints
+  | type                 |          | is_recurring (BOOL)  | <-- Daily Mon-Fri office commute
+  | amount               |          | instant_booking(BOOL)| <-- Instant 1-tap seat confirmation
+  | description          |          +----------------------+
+  +----------------------+                     |
+                                               v
+                                    +----------------------+
+                                    |       bookings       |
+                                    +----------------------+
                                     | booking_id (PK)      |
                                     | ride_id (FK)         |
                                     | passenger_id (FK)    |
@@ -172,6 +209,9 @@ Traditional ridesharing (Ola/Uber) suffers from surge pricing, driver cancellati
                                     | payment_status       |
                                     | otp                  |
                                     | fare_amount          |
+                                    | luggage_size (TEXT)  | <-- Declared passenger luggage (small/medium/large)
+                                    | passenger_notes(TEXT)| <-- En-route pickup notes for driver
+                                    | selected_stopover    | <-- Chosen intermediate pickup point
                                     +----------------------+
 ```
 
@@ -187,10 +227,10 @@ Traditional ridesharing (Ola/Uber) suffers from surge pricing, driver cancellati
 - `POST /auth/logout` — Destroys session token.
 
 ### Rides & Commute (`/rides`)
-- `GET /rides` — Geospatial discovery within 10 km radius with gender, tech park, and seat filtering.
-- `POST /publish-ride` — Publishes commute with algorithmic price calculation.
-- `POST /book-ride` — Locks available seat, places fare in escrow, generates pickup OTP.
-- `GET /rides/driver/active` — Fetches driver's currently active ride, route, and booked passengers.
+- `GET /rides` — Geospatial discovery within 10 km radius with gender, tech park, and seat filtering. Supports BlaBlaCar query filters: `ac=true`, `instant=true`, `max_two_back=true`.
+- `POST /publish-ride` — Publishes commute with algorithmic price calculation, preferences (chattiness, AC, smoking, music, max 2 in back, luggage tier), stopovers JSONB, and recurring commute flag.
+- `POST /book-ride` — Locks available seat atomically with row-level locks, records declared luggage size, stopover choice, and custom pickup note, places fare in escrow, generates pickup OTP.
+- `GET /rides/driver/active` — Fetches driver's currently active ride, route, and booked passengers with luggage & note specs.
 - `GET /rides/passenger/active` — Fetches passenger's booked ride status, driver details, and OTP.
 - `POST /pickup-ride` — Driver enters passenger OTP to verify physical onboarding.
 - `POST /finish-ride` — Completes trip, executes wallet settlement, opens star ratings.
@@ -210,7 +250,10 @@ Traditional ridesharing (Ola/Uber) suffers from surge pricing, driver cancellati
 
 ## 6. Git Commit Highlights (Chronological Track)
 
-- `[Current]` — **feat(driver):** Implement dedicated Driver Cockpit UI, individual passenger entity isolation, real-time Socket.io seat count synchronization, and PostgreSQL row-level transaction locks (`FOR UPDATE`) preventing double-booking and double-settlement race conditions.
+- `[Current]` — **feat(blablacar):** Full BlaBlaCar replica features: Chattiness Meter (Bla/BlaBla/BlaBlaBla), Ride Amenities (AC, No Smoking, Music, Max 2 in back comfort guarantee), En-Route Corridor Stopovers, Luggage capacity tiers, Instant Booking, and Recurring Commutes.
+- `addeabf` — **feat(ui):** Convert verification alerts to auto-fading glass toasts; add dynamic "Show Registered Vehicles" modal to Profile and Navigation with real-time status tracking.
+- `622220e` — **fix(backend):** Fix Node 24 / Express 5 `path-to-regexp` crash by replacing unparameterized wildcard route with pathless SPA middleware.
+- `c65e4d5` — **feat(driver):** Implement dedicated Driver Cockpit UI, individual passenger entity isolation, real-time Socket.io seat count synchronization, and PostgreSQL row-level transaction locks (`FOR UPDATE`) preventing double-booking and double-settlement race conditions.
 - `390ea59` — **feat(ui):** Complete Uber-style mobile-first redesign with fullscreen map canvas and dedicated smart ride publisher.
 - `5cc0c1e` — **fix(signup):** Restore mobile phone number input in registration form with phone icon and validation.
 - `12e2368` — **feat:** Add one-click Windows launch and stop batch scripts (`run.bat`, `start.bat`, `stop.bat`).

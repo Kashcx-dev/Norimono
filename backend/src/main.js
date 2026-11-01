@@ -157,8 +157,40 @@ app.use((req, res, next) => {
 app.use(handle404);
 app.use(masterErrorHandler);
 
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
     console.log(`[Backend] is running on http://localhost:${PORT}`);
+    try {
+        const db = require("../handlers/dbHandler");
+        await db.query(`
+            DO $$ 
+            BEGIN 
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='rides' AND column_name='preferences') THEN 
+                    ALTER TABLE rides ADD COLUMN preferences JSONB DEFAULT '{"chattiness":"blabla","ac":true,"smoking":false,"music":true,"luggage":"medium","max_two_back":true}'::jsonb;
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='rides' AND column_name='stopovers') THEN 
+                    ALTER TABLE rides ADD COLUMN stopovers JSONB DEFAULT '[]'::jsonb;
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='rides' AND column_name='is_recurring') THEN 
+                    ALTER TABLE rides ADD COLUMN is_recurring BOOLEAN DEFAULT FALSE;
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='rides' AND column_name='instant_booking') THEN 
+                    ALTER TABLE rides ADD COLUMN instant_booking BOOLEAN DEFAULT TRUE;
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='bookings' AND column_name='luggage_size') THEN 
+                    ALTER TABLE bookings ADD COLUMN luggage_size VARCHAR(20) DEFAULT 'medium';
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='bookings' AND column_name='passenger_notes') THEN 
+                    ALTER TABLE bookings ADD COLUMN passenger_notes TEXT;
+                END IF;
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='bookings' AND column_name='selected_stopover') THEN 
+                    ALTER TABLE bookings ADD COLUMN selected_stopover VARCHAR(100);
+                END IF;
+            END $$;
+        `);
+        console.log("[DB] Schema verified with BlaBlaCar preference columns.");
+    } catch (e) {
+        console.warn("[DB] Startup schema verify:", e.message);
+    }
 });
 
 module.exports = { app, server, io };

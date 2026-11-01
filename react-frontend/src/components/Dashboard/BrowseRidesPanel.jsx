@@ -17,7 +17,11 @@ import {
 	Sparkles,
 	Lock,
 	Shield,
-	Award
+	Award,
+	Wind,
+	MessageSquare,
+	Briefcase,
+	Repeat
 } from "lucide-react";
 import { deductMoneyForRide } from "../../utils/walletService";
 import { getCompanyInfo, POPULAR_TECH_PARKS } from "../../utils/companyBadges";
@@ -43,8 +47,16 @@ export default function BrowseRidesPanel({
 
 	const [bookingModalRide, setBookingModalRide] = useState(null);
 	const [selectedSeatPref, setSelectedSeatPref] = useState("Seat 1 (Front Window)");
+	const [passengerLuggage, setPassengerLuggage] = useState("medium");
+	const [passengerNotes, setPassengerNotes] = useState("");
+	const [selectedStopover, setSelectedStopover] = useState("");
 	const [bookingLoading, setBookingLoading] = useState(false);
 	const [bookingSuccess, setBookingSuccess] = useState(null); // { otp, booking_id }
+
+	// BlaBlaCar Quick Filters
+	const [acOnlyFilter, setAcOnlyFilter] = useState(false);
+	const [instantBookingFilter, setInstantBookingFilter] = useState(false);
+	const [maxTwoBackFilter, setMaxTwoBackFilter] = useState(false);
 
 	const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 	const currentOrg = currentUser.org_name || "Enterprise";
@@ -81,6 +93,11 @@ export default function BrowseRidesPanel({
 				ride.driver_dept?.toLowerCase().includes(searchTerm.toLowerCase());
 
 			if (!matchesSearch) return false;
+
+			// 4. BlaBlaCar Quick Filters
+			if (acOnlyFilter && ride.preferences && ride.preferences.ac === false) return false;
+			if (instantBookingFilter && ride.instant_booking === false) return false;
+			if (maxTwoBackFilter && ride.preferences && ride.preferences.max_two_back === false) return false;
 
 			if (filterType === "under5km") {
 				return (ride.distance_km || 0) <= 5.0;
@@ -120,8 +137,11 @@ export default function BrowseRidesPanel({
 				},
 				body: JSON.stringify({
 					ride_id: ride.ride_id,
-					pickup_location: ride.origin,
+					pickup_location: selectedStopover ? { name: selectedStopover, is_stopover: true } : ride.origin,
 					dropoff_location: ride.destination,
+					luggage_size: passengerLuggage,
+					passenger_notes: passengerNotes.trim() || undefined,
+					selected_stopover: selectedStopover || undefined
 				}),
 			});
 
@@ -259,6 +279,45 @@ export default function BrowseRidesPanel({
 							}`}
 						>
 							👥 3+ Seats
+						</button>
+
+						{/* BlaBlaCar Instant Booking Filter */}
+						<button
+							onClick={() => setInstantBookingFilter(!instantBookingFilter)}
+							className={`px-3 py-1 rounded-lg font-bold whitespace-nowrap transition-all cursor-pointer border ${
+								instantBookingFilter
+									? "bg-amber-500 text-slate-950 border-amber-400 shadow-xs"
+									: "bg-amber-50 text-amber-800 hover:bg-amber-100 border-amber-200"
+							}`}
+							title="Show rides with instant seat confirmation"
+						>
+							<span>⚡ Instant Book</span>
+						</button>
+
+						{/* BlaBlaCar AC Filter */}
+						<button
+							onClick={() => setAcOnlyFilter(!acOnlyFilter)}
+							className={`px-3 py-1 rounded-lg font-bold whitespace-nowrap transition-all cursor-pointer border ${
+								acOnlyFilter
+									? "bg-sky-600 text-white border-sky-500 shadow-xs"
+									: "bg-sky-50 text-sky-800 hover:bg-sky-100 border-sky-200"
+							}`}
+							title="Show rides with AC climate control"
+						>
+							<span>❄️ AC Only</span>
+						</button>
+
+						{/* BlaBlaCar Max 2 in Back Filter */}
+						<button
+							onClick={() => setMaxTwoBackFilter(!maxTwoBackFilter)}
+							className={`px-3 py-1 rounded-lg font-bold whitespace-nowrap transition-all cursor-pointer border ${
+								maxTwoBackFilter
+									? "bg-teal-700 text-white border-teal-600 shadow-xs"
+									: "bg-teal-50 text-teal-800 hover:bg-teal-100 border-teal-200"
+							}`}
+							title="Comfort guarantee: Empty rear middle seat"
+						>
+							<span>👥 Max 2 Back</span>
 						</button>
 
 						<button
@@ -458,7 +517,7 @@ export default function BrowseRidesPanel({
 										<span>Direct Route Match • ~{ride.total_detour_km ?? 0} km detour</span>
 									</div>
 								)}
-								<div className="mb-3 flex items-center justify-between text-xs py-1.5 px-2.5 bg-gray-50 rounded-lg border border-gray-100">
+								<div className="mb-2 flex items-center justify-between text-xs py-1.5 px-2.5 bg-gray-50 rounded-lg border border-gray-100">
 									<div className="flex items-center gap-1.5 text-gray-700 font-semibold">
 										<Car className="w-3.5 h-3.5 text-[#714B67]" />
 										<span>{ride.vehicle_model || "Swift Dzire"}</span>
@@ -467,6 +526,54 @@ export default function BrowseRidesPanel({
 										{ride.veh_no || "WB 02 AB 1234"}
 									</span>
 								</div>
+
+								{/* BlaBlaCar Commute Amenities & Chattiness Badges */}
+								<div className="flex items-center gap-1 flex-wrap mb-2.5">
+									{/* Chattiness Meter Badge */}
+									{ride.preferences?.chattiness && (
+										<span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1">
+											<MessageSquare className="w-2.5 h-2.5 text-purple-600" />
+											{ride.preferences.chattiness === "bla" ? "Bla (Quiet)" : ride.preferences.chattiness === "blablabla" ? "BlaBlaBla (Chatty)" : "BlaBla"}
+										</span>
+									)}
+									{ride.instant_booking !== false && (
+										<span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-0.5">
+											<Zap className="w-2.5 h-2.5 text-amber-500 fill-amber-500" /> Instant
+										</span>
+									)}
+									{ride.preferences?.ac !== false && (
+										<span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200 flex items-center gap-1">
+											<Wind className="w-2.5 h-2.5 text-sky-500" /> AC
+										</span>
+									)}
+									{ride.preferences?.max_two_back !== false && (
+										<span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200 flex items-center gap-1">
+											<Users className="w-2.5 h-2.5 text-teal-600" /> Max 2 in Back
+										</span>
+									)}
+									{ride.preferences?.smoking === false && (
+										<span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+											🚭 No Smoking
+										</span>
+									)}
+									{ride.is_recurring && (
+										<span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1">
+											<Repeat className="w-2.5 h-2.5" /> Mon-Fri
+										</span>
+									)}
+								</div>
+
+								{/* Intermediate Stopovers if available */}
+								{Array.isArray(ride.stopovers) && ride.stopovers.length > 0 && (
+									<div className="mb-2.5 px-2.5 py-1 bg-slate-50 border border-slate-200/80 rounded-lg text-[10px] text-slate-600 flex items-center gap-1.5 flex-wrap">
+										<span className="font-bold text-teal-700 uppercase">Via Stops:</span>
+										{ride.stopovers.map((s, idx) => (
+											<span key={idx} className="bg-white px-1.5 py-0.5 rounded border border-slate-200 font-semibold text-slate-800">
+												📍 {s}
+											</span>
+										))}
+									</div>
+								)}
 
 								{/* Route Points */}
 								<div className="space-y-1.5 text-xs text-gray-600 mb-3.5">
@@ -745,11 +852,80 @@ export default function BrowseRidesPanel({
 										})()}
 									</select>
 								</div>
+
+								{/* En-Route Stopover Selection if driver has stopovers */}
+								{Array.isArray(bookingModalRide.stopovers) && bookingModalRide.stopovers.length > 0 && (
+									<div className="pt-2 border-t border-teal-100">
+										<label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+											Select Pickup Spot along Corridor
+										</label>
+										<select
+											value={selectedStopover}
+											onChange={(e) => setSelectedStopover(e.target.value)}
+											className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#00A09D]"
+										>
+											<option value="">Default: Driver's Origin ({bookingModalRide.origin?.name || "Pickup Spot"})</option>
+											{bookingModalRide.stopovers.map((s, idx) => (
+												<option key={idx} value={s}>📍 En-route: {s}</option>
+											))}
+										</select>
+									</div>
+								)}
+
+								{/* BlaBlaCar Luggage Size */}
+								<div className="pt-2 border-t border-teal-100">
+									<label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+										Your Luggage Size
+									</label>
+									<div className="grid grid-cols-3 gap-1.5">
+										{[
+											{ id: "small", label: "🎒 Backpack" },
+											{ id: "medium", label: "🧳 Cabin Bag" },
+											{ id: "large", label: "📦 Trunk Bag" }
+										].map((lug) => (
+											<button
+												key={lug.id}
+												type="button"
+												onClick={() => setPassengerLuggage(lug.id)}
+												className={`py-1.5 px-2 rounded-lg text-xs font-bold border transition-colors cursor-pointer text-center ${
+													passengerLuggage === lug.id
+														? "bg-teal-600 text-white border-teal-600 shadow-xs"
+														: "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+												}`}
+											>
+												{lug.label}
+											</button>
+										))}
+									</div>
+								</div>
+
+								{/* Optional Pickup Note */}
+								<div className="pt-2 border-t border-teal-100">
+									<label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+										Note for Colleague (Optional)
+									</label>
+									<input
+										type="text"
+										value={passengerNotes}
+										onChange={(e) => setPassengerNotes(e.target.value)}
+										placeholder="e.g. Waiting at Gate 1 main lobby"
+										className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#00A09D]"
+									/>
+								</div>
 							</div>
 
-							<p className="text-xs text-gray-500">
-								Requesting this seat notifies the driver for approval. Once confirmed by the driver, your seat is locked!
-							</p>
+							{bookingModalRide.instant_booking !== false ? (
+								<div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-xs flex items-center gap-2">
+									<Zap className="w-4 h-4 text-amber-600 shrink-0 fill-amber-500" />
+									<p className="text-[11px] font-medium leading-tight">
+										<strong>Instant Booking Enabled:</strong> Your seat is confirmed immediately!
+									</p>
+								</div>
+							) : (
+								<p className="text-xs text-gray-500">
+									Requesting this seat notifies the driver for approval. Once confirmed by the driver, your seat is locked!
+								</p>
+							)}
 
 							<div className="flex items-center gap-3 pt-2">
 								<button

@@ -38,6 +38,10 @@ router.get('/', async (req, res, next) => {
                 r.ride_id, r.driver_id, r.veh_no, r.origin, r.destination, 
                 r.departure_time, r.total_seats, r.available_seats, r.fare_per_seat, r.subsidy_per_seat, r.status,
                 r.polyline, r.is_female_only, r.destination_tech_park, r.allow_neighbor_companies, r.target_arrival_time,
+                COALESCE(r.preferences, '{"chattiness":"blabla","ac":true,"smoking":false,"music":true,"luggage":"medium","max_two_back":true}'::jsonb) as preferences,
+                COALESCE(r.stopovers, '[]'::jsonb) as stopovers,
+                COALESCE(r.is_recurring, FALSE) as is_recurring,
+                COALESCE(r.instant_booking, TRUE) as instant_booking,
                 u.name as driver_name, u.email as driver_email, u.org_name as driver_company, u.passenger_rating, u.driving_rating,
                 u.gender as driver_gender, u.designation as driver_designation, u.department as driver_department,
                 u.trust_score as driver_trust_score, u.total_rides_completed as driver_rides_count, u.co2_saved_kg as driver_co2_saved,
@@ -57,6 +61,15 @@ router.get('/', async (req, res, next) => {
         if (techParkFilter && techParkFilter.trim()) {
             queryParams.push(`%${techParkFilter.trim()}%`);
             query += ` AND (r.destination_tech_park ILIKE $${queryParams.length} OR r.destination->>'name' ILIKE $${queryParams.length})`;
+        }
+        if (req.query.ac === 'true') {
+            query += ` AND COALESCE((r.preferences->>'ac')::boolean, true) = true`;
+        }
+        if (req.query.instant === 'true') {
+            query += ` AND COALESCE(r.instant_booking, true) = true`;
+        }
+        if (req.query.max_two_back === 'true') {
+            query += ` AND COALESCE((r.preferences->>'max_two_back')::boolean, true) = true`;
         }
 
         query += `

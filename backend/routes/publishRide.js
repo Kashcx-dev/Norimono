@@ -99,15 +99,29 @@ router.post('/', async (req, res, next) => {
         const destinationTechPark = req.body.destination_tech_park || destination.name || 'Tech Park Campus';
         const targetArrivalTime = req.body.target_arrival_time || '08:50 AM';
 
-        // Insert the new ride into the database with algorithmic cost-share price
+        // BlaBlaCar Ride Preferences & En-route Stopovers
+        const preferences = req.body.preferences || {
+            chattiness: req.body.chattiness || "blabla", // 'bla' (quiet), 'blabla' (friendly), 'blablabla' (chatty)
+            ac: req.body.ac !== false && req.body.ac !== 'false',
+            smoking: req.body.smoking === true || req.body.smoking === 'true',
+            music: req.body.music !== false && req.body.music !== 'false',
+            luggage: req.body.luggage || "medium", // 'small', 'medium', 'large'
+            max_two_back: req.body.max_two_back !== false && req.body.max_two_back !== 'false'
+        };
+        const stopovers = Array.isArray(req.body.stopovers) ? req.body.stopovers : [];
+        const isRecurring = req.body.is_recurring === true || req.body.is_recurring === 'true';
+        const instantBooking = req.body.instant_booking !== false && req.body.instant_booking !== 'false';
+
+        // Insert the new ride into the database with algorithmic cost-share price & BlaBlaCar features
         const insertQuery = `
             INSERT INTO rides (
                 driver_id, veh_no, origin, destination, 
                 departure_time, total_seats, available_seats, 
                 fare_per_seat, subsidy_per_seat, status, polyline,
-                is_female_only, destination_tech_park, allow_neighbor_companies, target_arrival_time
+                is_female_only, destination_tech_park, allow_neighbor_companies, target_arrival_time,
+                preferences, stopovers, is_recurring, instant_booking
             ) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'scheduled', $10, $11, $12, TRUE, $13) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'scheduled', $10, $11, $12, TRUE, $13, $14, $15, $16, $17) 
             RETURNING ride_id
         `;
         
@@ -124,18 +138,26 @@ router.post('/', async (req, res, next) => {
             polylineStr,
             isFemaleOnly,
             destinationTechPark,
-            targetArrivalTime
+            targetArrivalTime,
+            JSON.stringify(preferences),
+            JSON.stringify(stopovers),
+            isRecurring,
+            instantBooking
         ]);
 
         return res.json({ 
             success: true, 
-            message: 'Ride published with algorithmic non-profit cost-sharing',
+            message: 'Ride published with algorithmic non-profit cost-sharing & BlaBlaCar preferences',
             ride_id: insertResult.rows[0].ride_id,
             fare_per_seat: algorithmicNetFare,
             gross_cost_share: algorithmicGrossFare,
             subsidy_per_seat: subsidyPerSeat,
             is_female_only: isFemaleOnly,
-            destination_tech_park: destinationTechPark
+            destination_tech_park: destinationTechPark,
+            preferences,
+            stopovers,
+            is_recurring: isRecurring,
+            instant_booking: instantBooking
         });
 
     } catch (error) {
