@@ -37,7 +37,7 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
 			return;
 		}
 
-		if (!email.endsWith(".com") && !email.includes("@")) {
+		if (!email.includes("@") || !email.includes(".")) {
 			setError("Please enter a valid corporate email");
 			return;
 		}

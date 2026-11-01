@@ -312,9 +312,7 @@ router.post("/login", async (req, res, next) => {
         const user = result.rows[0];
 
         if (user) {
-            if (user.org_name && user.org_name !== organization) {
-                return res.status(401).json({ message: "This email does not belong to the selected organization." });
-            }
+            // Relaxed organization check: allow login if email matches user account, auto-aligning to user's registered organization
             const isMatch = await Compare_Pass(password, user.password_hash);
             if (isMatch) {
                 const otp = crypto.randomInt(100000, 999999).toString();
