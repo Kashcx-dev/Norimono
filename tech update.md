@@ -242,9 +242,13 @@ Traditional ridesharing (Ola/Uber) suffers from surge pricing, driver cancellati
 - `GET /admin/impact-metrics` — Supplies ESG carbon savings and parking space analytics.
 
 ### Wallet & Payments (`/wallet`)
-- `GET /wallet/balance` — Returns user's balance and ledger history.
-- `POST /wallet/topup` — Simulates/processes Razorpay gateway wallet recharge.
-- `POST /wallet/transfer` — Executes escrow release and fuel cost-split transfer.
+- `GET /wallet` — Returns user's balance and ledger history.
+- `POST /wallet/add` — Adds funds to personal commute wallet (non-withdrawable, closed-loop ride payment credit).
+- `GET /wallet/transactions` — Returns real-time transaction history from `wallet_transactions`.
+- `POST /wallet/transfer` — Executes escrow release and fuel cost-split transfer upon ride completion.
+
+### Feedback System (`/feedback`)
+- `POST /feedback/send_feedback` — Records star rating (1-5) and detailed description in PostgreSQL `feedbacks` table and automatically dispatches an HTML notification email to leadership (`master.trainer049@gmail.com`).
 
 ### System Diagnostics & Custom Error Handlers (`/api`)
 - `GET /api/errors/catalog` — Returns machine-readable dictionary of all custom error codes (`VALIDATION_ERROR`, `INVALID_PHONE_FORMAT`, `INVALID_VEHICLE_NO`, `RIDE_FULL`, `UNAUTHORIZED`, etc.) with HTTP statuses and resolution hints.
@@ -254,7 +258,8 @@ Traditional ridesharing (Ola/Uber) suffers from surge pricing, driver cancellati
 
 ## 6. Git Commit Highlights (Chronological Track)
 
-- `[Current]` — **feat(core):** Concrete enterprise carpooling upgrade: eliminated demo fallbacks (`DEMO_RIDE_1`, simulated wallets, mock feedback), enforced strict field typing (numeric 10-digit mobile phone, RTO vehicle plate regex, alphabetical name restrictions), and implemented centralized custom error endpoints (`/api/errors/catalog`, `/api/health`, standardized JSON error payloads).
+- `[Current]` — **feat(wallet-feedback):** Enforce feedback email dispatch to leadership via Nodemailer (`master.trainer049@gmail.com`), integrate personal Closed-Loop Commute Wallet with dynamic personal QR Code, non-withdrawable policy banner, and direct wallet top-up.
+- `1b5efdd` — **feat(security):** Remove all demo fallbacks, enforce strict field-level typing and validation (10-digit phone, RTO vehicle plate regex, alphabetical name restrictions), and add custom error endpoints (`/api/errors/catalog`, `/api/health`).
 - `28e86d4` — **feat(ui):** Minimalist search results view: stripped bulky covers, search inputs, and disclaimers from `BrowseRidesPanel.jsx`; added ultra-compact header with `Edit Route`, `Female-Only` toggle, and small results count pill so colleague rides are immediately visible and scrollable.
 - `ee64b24` — **fix(auth):** Streamline login flow, auto-align corporate organization, and support global top-level domains (`.in`, `.org`, `.co.in`).
 - `6a94ec6` — **feat(blablacar):** Full BlaBlaCar replica features: Chattiness Meter (Bla/BlaBla/BlaBlaBla), Ride Amenities (AC, No Smoking, Music, Max 2 in back comfort guarantee), En-Route Corridor Stopovers, Luggage capacity tiers, Instant Booking, and Recurring Commutes.

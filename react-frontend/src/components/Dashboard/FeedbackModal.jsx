@@ -85,16 +85,17 @@ export default function FeedbackModal({ isOpen, onClose }) {
 							</div>
 							<div className="text-center">
 								<h3 className="text-lg font-bold text-gray-900">Thank You!</h3>
-								<p className="text-sm text-gray-500 mt-1">Your feedback has been submitted securely.</p>
+								<p className="text-sm text-gray-500 mt-1">Your feedback and rating have been emailed to leadership.</p>
 							</div>
 						</div>
 					) : (
-						<div className="space-y-6">
+						<div className="space-y-5">
 							<div className="text-center space-y-3">
-								<p className="text-sm font-bold text-gray-700 uppercase tracking-wider">How was your overall experience?</p>
+								<p className="text-xs font-bold text-gray-700 uppercase tracking-wider">How was your commute experience?</p>
 								<div className="flex justify-center gap-2">
 									{[1, 2, 3, 4, 5].map((star) => (
 										<button
+											type="button"
 											key={star}
 											onMouseEnter={() => setHover(star)}
 											onMouseLeave={() => setHover(0)}
@@ -102,30 +103,43 @@ export default function FeedbackModal({ isOpen, onClose }) {
 											className="transform transition-all hover:scale-110 cursor-pointer"
 										>
 											<Star 
-												className={`w-10 h-10 ${(hover || rating) >= star ? "fill-amber-400 text-amber-400" : "fill-gray-100 text-gray-200"}`} 
+												className={`w-9 h-9 ${(hover || rating) >= star ? "fill-amber-400 text-amber-400" : "fill-gray-100 text-gray-200"}`} 
 											/>
 										</button>
 									))}
 								</div>
+								<span className="text-[11px] font-bold text-amber-600 block">
+									{rating === 5 ? "⭐⭐⭐⭐⭐ Excellent Commute!" :
+									 rating === 4 ? "⭐⭐⭐⭐ Great Experience" :
+									 rating === 3 ? "⭐⭐⭐ Good / Average" :
+									 rating === 2 ? "⭐⭐ Needs Improvement" :
+									 rating === 1 ? "⭐ Poor / Disrupted" : "Select star rating"}
+								</span>
 							</div>
 
 							<div>
-								<label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Additional Comments</label>
+								<label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">
+									Describe your experience *
+								</label>
 								<textarea 
 									value={feedback}
 									onChange={(e) => setFeedback(e.target.value)}
-									placeholder="Tell us what you loved or what could be better..."
-									className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#00A09D]/20 focus:border-[#00A09D] transition-all min-h-[120px] resize-none"
+									placeholder="Tell us about the ride, coworker punctuality, or carpool improvements..."
+									className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#00A09D]/20 focus:border-[#00A09D] transition-all min-h-[100px] resize-none"
 								></textarea>
 							</div>
 
 							<button 
 								onClick={handleSubmit}
-								disabled={rating === 0}
+								disabled={rating === 0 || !feedback.trim()}
 								className="w-full bg-[#714B67] hover:bg-[#5c3c54] disabled:opacity-50 text-white rounded-xl py-3.5 font-bold text-sm shadow-lg shadow-[#714B67]/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
 							>
 								Submit Feedback <Send className="w-4 h-4" />
 							</button>
+
+							<p className="text-center text-[10px] text-gray-400 font-medium">
+								Directly forwarded to executive mobility desk
+							</p>
 						</div>
 					)}
 				</div>

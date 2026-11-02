@@ -15,6 +15,10 @@ import {
 	RefreshCw,
 	ChevronRight,
 	AlertCircle,
+	QrCode,
+	Copy,
+	Check,
+	Info
 } from "lucide-react";
 import {
 	getWalletData,
@@ -25,13 +29,15 @@ import {
 export default function WalletModal({ isOpen, onClose }) {
 	const [wallet, setWallet] = useState(null);
 	const [loading, setLoading] = useState(true);
-	const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'add_money' | 'history'
+	const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'add_money' | 'history' | 'qr_code'
 	const [addAmount, setAddAmount] = useState("");
 	const [paymentMethod, setPaymentMethod] = useState("UPI (Google Pay)");
 	const [processingPayment, setProcessingPayment] = useState(false);
 	const [successMsg, setSuccessMsg] = useState("");
 	const [errorMsg, setErrorMsg] = useState("");
 	const [historyFilter, setHistoryFilter] = useState("all"); // 'all' | 'credit' | 'debit'
+	const [copiedUpi, setCopiedUpi] = useState(false);
+	const [confirmNonRefundable, setConfirmNonRefundable] = useState(true);
 	const scrollContainerRef = useRef(null);
 
 	const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -201,7 +207,7 @@ export default function WalletModal({ isOpen, onClose }) {
 								: "text-gray-500 hover:text-gray-800"
 						}`}
 					>
-						Balance & Cards
+						Balance
 						{activeTab === "overview" && (
 							<span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#714B67] rounded-full"></span>
 						)}
@@ -223,6 +229,21 @@ export default function WalletModal({ isOpen, onClose }) {
 					</button>
 
 					<button
+						onClick={() => setActiveTab("qr_code")}
+						className={`pb-2.5 text-xs font-bold transition-all relative cursor-pointer flex items-center gap-1 ${
+							activeTab === "qr_code"
+								? "text-[#714B67]"
+								: "text-gray-500 hover:text-gray-800"
+						}`}
+					>
+						<QrCode className="w-3.5 h-3.5" />
+						My Commute QR
+						{activeTab === "qr_code" && (
+							<span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#714B67] rounded-full"></span>
+						)}
+					</button>
+
+					<button
 						onClick={() => setActiveTab("history")}
 						className={`pb-2.5 text-xs font-bold transition-all relative cursor-pointer flex items-center gap-1 ${
 							activeTab === "history"
@@ -231,7 +252,7 @@ export default function WalletModal({ isOpen, onClose }) {
 						}`}
 					>
 						<History className="w-3.5 h-3.5" />
-						Transactions
+						Ledger
 						{activeTab === "history" && (
 							<span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#714B67] rounded-full"></span>
 						)}
@@ -309,21 +330,41 @@ export default function WalletModal({ isOpen, onClose }) {
 							</div>
 
 							{/* Quick Action Buttons */}
-							<div className="grid grid-cols-2 gap-3">
+							<div className="grid grid-cols-3 gap-2">
 								<button
 									onClick={() => setActiveTab("add_money")}
-									className="py-3 px-4 bg-[#714B67] hover:bg-[#5c3c54] text-white font-bold text-sm rounded-2xl shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+									className="py-2.5 px-2 bg-[#714B67] hover:bg-[#5c3c54] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
 								>
-									<Plus className="w-4 h-4" />
+									<Plus className="w-3.5 h-3.5" />
 									<span>Add Money</span>
 								</button>
 								<button
-									onClick={() => setActiveTab("history")}
-									className="py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-sm rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer border border-gray-200"
+									onClick={() => setActiveTab("qr_code")}
+									className="py-2.5 px-2 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
 								>
-									<History className="w-4 h-4 text-gray-600" />
-									<span>View History</span>
+									<QrCode className="w-3.5 h-3.5" />
+									<span>My QR</span>
 								</button>
+								<button
+									onClick={() => setActiveTab("history")}
+									className="py-2.5 px-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-gray-200"
+								>
+									<History className="w-3.5 h-3.5 text-gray-600" />
+									<span>Ledger</span>
+								</button>
+							</div>
+
+							{/* Non-Withdrawable Commute Policy Banner */}
+							<div className="p-3 bg-amber-50/80 border border-amber-200/90 rounded-2xl flex items-start gap-2.5 text-xs text-amber-900">
+								<AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+								<div className="space-y-0.5">
+									<span className="font-extrabold uppercase tracking-wider block text-[10px] text-amber-800">
+										Non-Withdrawable Commute Policy
+									</span>
+									<p className="text-[11px] text-amber-900/90 leading-relaxed">
+										Funds added to this personal wallet cannot be retrieved or withdrawn to personal bank accounts. They are locked strictly to pay for carpools and commute cost-shares.
+									</p>
+								</div>
 							</div>
 
 							{/* Recent Activity Snippet */}
@@ -411,19 +452,35 @@ export default function WalletModal({ isOpen, onClose }) {
 						</>
 					) : activeTab === "add_money" ? (
 						/* ADD MONEY TAB */
-						<form onSubmit={handleAddMoney} className="space-y-5">
+						<form onSubmit={handleAddMoney} className="space-y-4">
 							{/* Current Balance Reminder */}
 							<div className="p-3.5 bg-purple-50/60 rounded-2xl border border-purple-100 flex items-center justify-between">
-								<span className="text-xs text-purple-900 font-semibold">
-									Current Wallet Balance:
-								</span>
-								<span className="text-sm font-extrabold text-[#714B67]">
+								<div>
+									<span className="text-[10px] font-extrabold text-purple-900 uppercase tracking-wider block">
+										Personal Commute Wallet
+									</span>
+									<span className="text-xs text-purple-700 font-medium">Available Balance</span>
+								</div>
+								<span className="text-base font-extrabold text-[#714B67]">
 									₹
 									{(wallet?.balance || 0).toLocaleString("en-IN", {
 										minimumFractionDigits: 2,
 										maximumFractionDigits: 2,
 									})}
 								</span>
+							</div>
+
+							{/* Non-Withdrawable Commute Policy Alert */}
+							<div className="p-3.5 bg-amber-50/90 border border-amber-200 rounded-2xl flex items-start gap-2.5 text-xs text-amber-900">
+								<AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+								<div className="space-y-0.5">
+									<span className="font-extrabold uppercase tracking-wider block text-[10px] text-amber-800">
+										Non-Withdrawable Closed-Loop Wallet
+									</span>
+									<p className="text-[11px] text-amber-900/90 leading-relaxed">
+										Any money added to your wallet is <strong>strictly non-retrievable to your bank account</strong>. Funds are locked exclusively to aid colleague carpool ride payments, fuel cost-sharing, and commute settlements.
+									</p>
+								</div>
 							</div>
 
 							{/* Amount Input */}
@@ -564,6 +621,84 @@ export default function WalletModal({ isOpen, onClose }) {
 								</button>
 							</div>
 						</form>
+					) : activeTab === "qr_code" ? (
+						/* PERSONAL COMMUTE QR CODE TAB */
+						<div className="space-y-5 animate-in fade-in duration-200 text-center">
+							<div className="bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-6 rounded-3xl text-white shadow-xl relative overflow-hidden">
+								<div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 rounded-full blur-2xl pointer-events-none" />
+
+								<div className="relative z-10 space-y-4">
+									<div className="flex items-center justify-between border-b border-slate-700 pb-3">
+										<div className="flex items-center gap-2">
+											<QrCode className="w-4 h-4 text-teal-400" />
+											<span className="text-[11px] font-black uppercase tracking-wider text-teal-300">
+												Closed-Loop Commute QR
+											</span>
+										</div>
+										<span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">
+											Zero-Cash P2P
+										</span>
+									</div>
+
+									{/* QR Code Graphic */}
+									<div className="bg-white p-4 rounded-2xl inline-block shadow-lg border border-slate-200 mx-auto">
+										<img
+											src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`norimono://pay?emp_id=${empId}&name=${encodeURIComponent(user.name || 'Colleague')}&wallet=closed_loop`)}`}
+											alt="Personal Commute QR Code"
+											className="w-44 h-44 object-contain mx-auto"
+										/>
+									</div>
+
+									<div>
+										<h4 className="text-base font-black text-white">{user.name || "Employee"}</h4>
+										<p className="text-xs text-slate-300 font-mono mt-0.5">
+											{user.org_name || "Enterprise"} • {empId}
+										</p>
+									</div>
+
+									{/* UPI Commute ID Pill */}
+									<div className="bg-slate-800/80 border border-slate-700/80 rounded-xl p-2.5 flex items-center justify-between text-xs">
+										<div className="text-left font-mono">
+											<span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">Commute Virtual ID</span>
+											<span className="text-teal-300 font-bold text-xs">norimono.{empId.toLowerCase()}@corp</span>
+										</div>
+
+										<button
+											type="button"
+											onClick={() => {
+												navigator.clipboard.writeText(`norimono.${empId.toLowerCase()}@corp`);
+												setCopiedUpi(true);
+												setTimeout(() => setCopiedUpi(false), 2000);
+											}}
+											className="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-slate-200 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+										>
+											{copiedUpi ? (
+												<>
+													<Check className="w-3.5 h-3.5 text-emerald-400" />
+													<span>Copied</span>
+												</>
+											) : (
+												<>
+													<Copy className="w-3.5 h-3.5" />
+													<span>Copy</span>
+												</>
+											)}
+										</button>
+									</div>
+								</div>
+							</div>
+
+							{/* How It Works Explainer */}
+							<div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-left space-y-2 text-xs text-slate-600">
+								<div className="flex items-center gap-1.5 font-bold text-slate-800">
+									<Info className="w-3.5 h-3.5 text-teal-600" />
+									<span>How Coworker QR Payments Work</span>
+								</div>
+								<p className="text-[11px] text-slate-500 leading-relaxed">
+									Colleagues can scan this QR code directly with any camera or Norimono scanner to settle their cost-share split. Payments are credited immediately to your personal wallet and can be used for future commutes.
+								</p>
+							</div>
+						</div>
 					) : (
 						/* TRANSACTION HISTORY TAB */
 						<div className="space-y-4">
