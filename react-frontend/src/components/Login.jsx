@@ -177,7 +177,7 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
 								<input
 									type="email"
 									value={email}
-									onChange={(e) => setEmail(e.target.value)}
+									onChange={(e) => setEmail(e.target.value.trim().toLowerCase())}
 									placeholder="e.g. name@tcs.com"
 									className="w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all placeholder:text-slate-400 font-medium font-mono"
 								/>
@@ -267,8 +267,10 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
 							</label>
 							<input
 								type="text"
+								inputMode="numeric"
+								pattern="[0-9]*"
 								value={otp}
-								onChange={(e) => setOtp(e.target.value)}
+								onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
 								placeholder="000000"
 								className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-center tracking-[0.5em] text-xl font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
 								maxLength={6}

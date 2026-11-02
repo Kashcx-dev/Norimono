@@ -114,10 +114,15 @@ function VehicleRegistrationModal({ onClose, onRegister }) {
 								<input
 									required
 									type="text"
+									maxLength={14}
+									pattern="[A-Z0-9 -]+"
 									value={vehicle_no}
-									onChange={(e) => setVehicleNo(e.target.value)}
-									placeholder="GJ-01-AB-1234"
-									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all uppercase"
+									onChange={(e) => {
+										const cleaned = e.target.value.toUpperCase().replace(/[^A-Z0-9 -]/g, '').slice(0, 14);
+										setVehicleNo(cleaned);
+									}}
+									placeholder="KA-01-AB-1234"
+									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all uppercase"
 								/>
 							</div>
 
@@ -129,10 +134,10 @@ function VehicleRegistrationModal({ onClose, onRegister }) {
 									required
 									type="number"
 									min="1"
-									max="8"
+									max="7"
 									value={max_seating_cap}
-									onChange={(e) => setCapacity(e.target.value)}
-									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
+									onChange={(e) => setCapacity(parseInt(e.target.value, 10) || 1)}
+									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all font-semibold"
 								/>
 							</div>
 
@@ -143,10 +148,15 @@ function VehicleRegistrationModal({ onClose, onRegister }) {
 								<input
 									required
 									type="text"
+									maxLength={18}
+									pattern="[A-Z0-9 -]+"
 									value={DL_no}
-									onChange={(e) => setDlNo(e.target.value)}
-									placeholder="DL-XXXXX"
-									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all uppercase"
+									onChange={(e) => {
+										const cleaned = e.target.value.toUpperCase().replace(/[^A-Z0-9 -]/g, '').slice(0, 18);
+										setDlNo(cleaned);
+									}}
+									placeholder="DL-0420110012345"
+									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all uppercase"
 								/>
 							</div>
 
@@ -157,10 +167,11 @@ function VehicleRegistrationModal({ onClose, onRegister }) {
 								<input
 									required
 									type="text"
+									maxLength={25}
 									value={insurance_no}
-									onChange={(e) => setInsuranceNo(e.target.value)}
-									placeholder="INS-XXXXX"
-									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all uppercase"
+									onChange={(e) => setInsuranceNo(e.target.value.toUpperCase().replace(/[^A-Z0-9 -]/g, ''))}
+									placeholder="INS-9876543210"
+									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all uppercase"
 								/>
 							</div>
 

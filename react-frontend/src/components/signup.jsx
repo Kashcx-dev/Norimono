@@ -572,7 +572,12 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 								<input
 									type="text"
 									value={dlNo}
-									onChange={(e) => setDlNo(e.target.value.toUpperCase())}
+									onChange={(e) => {
+										const cleaned = e.target.value.toUpperCase().replace(/[^A-Z0-9 -]/g, '').slice(0, 18);
+										setDlNo(cleaned);
+									}}
+									maxLength={18}
+									pattern="[A-Z0-9 -]+"
 									placeholder="e.g. DL-0420110012345"
 									className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 text-xs font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
 									required
@@ -637,7 +642,12 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 								<input
 									type="text"
 									value={vehicleNo}
-									onChange={(e) => setVehicleNo(e.target.value.toUpperCase())}
+									onChange={(e) => {
+										const cleaned = e.target.value.toUpperCase().replace(/[^A-Z0-9 -]/g, '').slice(0, 14);
+										setVehicleNo(cleaned);
+									}}
+									maxLength={14}
+									pattern="[A-Z0-9 -]+"
 									placeholder="e.g. WB-02-AB-1234 or DL-01-A-1234"
 									className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 text-xs font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
 									required
@@ -752,7 +762,13 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 							<input
 								type="text"
 								value={name}
-								onChange={(e) => setName(e.target.value)}
+								onChange={(e) => {
+									// Strictly allow letters, spaces, and hyphens only
+									const sanitized = e.target.value.replace(/[^a-zA-Z\s.'-]/g, '');
+									setName(sanitized);
+								}}
+								pattern="[a-zA-Z\s.'-]+"
+								maxLength={60}
 								placeholder="Jane Doe"
 								className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 text-xs focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
 								required
@@ -775,7 +791,7 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 							<input
 								type="email"
 								value={email}
-								onChange={(e) => setEmail(e.target.value)}
+								onChange={(e) => setEmail(e.target.value.trim().toLowerCase())}
 								placeholder="e.g. name@tcs.com"
 								className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs font-mono font-medium focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
 								required
@@ -786,13 +802,23 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 
 					{/* Mobile Phone Number */}
 					<div className="space-y-1">
-						<label className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Mobile Phone Number</label>
+						<div className="flex items-center justify-between">
+							<label className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Mobile Phone Number</label>
+							<span className="text-[9px] text-slate-400 font-semibold">10-Digit Mobile Only</span>
+						</div>
 						<div className="relative">
 							<input
 								type="tel"
+								inputMode="numeric"
+								pattern="[0-9]*"
+								maxLength={10}
 								value={phone}
-								onChange={(e) => setPhone(e.target.value)}
-								placeholder="+91 98765 43210"
+								onChange={(e) => {
+									// Strictly numeric: remove any letters or symbols automatically
+									const digitsOnly = e.target.value.replace(/\D/g, '').slice(0, 10);
+									setPhone(digitsOnly);
+								}}
+								placeholder="9876543210"
 								className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs font-mono font-medium focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
 								required
 							/>

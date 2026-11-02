@@ -8,7 +8,7 @@ const getWallet = async (req, res, next) =>{
         const {emp_id} = req.user;
         let result = await db.query(`SELECT wallet_id, balance, bank_connection, updated_at FROM wallets WHERE emp_id = $1`, [emp_id]);
         if(result.rows.length === 0){
-            await db.query(`INSERT INTO wallets (emp_id, balance) VALUES ($1, $2)`, [emp_id, 10000.00]);
+            await db.query(`INSERT INTO wallets (emp_id, balance) VALUES ($1, $2)`, [emp_id, 500.00]);
             result = await db.query(`SELECT wallet_id, balance, bank_connection, updated_at FROM wallets WHERE emp_id = $1`, [emp_id]);
         }
         const {wallet_id, balance, bank_connection, updated_at} = result.rows[0];
@@ -82,7 +82,7 @@ const addMoney = async (req, res, next) => {
         const result = await db.query(`UPDATE wallets SET balance = balance + $1 WHERE emp_id = $2 RETURNING balance`, [numAmount, emp_id]);
         let newBalance;
         if (result.rows.length === 0) {
-            const initialBalance = 10000.00 + numAmount;
+            const initialBalance = 500.00 + numAmount;
             await db.query(`INSERT INTO wallets (emp_id, balance) VALUES ($1, $2)`, [emp_id, initialBalance]);
             newBalance = initialBalance;
         } else {

@@ -422,8 +422,18 @@ function Dashboard() {
 				onOpenImpact={() => setShowImpactModal(true)}
 				onOpenVehicleModal={() => setShowVehicleModal(true)}
 				onOpenShowRegisteredVehicles={() => setShowRegisteredVehiclesModal(true)}
-				onOpenChat={() => setShowGlobalChat(true)}
+				onOpenChat={() => {
+					if (!activeTrip) {
+						showAlert("Encrypted in-ride chat is active when you have a booked or published commute.", "No Active Commute", "info");
+						return;
+					}
+					setShowGlobalChat(true);
+				}}
 				onOpenVoiceCall={() => {
+					if (!activeTrip) {
+						showAlert("Direct WebRTC voice calling connects you with your assigned colleague during an active commute.", "No Active Commute", "info");
+						return;
+					}
 					setIsIncomingCall(false);
 					setShowGlobalVoiceCall(true);
 				}}
@@ -522,11 +532,7 @@ function Dashboard() {
 					isOpen={showGlobalChat}
 					onClose={() => setShowGlobalChat(false)}
 					socket={socket}
-					activeTrip={
-						activeTrip || {
-							ride: { ride_id: "DEMO_RIDE_1", driver_name: "Rahul M." },
-						}
-					}
+					activeTrip={activeTrip}
 					user={user}
 				/>
 			)}
@@ -546,7 +552,7 @@ function Dashboard() {
 						setIsIncomingCall(false);
 					}}
 					socket={socket}
-					activeTrip={activeTrip || { ride: { ride_id: "DEMO_RIDE_1", driver_name: "Rahul M." } }}
+					activeTrip={activeTrip}
 					user={user}
 					isCaller={!isIncomingCall}
 				/>

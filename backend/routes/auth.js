@@ -4,7 +4,16 @@ const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const db = require("../handlers/dbHandler");
-const { FN_verifyTkn } = require("../handlers/middlewareHandler");
+const { FN_verifyTkn, sendError } = require("../handlers/middlewareHandler");
+const { 
+    validatePhone, 
+    validateName, 
+    validateVehicleNo, 
+    validateDlNo, 
+    validateCorporateEmail, 
+    validateSeats, 
+    validateFuelRatio 
+} = require("../utils/validator");
 
 /* HASHING FUNCTIONS */
 async function Hash_Pass(password) {
@@ -116,37 +125,85 @@ router.post("/signup", async (req, res, next) => {
         insurance_no
     } = req.body;
 
-    if (!name || !email || !password) {
-        return res.status(400).json({ message: "Name, email, and password are required." });
+    // Strict Type and Format Validation
+    const nameCheck = validateName(name);
+    if (!nameCheck.valid) {
+        return sendError(res, 400, "INVALID_NAME", nameCheck.message, { field: "name" });
     }
 
-    const resolvedOrg = detectOrganization(email, organization);
+    const emailCheck = validateCorporateEmail(email);
+    if (!emailCheck.valid) {
+        return sendError(res, 400, "INVALID_CORPORATE_EMAIL", emailCheck.message, { field: "email" });
+    }
+
+    const phoneCheck = validatePhone(phone);
+    if (!phoneCheck.valid) {
+        return sendError(res, 400, "INVALID_PHONE_NUMBER", phoneCheck.message, { field: "phone" });
+    }
+
+    if (!password || password.length < 6) {
+        return sendError(res, 400, "WEAK_PASSWORD", "Password must be at least 6 characters.", { field: "password" });
+    }
+
+    const resolvedOrg = detectOrganization(emailCheck.value, organization);
     const selectedRole = (role === 'admin') ? 'admin' : 'employee';
     const selectedRiderType = (rider_type === 'rider') ? 'rider' : 'passenger';
     const selectedGender = (gender && ['female', 'male', 'other'].includes(gender.toLowerCase())) ? gender.toLowerCase() : 'unspecified';
 
+    let validatedDl = null;
+    let validatedVehNo = null;
+    let validatedSeats = 4;
+    let validatedFuel = 1.0;
+
     // Validation for rider / driver role
     if (selectedRiderType === 'rider') {
-        if (!dl_no || !vehicle_no || !vehicle_model) {
-            return res.status(400).json({ 
-                message: "Driver credentials (DL number, vehicle number, and vehicle model) are required for riders." 
-            });
+        const dlCheck = validateDlNo(dl_no);
+        if (!dlCheck.valid) {
+            return sendError(res, 400, "INVALID_DL_NUMBER", dlCheck.message, { field: "dl_no" });
         }
+        validatedDl = dlCheck.value;
+
+        const vehCheck = validateVehicleNo(vehicle_no);
+        if (!vehCheck.valid) {
+            return sendError(res, 400, "INVALID_VEHICLE_NUMBER", vehCheck.message, { field: "vehicle_no" });
+        }
+        validatedVehNo = vehCheck.value;
+
+        if (!vehicle_model || typeof vehicle_model !== 'string' || !vehicle_model.trim()) {
+            return sendError(res, 400, "MISSING_VEHICLE_MODEL", "Please provide a valid vehicle make and model.", { field: "vehicle_model" });
+        }
+
+        const seatsCheck = validateSeats(seating_capacity || 4);
+        if (!seatsCheck.valid) {
+            return sendError(res, 400, "INVALID_SEAT_COUNT", seatsCheck.message, { field: "seating_capacity" });
+        }
+        validatedSeats = seatsCheck.value;
+
+        const fuelCheck = validateFuelRatio(fuel_consumption_ratio || 1.0);
+        if (!fuelCheck.valid) {
+            return sendError(res, 400, "INVALID_FUEL_RATIO", fuelCheck.message, { field: "fuel_consumption_ratio" });
+        }
+        validatedFuel = fuelCheck.value;
     }
 
     try {
-        const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+        const result = await db.query('SELECT * FROM users WHERE email = $1', [emailCheck.value]);
         if (result.rows[0]) {
-            return res.status(400).json({ message: "Email already registered." });
+            return sendError(res, 409, "EMAIL_ALREADY_REGISTERED", "This corporate email is already registered. Please log in instead.");
+        }
+
+        const phoneExists = await db.query('SELECT emp_id FROM users WHERE phone = $1', [phoneCheck.value]);
+        if (phoneExists.rows[0]) {
+            return sendError(res, 409, "PHONE_ALREADY_REGISTERED", "This mobile phone number is already associated with another corporate account.");
         }
 
         const hashedPassword = await Hash_Pass(password);
         const otp = crypto.randomInt(100000, 999999).toString();
         const expiresAt = Date.now() + 5 * 60 * 1000;
 
-        signupStore.set(email, { 
-            name, 
-            phone, 
+        signupStore.set(emailCheck.value, { 
+            name: nameCheck.value, 
+            phone: phoneCheck.value, 
             role: selectedRole,
             rider_type: selectedRiderType,
             gender: selectedGender,
@@ -157,12 +214,12 @@ router.post("/signup", async (req, res, next) => {
             code: otp, 
             expiresAt,
             driver_credentials: selectedRiderType === 'rider' ? {
-                dl_no: dl_no.trim(),
-                vehicle_no: vehicle_no.trim().toUpperCase(),
+                dl_no: validatedDl,
+                vehicle_no: validatedVehNo,
                 vehicle_model: vehicle_model.trim(),
-                seating_capacity: parseInt(seating_capacity, 10) || 4,
-                fuel_consumption_ratio: parseFloat(fuel_consumption_ratio) || 1.0,
-                insurance_no: insurance_no ? insurance_no.trim() : null
+                seating_capacity: validatedSeats,
+                fuel_consumption_ratio: validatedFuel,
+                insurance_no: insurance_no ? insurance_no.trim().toUpperCase() : null
             } : null
         });
 

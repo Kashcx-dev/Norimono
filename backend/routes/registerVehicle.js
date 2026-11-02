@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const db = require('../handlers/dbHandler');
 const crypto = require('crypto');
+const { sendError } = require('../handlers/middlewareHandler');
+const { validateVehicleNo, validateDlNo, validateSeats, validateFuelRatio } = require('../utils/validator');
 
 // GET /register-vehicle - Fetch registered vehicle & current review status
 router.get('/', async (req, res, next) => {
@@ -39,17 +41,43 @@ router.post('/', async (req, res, next) => {
         }
 
         const driver_id = req.user.emp_id;
-        const {vehicle_no, DL_no, vehicle_model, max_seating_cap, fuel_consumption_ratio, insurance_no} = req.body;
+        const { vehicle_no, DL_no, vehicle_model, max_seating_cap, fuel_consumption_ratio, insurance_no } = req.body;
         
-        // Basic validation
-        if(!vehicle_no || !DL_no || !max_seating_cap) {
-            return res.status(400).json({message: "Missing required fields (vehicle_no, DL_no, max_seating_cap)"});
+        // Strict Field Validation
+        const vehCheck = validateVehicleNo(vehicle_no);
+        if (!vehCheck.valid) {
+            return sendError(res, 400, "INVALID_VEHICLE_NUMBER", vehCheck.message, { field: "vehicle_no" });
+        }
+
+        const dlCheck = validateDlNo(DL_no);
+        if (!dlCheck.valid) {
+            return sendError(res, 400, "INVALID_DL_NUMBER", dlCheck.message, { field: "DL_no" });
+        }
+
+        if (!vehicle_model || typeof vehicle_model !== 'string' || !vehicle_model.trim()) {
+            return sendError(res, 400, "MISSING_VEHICLE_MODEL", "Please provide a certified vehicle model.", { field: "vehicle_model" });
+        }
+
+        const seatCheck = validateSeats(max_seating_cap);
+        if (!seatCheck.valid) {
+            return sendError(res, 400, "INVALID_SEAT_CAPACITY", seatCheck.message, { field: "max_seating_cap" });
+        }
+
+        const fuelCheck = validateFuelRatio(fuel_consumption_ratio || 1.0);
+        if (!fuelCheck.valid) {
+            return sendError(res, 400, "INVALID_FUEL_RATIO", fuelCheck.message, { field: "fuel_consumption_ratio" });
         }
 
         // Check if the user already has a vehicle registered
         const existingVehicle = await db.query('SELECT veh_id FROM vehicles WHERE emp_id = $1', [driver_id]);
-        if(existingVehicle.rows.length > 0) {
-            return res.status(400).json({message: "You already have a vehicle registered. Norimono currently supports one vehicle per user."});
+        if (existingVehicle.rows.length > 0) {
+            return sendError(res, 409, "VEHICLE_ALREADY_REGISTERED", "You already have a vehicle registered. Norimono currently supports one vehicle per user.");
+        }
+
+        // Check if vehicle plate is already in use by another driver
+        const existingPlate = await db.query('SELECT veh_id FROM vehicles WHERE veh_no = $1', [vehCheck.value]);
+        if (existingPlate.rows.length > 0) {
+            return sendError(res, 409, "PLATE_ALREADY_REGISTERED", "This vehicle plate is already registered to another employee.");
         }
 
         // Generate unique vehicle ID
@@ -65,13 +93,13 @@ router.post('/', async (req, res, next) => {
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
             [
                 veh_id,
-                vehicle_no,
+                vehCheck.value,
                 driver_id,
-                insurance_no || null,
-                DL_no,
-                vehicle_model || null,
-                parseInt(max_seating_cap),
-                parseFloat(fuel_consumption_ratio || 1.0)
+                insurance_no ? insurance_no.trim().toUpperCase() : null,
+                dlCheck.value,
+                vehicle_model.trim(),
+                seatCheck.value,
+                fuelCheck.value
             ]
         );
 

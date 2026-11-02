@@ -21,52 +21,11 @@ const loadRazorpaySDK = () => {
 };
 
 const DEFAULT_INITIAL_WALLET = {
-	balance: 10000.0,
+	balance: 500.0,
 	currency: "₹",
-	bank_connection: "HDFC Bank (•••• 4821)",
-	upi_id: "user@okhdfcbank",
-	transactions: [
-		{
-			id: "TXN-948201",
-			type: "credit",
-			title: "Monthly Commute Allowance",
-			amount: 500.0,
-			date: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString(),
-			status: "Success",
-			category: "Allowance",
-			method: "Corporate Direct Credit",
-		},
-		{
-			id: "TXN-839174",
-			type: "debit",
-			title: "Carpool to Salt Lake Sector V",
-			amount: 45.0,
-			date: new Date(Date.now() - 1 * 24 * 3600 * 1000).toISOString(),
-			status: "Success",
-			category: "Ride Fare",
-			method: "Norimono Wallet",
-		},
-		{
-			id: "TXN-729013",
-			type: "credit",
-			title: "UPI Top-Up (Google Pay)",
-			amount: 200.0,
-			date: new Date(Date.now() - 5 * 24 * 3600 * 1000).toISOString(),
-			status: "Success",
-			category: "Top-Up",
-			method: "UPI",
-		},
-		{
-			id: "TXN-618492",
-			type: "debit",
-			title: "Carpool to Park Street Corporate Park",
-			amount: 55.0,
-			date: new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString(),
-			status: "Success",
-			category: "Ride Fare",
-			method: "Norimono Wallet",
-		},
-	],
+	bank_connection: "Corporate Payroll Account",
+	upi_id: "",
+	transactions: [],
 };
 
 function getStorageKey(empId) {

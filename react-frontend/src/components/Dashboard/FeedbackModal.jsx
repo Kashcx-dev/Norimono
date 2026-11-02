@@ -9,17 +9,43 @@ export default function FeedbackModal({ isOpen, onClose }) {
 
 	if (!isOpen) return null;
 
-	const handleSubmit = () => {
-		// Mock submission
-		setTimeout(() => {
+	const handleSubmit = async () => {
+		if (!rating || !feedback.trim()) return;
+
+		const token = localStorage.getItem("token");
+		try {
+			const res = await fetch("/feedback/send_feedback", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`
+				},
+				body: JSON.stringify({ rating, message: feedback.trim() })
+			});
+			const data = await res.json();
+			if (res.ok || data.success) {
+				setSubmitted(true);
+				setTimeout(() => {
+					onClose();
+					setSubmitted(false);
+					setRating(0);
+					setFeedback("");
+				}, 2000);
+			} else {
+				setSubmitted(true);
+				setTimeout(() => {
+					onClose();
+					setSubmitted(false);
+				}, 1800);
+			}
+		} catch (err) {
+			console.error("Feedback submit error:", err);
 			setSubmitted(true);
 			setTimeout(() => {
 				onClose();
 				setSubmitted(false);
-				setRating(0);
-				setFeedback("");
-			}, 2000);
-		}, 500);
+			}, 1800);
+		}
 	};
 
 	return (

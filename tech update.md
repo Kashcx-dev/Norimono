@@ -246,11 +246,16 @@ Traditional ridesharing (Ola/Uber) suffers from surge pricing, driver cancellati
 - `POST /wallet/topup` — Simulates/processes Razorpay gateway wallet recharge.
 - `POST /wallet/transfer` — Executes escrow release and fuel cost-split transfer.
 
+### System Diagnostics & Custom Error Handlers (`/api`)
+- `GET /api/errors/catalog` — Returns machine-readable dictionary of all custom error codes (`VALIDATION_ERROR`, `INVALID_PHONE_FORMAT`, `INVALID_VEHICLE_NO`, `RIDE_FULL`, `UNAUTHORIZED`, etc.) with HTTP statuses and resolution hints.
+- `GET /api/health` — Returns real-time platform health, PostgreSQL connection status, query latency (ms), and server uptime.
+
 ---
 
 ## 6. Git Commit Highlights (Chronological Track)
 
-- `[Current]` — **feat(ui):** Minimalist search results view: stripped bulky covers, search inputs, and disclaimers from `BrowseRidesPanel.jsx`; added ultra-compact header with `Edit Route`, `Female-Only` toggle, and small results count pill so colleague rides are immediately visible and scrollable.
+- `[Current]` — **feat(core):** Concrete enterprise carpooling upgrade: eliminated demo fallbacks (`DEMO_RIDE_1`, simulated wallets, mock feedback), enforced strict field typing (numeric 10-digit mobile phone, RTO vehicle plate regex, alphabetical name restrictions), and implemented centralized custom error endpoints (`/api/errors/catalog`, `/api/health`, standardized JSON error payloads).
+- `28e86d4` — **feat(ui):** Minimalist search results view: stripped bulky covers, search inputs, and disclaimers from `BrowseRidesPanel.jsx`; added ultra-compact header with `Edit Route`, `Female-Only` toggle, and small results count pill so colleague rides are immediately visible and scrollable.
 - `ee64b24` — **fix(auth):** Streamline login flow, auto-align corporate organization, and support global top-level domains (`.in`, `.org`, `.co.in`).
 - `6a94ec6` — **feat(blablacar):** Full BlaBlaCar replica features: Chattiness Meter (Bla/BlaBla/BlaBlaBla), Ride Amenities (AC, No Smoking, Music, Max 2 in back comfort guarantee), En-Route Corridor Stopovers, Luggage capacity tiers, Instant Booking, and Recurring Commutes.
 - `addeabf` — **feat(ui):** Convert verification alerts to auto-fading glass toasts; add dynamic "Show Registered Vehicles" modal to Profile and Navigation with real-time status tracking.

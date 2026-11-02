@@ -25,6 +25,7 @@ const ridesRoutes = require("../routes/rides");
 const historyRoutes = require("../routes/history");
 const rateRoutes = require("../routes/rate");
 const h3Routes = require("../routes/h3routing");
+const customErrorRoutes = require("../routes/customErrors");
 const { getRouting } = require("../handlers/GPS_CalcHandler");
 const { startLiveTracking } = require("../routes/GPS_fetch");
 
@@ -67,6 +68,7 @@ app.use("/rides", FN_verifyTkn, API_Limiter("standard"), ridesRoutes);
 app.use("/history", FN_verifyTkn, API_Limiter("standard"), historyRoutes);
 app.use("/rate", FN_verifyTkn, API_Limiter("standard"), rateRoutes);
 app.use("/h3", API_Limiter("standard"), h3Routes);
+app.use("/api", customErrorRoutes);
 
 // Socket.io connection logic for GPS Tracking, Chat, Voice Calls & Notifications
 io.on("connection", (socket) => {
@@ -143,7 +145,7 @@ io.on("connection", (socket) => {
 // SPA fallback for frontend client routing
 app.use((req, res, next) => {
     if (req.method !== 'GET') return next();
-    if (req.path.startsWith("/auth") || req.path.startsWith("/rides") || req.path.startsWith("/book-ride") || req.path.startsWith("/publish-ride") || req.path.startsWith("/pickup-ride") || req.path.startsWith("/finish-ride") || req.path.startsWith("/drop-passenger") || req.path.startsWith("/admin") || req.path.startsWith("/wallet") || req.path.startsWith("/feedback") || req.path.startsWith("/chat") || req.path.startsWith("/history") || req.path.startsWith("/rate") || req.path.startsWith("/h3")) {
+    if (req.path.startsWith("/auth") || req.path.startsWith("/rides") || req.path.startsWith("/book-ride") || req.path.startsWith("/publish-ride") || req.path.startsWith("/pickup-ride") || req.path.startsWith("/finish-ride") || req.path.startsWith("/drop-passenger") || req.path.startsWith("/admin") || req.path.startsWith("/wallet") || req.path.startsWith("/feedback") || req.path.startsWith("/chat") || req.path.startsWith("/history") || req.path.startsWith("/rate") || req.path.startsWith("/h3") || req.path.startsWith("/api")) {
         return next();
     }
     const indexPath = path.join(__dirname, "../../react-frontend/dist/index.html");

@@ -9,14 +9,14 @@ export default function VoiceCallModal({ isOpen, onClose, socket, activeTrip, us
 	const voiceCallRef = useRef(null);
 
 	const targetName = isCaller 
-		? (activeTrip?.ride?.driver_name || "Rahul M. (Driver)")
-		: (activeTrip?.passenger_name || "Employee Passenger");
+		? (activeTrip?.ride?.driver_name || "Assigned Driver")
+		: (activeTrip?.passenger_name || "Colleague Passenger");
 
 	// Initialize WebRTC Voice Call when Modal opens
 	useEffect(() => {
 		if (!isOpen) return;
 
-		const rideId = activeTrip?.ride?.ride_id || activeTrip?.ride_id || activeTrip?.booking_id || "DEMO_RIDE_1";
+		const rideId = activeTrip?.ride?.ride_id || activeTrip?.ride_id || activeTrip?.booking_id || `ride_${user?.emp_id || 'commute'}`;
 		
 		// Ensure client joins the ride socket room
 		if (socket) {
