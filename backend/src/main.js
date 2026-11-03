@@ -40,9 +40,11 @@ app.set('trust proxy', 1); // Trust first proxy (solves the X-Forwarded-For rate
 const PORT = process.env.PORT || 3000;
 
 const fs = require("fs");
+const { xssSanitizerMiddleware } = require("../utils/sanitize");
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
+app.use(xssSanitizerMiddleware);
 
 const distPath = path.join(__dirname, "../../react-frontend/dist");
 if (fs.existsSync(distPath)) {

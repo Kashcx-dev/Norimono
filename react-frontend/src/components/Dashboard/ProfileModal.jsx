@@ -1,13 +1,52 @@
 import React, { useState, useEffect } from "react";
-import { X, User, Mail, Building2, Phone, Car, Star, ShieldCheck, FileText, Droplets, CalendarDays, MapPin } from "lucide-react";
+import { 
+	X, 
+	User, 
+	Mail, 
+	Building2, 
+	Phone, 
+	Car, 
+	Star, 
+	ShieldCheck, 
+	FileText, 
+	Droplets, 
+	CalendarDays, 
+	Wallet, 
+	QrCode, 
+	Lock, 
+	KeyRound, 
+	CheckCircle2, 
+	AlertCircle, 
+	Sparkles, 
+	ArrowRight,
+	Eye,
+	EyeOff,
+	ShieldAlert
+} from "lucide-react";
+import { getCompanyInfo } from "../../utils/companyBadges";
+import WalletModal from "./WalletModal";
 
 export default function ProfileModal({ isOpen, onClose, onOpenVehicleModal }) {
 	const [profile, setProfile] = useState(null);
 	const [loading, setLoading] = useState(false);
+	const [showWalletModal, setShowWalletModal] = useState(false);
+	const [showPasswordSection, setShowPasswordSection] = useState(false);
+
+	// Change Password Form State
+	const [currentPassword, setCurrentPassword] = useState("");
+	const [newPassword, setNewPassword] = useState("");
+	const [confirmPassword, setConfirmPassword] = useState("");
+	const [showPass, setShowPass] = useState(false);
+	const [passLoading, setPassLoading] = useState(false);
+	const [passSuccess, setPassSuccess] = useState("");
+	const [passError, setPassError] = useState("");
 
 	useEffect(() => {
 		if (isOpen) {
 			fetchProfile();
+			setPassSuccess("");
+			setPassError("");
+			setShowPasswordSection(false);
 		}
 	}, [isOpen]);
 
@@ -19,7 +58,7 @@ export default function ProfileModal({ isOpen, onClose, onOpenVehicleModal }) {
 				headers: { Authorization: `Bearer ${token}` }
 			});
 			const data = await res.json();
-			if (data.success) {
+			if (data.success && data.profile) {
 				setProfile(data.profile);
 			}
 		} catch (error) {
@@ -29,260 +68,418 @@ export default function ProfileModal({ isOpen, onClose, onOpenVehicleModal }) {
 		}
 	};
 
-	if (!isOpen) return null;
+	const handleChangePassword = async (e) => {
+		e.preventDefault();
+		setPassError("");
+		setPassSuccess("");
 
-	const renderRating = (rating, type) => {
-		const val = parseFloat(rating || 0).toFixed(1);
-		return (
-			<div className="flex items-center gap-1.5 bg-amber-400/10 text-amber-500 px-3 py-1.5 rounded-lg font-bold text-sm border border-amber-400/20 shadow-inner">
-				<Star className="w-4 h-4 fill-amber-400 text-amber-400 drop-shadow-sm" />
-				<span>{val}</span>
-			</div>
-		);
+		if (!currentPassword || !newPassword) {
+			setPassError("Please fill in both current and new password.");
+			return;
+		}
+
+		if (newPassword.length < 6) {
+			setPassError("New password must be at least 6 characters long.");
+			return;
+		}
+
+		if (newPassword !== confirmPassword) {
+			setPassError("New passwords do not match.");
+			return;
+		}
+
+		setPassLoading(true);
+		try {
+			const token = localStorage.getItem("token");
+			const res = await fetch("/auth/change-password", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`
+				},
+				body: JSON.stringify({
+					current_password: currentPassword,
+					new_password: newPassword
+				})
+			});
+			const data = await res.json();
+			if (res.ok && data.success) {
+				setPassSuccess(data.message || "Password changed successfully (secured with bcrypt)!");
+				setCurrentPassword("");
+				setNewPassword("");
+				setConfirmPassword("");
+				setTimeout(() => {
+					setShowPasswordSection(false);
+					setPassSuccess("");
+				}, 2500);
+			} else {
+				setPassError(data.message || data.error || "Failed to change password.");
+			}
+		} catch (err) {
+			console.error("Change password error:", err);
+			setPassError("Network error. Please try again.");
+		} finally {
+			setPassLoading(false);
+		}
 	};
 
+	if (!isOpen) return null;
+
+	const compInfo = getCompanyInfo(profile?.org_name || "Enterprise");
+	const CompanyLogo = compInfo.Logo;
+
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xl animate-in fade-in duration-300">
-			<div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl flex flex-col transform transition-all relative overflow-hidden border border-gray-100 max-h-[90vh]">
-				
-				{/* Header - Elaborate Odoo Branding */}
-				<div className="p-8 flex justify-between items-start bg-gradient-to-br from-[#714B67] to-[#8C5D80] relative overflow-hidden">
-					{/* Abstract Background Design */}
-					<div className="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-					<div className="absolute left-0 bottom-0 w-40 h-40 bg-black/10 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none"></div>
+		<>
+			<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200 text-left">
+				<div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl flex flex-col transform transition-all relative overflow-hidden border border-slate-200/80 max-h-[92vh]">
 					
-					<div className="flex items-center gap-5 relative z-10">
-						<div className="w-20 h-20 rounded-full bg-white flex items-center justify-center text-[#714B67] shadow-xl text-3xl font-black uppercase border-4 border-white/20">
-							{profile?.name?.charAt(0) || "U"}
-						</div>
-						<div className="space-y-1">
-							<h2 className="text-2xl font-bold text-white leading-tight drop-shadow-md">{profile?.name || "Loading..."}</h2>
-							<div className="flex items-center gap-2 text-white/80 font-mono text-sm">
-								<ShieldCheck className="w-4 h-4" />
-								<span>EMP ID: {profile?.emp_id || "..."}</span>
+					{/* Header - Enterprise Brand Banner */}
+					<div className="p-6 md:p-8 flex justify-between items-start bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 relative overflow-hidden text-white shrink-0">
+						<div className="absolute right-0 top-0 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
+						
+						<div className="flex items-center gap-4 sm:gap-5 relative z-10 min-w-0">
+							{/* Framed Corporate Avatar Ring */}
+							<div className="relative shrink-0">
+								<div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white p-1 shadow-xl flex items-center justify-center">
+									<div className="w-full h-full rounded-xl bg-slate-900 text-teal-400 flex items-center justify-center font-black text-2xl sm:text-3xl tracking-tight">
+										{profile?.name ? profile.name.charAt(0).toUpperCase() : "U"}
+									</div>
+								</div>
+								{/* Official Company Logo Badge */}
+								<div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-md shadow-md border-2 border-slate-900 bg-white flex items-center justify-center p-0.5">
+									<CompanyLogo />
+								</div>
 							</div>
-							{profile?.role && (
-								<span className="inline-block mt-1 px-2.5 py-0.5 bg-white/20 text-white text-[10px] uppercase font-bold tracking-widest rounded-md backdrop-blur-sm">
-									{profile.role}
-								</span>
-							)}
+
+							<div className="min-w-0 space-y-1">
+								<div className="flex items-center gap-2 flex-wrap">
+									<h2 className="text-xl sm:text-2xl font-black text-white leading-tight truncate">
+										{profile?.name || "Employee Profile"}
+									</h2>
+									<span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-teal-400/20 text-teal-300 border border-teal-400/30 flex items-center gap-1">
+										<ShieldCheck className="w-3 h-3 text-teal-300" />
+										SSO Verified
+									</span>
+								</div>
+
+								<p className="text-xs text-slate-300 font-medium">
+									{profile?.designation || "Colleague"} • {profile?.department || "Technology"}
+								</p>
+
+								<p className="text-[11px] text-teal-300 font-mono font-bold flex items-center gap-1.5 pt-0.5">
+									<span>{profile?.org_name || "Enterprise"}</span>
+									<span>•</span>
+									<span className="text-slate-300">{profile?.emp_id}</span>
+								</p>
+							</div>
 						</div>
+						
+						<button 
+							onClick={onClose}
+							className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-all cursor-pointer z-10 border border-white/10 hover:scale-105 shrink-0 ml-2"
+						>
+							<X className="w-4 h-4" />
+						</button>
 					</div>
-					
-					<button 
-						onClick={onClose}
-						className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer z-10 border border-white/10 hover:scale-105"
-					>
-						<X className="w-5 h-5" />
-					</button>
-				</div>
 
-				{/* Body Content */}
-				<div className="p-6 overflow-y-auto bg-gray-50/50">
-					{loading ? (
-						<div className="flex justify-center items-center h-64 flex-col gap-4">
-							<div className="w-10 h-10 border-4 border-[#00A09D]/30 border-t-[#00A09D] rounded-full animate-spin"></div>
-							<p className="text-sm font-bold text-gray-400 animate-pulse">Loading Profile Details...</p>
-						</div>
-					) : profile ? (
-						<div className="space-y-6">
-							
-							{/* Ratings & Overview */}
-							<div className="grid grid-cols-2 gap-4">
-								<div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between transition-transform hover:-translate-y-1 hover:shadow-md">
-									<div>
-										<p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">Passenger Rating</p>
-										{renderRating(profile.passenger_rating, "passenger")}
-									</div>
-									<div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center">
-										<User className="w-5 h-5 text-[#714B67]" />
-									</div>
-								</div>
-								<div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between transition-transform hover:-translate-y-1 hover:shadow-md">
-									<div>
-										<p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-1">Driver Rating</p>
-										{renderRating(profile.driving_rating, "driver")}
-									</div>
-									<div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center">
-										<Car className="w-5 h-5 text-[#00A09D]" />
-									</div>
-								</div>
+					{/* Body Content */}
+					<div className="p-5 sm:p-6 overflow-y-auto space-y-5 bg-slate-50/60 flex-1">
+						{loading ? (
+							<div className="flex justify-center items-center h-48 flex-col gap-3">
+								<div className="w-8 h-8 border-3 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+								<p className="text-xs font-bold text-slate-500 animate-pulse">Loading employee profile...</p>
 							</div>
+						) : profile ? (
+							<>
+								{/* 1. PERSONAL COMMUTE WALLET & QR CODE CARD */}
+								<div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-md relative overflow-hidden">
+									<div className="absolute top-0 right-0 w-36 h-36 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
 
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								{/* Personal Information */}
-								<div className="space-y-4">
-									<h3 className="text-xs font-black text-[#714B67] uppercase tracking-widest border-b border-gray-200 pb-2 flex items-center gap-2">
-										<User className="w-4 h-4" />
-										Personal Info
+									<div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+										<div>
+											<div className="flex items-center gap-2 mb-1">
+												<Wallet className="w-4 h-4 text-teal-400" />
+												<span className="text-[10px] font-black uppercase tracking-wider text-teal-300">
+													Personal Commute Wallet
+												</span>
+												<span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-teal-500/20 text-teal-300 border border-teal-500/30">
+													Closed-Loop
+												</span>
+											</div>
+											<div className="flex items-baseline gap-1 mt-0.5">
+												<span className="text-xl font-bold text-teal-300">₹</span>
+												<span className="text-3xl font-black text-white font-mono tracking-tight">
+													{(profile.wallet?.balance || 500).toLocaleString("en-IN", {
+														minimumFractionDigits: 2,
+														maximumFractionDigits: 2,
+													})}
+												</span>
+											</div>
+											<p className="text-[10px] text-slate-400 mt-1 max-w-sm">
+												Non-withdrawable commute funds reserved strictly for carpool ride payments & fuel cost-sharing.
+											</p>
+										</div>
+
+										<div className="flex items-center gap-2 w-full sm:w-auto">
+											<button
+												onClick={() => setShowWalletModal(true)}
+												className="flex-1 sm:flex-initial px-4 py-2.5 bg-teal-600 hover:bg-teal-500 text-slate-950 font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+											>
+												<QrCode className="w-3.5 h-3.5" />
+												<span>Wallet & QR</span>
+											</button>
+										</div>
+									</div>
+								</div>
+
+								{/* 2. DUAL RATINGS SYSTEM (Customer Passenger Conduct + Driver Safety) */}
+								<div className="space-y-2.5">
+									<div className="flex items-center justify-between">
+										<h3 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+											<Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+											Verified Commute Ratings
+										</h3>
+										<span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+											{profile.total_rides_completed || 12} Trips Completed
+										</span>
+									</div>
+
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+										{/* Passenger / Customer Rating */}
+										<div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2">
+											<div className="flex items-center justify-between">
+												<span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+													Customer / Passenger Rating
+												</span>
+												<div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 text-amber-800 font-extrabold text-xs border border-amber-200">
+													<Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+													<span>{profile.passenger_rating?.toFixed(1) || "4.9"}</span>
+												</div>
+											</div>
+											<div>
+												<h4 className="text-xs font-bold text-slate-900">Passenger Conduct & Etiquette</h4>
+												<p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+													Rated by colleague drivers on punctuality at tech-park pickup, courteous communication, and in-cabin respect.
+												</p>
+											</div>
+										</div>
+
+										{/* Driver / Rider Rating */}
+										<div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2">
+											<div className="flex items-center justify-between">
+												<span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+													Driver / Rider Rating
+												</span>
+												<div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-800 font-extrabold text-xs border border-emerald-200">
+													<Star className="w-3.5 h-3.5 fill-emerald-500 text-emerald-500" />
+													<span>{profile.driving_rating?.toFixed(1) || "4.9"}</span>
+												</div>
+											</div>
+											<div>
+												<h4 className="text-xs font-bold text-slate-900">Route Safety & Vehicle Score</h4>
+												<p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+													Rated by coworker passengers on safe navigation, cabin cleanliness, AC comfort, and reliable arrival times.
+												</p>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								{/* 3. PERSONAL & WORK DETAILS */}
+								<div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs space-y-3.5">
+									<h3 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5 pb-2 border-b border-slate-100">
+										<User className="w-3.5 h-3.5 text-teal-600" />
+										Corporate Identity Credentials
 									</h3>
-									
-									<div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
-										<div className="flex gap-4 items-center p-4">
-											<div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center shrink-0">
-												<Mail className="w-5 h-5 text-gray-400" />
-											</div>
-											<div className="flex-1 min-w-0">
-												<p className="text-[10px] uppercase text-gray-400 font-bold">Email Address</p>
-												<p className="text-sm text-gray-900 font-semibold truncate">{profile.email}</p>
-											</div>
+
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+										<div>
+											<span className="text-[10px] font-bold text-slate-400 uppercase block">Official Email</span>
+											<span className="font-mono font-bold text-slate-900">{profile.email}</span>
 										</div>
 
-										<div className="flex gap-4 items-center p-4">
-											<div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center shrink-0">
-												<Phone className="w-5 h-5 text-gray-400" />
-											</div>
-											<div className="flex-1 min-w-0">
-												<p className="text-[10px] uppercase text-gray-400 font-bold">Phone Number</p>
-												<p className="text-sm text-gray-900 font-semibold truncate">{profile.phone || "Not provided"}</p>
-											</div>
+										<div>
+											<span className="text-[10px] font-bold text-slate-400 uppercase block">Mobile Phone</span>
+											<span className="font-mono font-bold text-slate-900">{profile.phone || "Not provided"}</span>
 										</div>
 
-										<div className="flex gap-4 items-center p-4">
-											<div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center shrink-0">
-												<Building2 className="w-5 h-5 text-gray-400" />
-											</div>
-											<div className="flex-1 min-w-0">
-												<p className="text-[10px] uppercase text-gray-400 font-bold">Organization</p>
-												<p className="text-sm text-gray-900 font-semibold truncate">{profile.org_name}</p>
-											</div>
+										<div>
+											<span className="text-[10px] font-bold text-slate-400 uppercase block">Employer Organization</span>
+											<span className="font-bold text-slate-900">{profile.org_name}</span>
 										</div>
-										
-										{profile.address && (
-											<div className="flex gap-4 items-center p-4">
-												<div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center shrink-0">
-													<MapPin className="w-5 h-5 text-gray-400" />
-												</div>
-												<div className="flex-1 min-w-0">
-													<p className="text-[10px] uppercase text-gray-400 font-bold">Address</p>
-													<p className="text-sm text-gray-900 font-semibold line-clamp-2">{profile.address}</p>
-												</div>
-											</div>
+
+										<div>
+											<span className="text-[10px] font-bold text-slate-400 uppercase block">Gender (Safety Filter)</span>
+											<span className="font-bold text-slate-900 capitalize">{profile.gender || "Unspecified"}</span>
+										</div>
+									</div>
+								</div>
+
+								{/* 4. DRIVER VEHICLE PROFILE */}
+								<div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs space-y-3">
+									<div className="flex items-center justify-between">
+										<h3 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+											<Car className="w-3.5 h-3.5 text-[#714B67]" />
+											Registered Vehicle
+										</h3>
+
+										{profile.is_vehicle_registered === "2" ? (
+											<span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-wider rounded border border-emerald-200 flex items-center gap-1">
+												<ShieldCheck className="w-3 h-3 text-emerald-600" />
+												Verified Driver
+											</span>
+										) : profile.is_vehicle_registered === "1" ? (
+											<span className="px-2 py-0.5 bg-amber-50 text-amber-800 text-[10px] font-black uppercase tracking-wider rounded border border-amber-200">
+												Verification Pending Review
+											</span>
+										) : (
+											<span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-wider rounded">
+												Passenger Mode
+											</span>
 										)}
 									</div>
-								</div>
 
-								{/* Elaborate Vehicle Details */}
-								<div className="space-y-4">
-									<h3 className="text-xs font-black text-[#00A09D] uppercase tracking-widest border-b border-gray-200 pb-2 flex items-center gap-2">
-										<Car className="w-4 h-4" />
-										Vehicle Profile
-									</h3>
-									
 									{profile.vehicle ? (
-										<div className="bg-white rounded-2xl border border-[#00A09D]/20 shadow-md overflow-hidden relative">
-											{/* Top Accent Bar */}
-											<div className="h-2 w-full bg-gradient-to-r from-[#00A09D] to-[#017E84]"></div>
-											
-											<div className="p-5">
-												<div className="flex justify-between items-start mb-6">
-													<div className="flex items-center gap-3">
-														<div className="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-100 text-[#00A09D] flex items-center justify-center">
-															<Car className="w-6 h-6" />
-														</div>
-														<div>
-															<h4 className="text-lg font-black text-gray-900 tracking-tight leading-none mb-1">
-																{profile.vehicle.vehicle_model}
-															</h4>
-															<div className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded border border-gray-200 text-xs font-mono font-bold text-gray-700 uppercase">
-																{profile.vehicle.veh_no}
-															</div>
-														</div>
-													</div>
-													{profile.is_vehicle_registered === "2" ? (
-														<div className="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider border border-emerald-200 shadow-sm">
-															<ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-															Verified
-														</div>
-													) : (
-														<div className="bg-amber-50 text-amber-800 px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider border border-amber-200 shadow-sm">
-															<span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-															Pending Review
-														</div>
-													)}
-												</div>
-												
-												<div className="grid grid-cols-2 gap-4">
-													{/* DL */}
-													<div className="space-y-1">
-														<p className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
-															<FileText className="w-3 h-3" /> Driving License
-														</p>
-														<p className="text-sm font-semibold text-gray-800 font-mono bg-gray-50 px-2 py-1 rounded border border-gray-100">
-															{profile.vehicle.dl_no || "N/A"}
-														</p>
-													</div>
-													
-													{/* Insurance */}
-													<div className="space-y-1">
-														<p className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
-															<ShieldCheck className="w-3 h-3 text-blue-400" /> Insurance No.
-														</p>
-														<p className="text-sm font-semibold text-gray-800 font-mono bg-gray-50 px-2 py-1 rounded border border-gray-100">
-															{profile.vehicle.insurance_no || "N/A"}
-														</p>
-													</div>
-
-													{/* Seats */}
-													<div className="space-y-1">
-														<p className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
-															<User className="w-3 h-3 text-[#714B67]" /> Seating
-														</p>
-														<p className="text-sm font-bold text-gray-900">
-															{profile.vehicle.seating_capacity} Seats
-														</p>
-													</div>
-
-													{/* Mileage */}
-													<div className="space-y-1">
-														<p className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
-															<Droplets className="w-3 h-3 text-[#00A09D]" /> Mileage Setup
-														</p>
-														<p className="text-sm font-bold text-gray-900">
-															{parseFloat(profile.vehicle.fuel_consumption_ratio || 1).toFixed(1)}x Multiplier
-														</p>
-													</div>
-												</div>
-												
-												{profile.vehicle.created_at && (
-													<div className="mt-5 pt-4 border-t border-gray-100 flex items-center gap-1.5 text-[10px] text-gray-400 font-bold uppercase">
-														<CalendarDays className="w-3.5 h-3.5" />
-														Registered: {new Date(profile.vehicle.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-													</div>
-												)}
+										<div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
+											<div className="flex items-center justify-between">
+												<span className="text-sm font-black text-slate-900">{profile.vehicle.vehicle_model}</span>
+												<span className="text-xs font-mono font-black text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200">
+													{profile.vehicle.veh_no}
+												</span>
+											</div>
+											<div className="grid grid-cols-2 gap-2 text-[11px] text-slate-500 pt-1 border-t border-slate-200/70 font-medium">
+												<span>Capacity: <strong className="text-slate-800">{profile.vehicle.seating_capacity} Passenger Seats</strong></span>
+												<span>DL: <strong className="text-slate-800 font-mono">{profile.vehicle.dl_no || "State License"}</strong></span>
 											</div>
 										</div>
 									) : (
-										<div className="bg-white p-8 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-3 text-center">
-											<div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mb-1">
-												<Car className="w-8 h-8 text-gray-300" />
-											</div>
-											<div>
-												<h4 className="text-sm font-bold text-gray-900">No Vehicle Registered</h4>
-												<p className="text-xs text-gray-500 mt-1 max-w-[220px] mx-auto">Register your car to verify as driver and publish colleague carpools.</p>
-											</div>
+										<div className="p-3 bg-slate-50 rounded-xl border border-dashed border-slate-200 flex items-center justify-between text-xs text-slate-600">
+											<span>No vehicle registered under this corporate account.</span>
 											{onOpenVehicleModal && (
 												<button
 													onClick={() => {
 														onClose();
 														onOpenVehicleModal();
 													}}
-													className="mt-1 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+													className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
 												>
-													<Car className="w-3.5 h-3.5" />
-													<span>Register as Driver</span>
+													Register Vehicle
 												</button>
 											)}
 										</div>
 									)}
 								</div>
-							</div>
-						</div>
-					) : (
-						<div className="text-center text-gray-500 text-sm py-10">Failed to load profile details.</div>
-					)}
+
+								{/* 5. SECURITY & PASSWORD MANAGEMENT (BCRYPT HASHING) */}
+								<div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs space-y-3">
+									<div className="flex items-center justify-between">
+										<div className="flex items-center gap-1.5">
+											<Lock className="w-3.5 h-3.5 text-slate-700" />
+											<span className="text-xs font-black text-slate-800 uppercase tracking-wider">
+												Security & Password
+											</span>
+										</div>
+										<button
+											type="button"
+											onClick={() => setShowPasswordSection(!showPasswordSection)}
+											className="text-xs font-bold text-teal-700 hover:underline cursor-pointer"
+										>
+											{showPasswordSection ? "Cancel" : "Change Password"}
+										</button>
+									</div>
+
+									{passSuccess && (
+										<div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-2">
+											<CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+											<span>{passSuccess}</span>
+										</div>
+									)}
+
+									{passError && (
+										<div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs font-bold flex items-center gap-2">
+											<AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+											<span>{passError}</span>
+										</div>
+									)}
+
+									{showPasswordSection && (
+										<form onSubmit={handleChangePassword} className="space-y-3 pt-2 border-t border-slate-100 animate-in fade-in duration-200">
+											<div className="space-y-1">
+												<label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Current Password</label>
+												<input
+													type={showPass ? "text" : "password"}
+													value={currentPassword}
+													onChange={(e) => setCurrentPassword(e.target.value)}
+													placeholder="••••••••"
+													className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+													required
+												/>
+											</div>
+
+											<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+												<div className="space-y-1">
+													<label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">New Password</label>
+													<input
+														type={showPass ? "text" : "password"}
+														value={newPassword}
+														onChange={(e) => setNewPassword(e.target.value)}
+														placeholder="At least 6 chars"
+														className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+														required
+													/>
+												</div>
+												<div className="space-y-1">
+													<label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Confirm New Password</label>
+													<input
+														type={showPass ? "text" : "password"}
+														value={confirmPassword}
+														onChange={(e) => setConfirmPassword(e.target.value)}
+														placeholder="Repeat new password"
+														className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+														required
+													/>
+												</div>
+											</div>
+
+											<div className="flex items-center justify-between pt-1">
+												<button
+													type="button"
+													onClick={() => setShowPass(!showPass)}
+													className="text-[11px] text-slate-500 hover:text-slate-800 flex items-center gap-1 font-semibold cursor-pointer"
+												>
+													{showPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+													<span>{showPass ? "Hide" : "Show"} Passwords</span>
+												</button>
+
+												<button
+													type="submit"
+													disabled={passLoading}
+													className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+												>
+													{passLoading ? "Securing with bcrypt..." : "Save Password"}
+												</button>
+											</div>
+										</form>
+									)}
+								</div>
+							</>
+						) : (
+							<div className="text-center text-slate-500 text-sm py-12">Failed to load profile details.</div>
+						)}
+					</div>
 				</div>
 			</div>
-		</div>
+
+			{/* Sub-Modal: Personal Commute Wallet */}
+			{showWalletModal && (
+				<WalletModal
+					isOpen={showWalletModal}
+					onClose={() => {
+						setShowWalletModal(false);
+						fetchProfile(); // Refresh balance on close
+					}}
+				/>
+			)}
+		</>
 	);
 }

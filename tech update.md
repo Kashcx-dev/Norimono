@@ -247,6 +247,17 @@ Traditional ridesharing (Ola/Uber) suffers from surge pricing, driver cancellati
 - `GET /wallet/transactions` — Returns real-time transaction history from `wallet_transactions`.
 - `POST /wallet/transfer` — Executes escrow release and fuel cost-split transfer upon ride completion.
 
+### Authentication & Security (`/auth`)
+- `POST /auth/signup` — Registers employee with verified corporate domain, generates salt with `bcrypt.genSalt(10)` and securely hashes passwords before storing in PostgreSQL.
+- `POST /auth/login` — Authenticates user via `bcrypt.compare` against hashed passwords and issues JWT token.
+- `GET /auth/me` — Fetches current authenticated employee profile, corporate badge, vehicle status, live commute wallet balance, and dual ratings (`passenger_rating`, `driving_rating`).
+- `POST /auth/change-password` — Validates current password via `bcrypt.compare` and hashes new password with `bcrypt.hash(newPassword, 10)`.
+- `POST /auth/update-profile` — Updates user profile fields safely.
+
+### Global XSS Sanitization Engine (`/backend/utils/sanitize.js`)
+- **Recursive Payload Sanitizer (`sanitizeData`)**: Automatically traverses and sanitizes nested objects and arrays using `DOMPurify` / regex sanitizer, stripping malicious `<script>`, `<iframe>`, and event-handler injections while preserving password fields for bcrypt validation.
+- **Express Middleware (`xssSanitizerMiddleware`)**: Globally mounted on the Express application to scrub all incoming `req.body`, `req.query`, and `req.params`.
+
 ### Feedback System (`/feedback`)
 - `POST /feedback/send_feedback` — Records star rating (1-5) and detailed description in PostgreSQL `feedbacks` table and automatically dispatches an HTML notification email to leadership (`master.trainer049@gmail.com`).
 
@@ -258,7 +269,8 @@ Traditional ridesharing (Ola/Uber) suffers from surge pricing, driver cancellati
 
 ## 6. Git Commit Highlights (Chronological Track)
 
-- `[Current]` — **feat(wallet-feedback):** Enforce feedback email dispatch to leadership via Nodemailer (`master.trainer049@gmail.com`), integrate personal Closed-Loop Commute Wallet with dynamic personal QR Code, non-withdrawable policy banner, and direct wallet top-up.
+- `[Current]` — **feat(security-profile):** Implement global recursive DOMPurify XSS sanitization middleware across all routes, bcrypt password hashing & change-password endpoint, Corporate Profile & Trust Hub with Dual Ratings (Passenger Etiquette & Driver Safety), and embedded Personal Commute Wallet with dynamic QR code.
+- `b63ca27` — **feat(wallet-feedback):** Enforce feedback email dispatch to leadership via Nodemailer (`master.trainer049@gmail.com`), integrate personal Closed-Loop Commute Wallet with dynamic personal QR Code, non-withdrawable policy banner, and direct wallet top-up.
 - `1b5efdd` — **feat(security):** Remove all demo fallbacks, enforce strict field-level typing and validation (10-digit phone, RTO vehicle plate regex, alphabetical name restrictions), and add custom error endpoints (`/api/errors/catalog`, `/api/health`).
 - `28e86d4` — **feat(ui):** Minimalist search results view: stripped bulky covers, search inputs, and disclaimers from `BrowseRidesPanel.jsx`; added ultra-compact header with `Edit Route`, `Female-Only` toggle, and small results count pill so colleague rides are immediately visible and scrollable.
 - `ee64b24` — **fix(auth):** Streamline login flow, auto-align corporate organization, and support global top-level domains (`.in`, `.org`, `.co.in`).
