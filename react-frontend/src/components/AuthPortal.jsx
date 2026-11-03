@@ -136,7 +136,14 @@ function AuthPortal({ onLoginSuccess }) {
 				{/* Footer */}
 				<div className="relative z-10 text-slate-500 text-[11px] flex justify-between items-center border-t border-slate-800 pt-4">
 					<span>© {new Date().getFullYear()} Norimono Technologies Inc.</span>
-					<span className="text-teal-400 font-semibold">100% Non-Profit Cost Sharing Compliant</span>
+					<a
+						href="/terms"
+						target="_blank"
+						rel="noreferrer"
+						className="text-teal-400 hover:text-teal-300 font-semibold hover:underline cursor-pointer"
+					>
+						Terms & Commute Charter ↗
+					</a>
 				</div>
 			</div>
 

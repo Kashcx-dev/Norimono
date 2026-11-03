@@ -21,12 +21,13 @@ import {
 	ArrowRight,
 	Eye,
 	EyeOff,
-	ShieldAlert
+	ShieldAlert,
+	Scale
 } from "lucide-react";
 import { getCompanyInfo } from "../../utils/companyBadges";
 import WalletModal from "./WalletModal";
 
-export default function ProfileModal({ isOpen, onClose, onOpenVehicleModal }) {
+export default function ProfileModal({ isOpen, onClose, onOpenVehicleModal, onOpenTerms }) {
 	const [profile, setProfile] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const [showWalletModal, setShowWalletModal] = useState(false);
@@ -460,6 +461,32 @@ export default function ProfileModal({ isOpen, onClose, onOpenVehicleModal }) {
 												</button>
 											</div>
 										</form>
+									)}
+								</div>
+
+								{/* 6. LEGAL & WHITE-PLATE CHARTER */}
+								<div className="bg-slate-50/80 rounded-2xl border border-slate-200/90 p-4 flex items-center justify-between text-xs">
+									<div className="flex items-center gap-2.5">
+										<div className="w-8 h-8 rounded-xl bg-teal-500/10 text-teal-700 flex items-center justify-center shrink-0">
+											<Scale className="w-4 h-4" />
+										</div>
+										<div>
+											<span className="font-bold text-slate-800 block text-xs">
+												Terms of Service & White-Plate Charter
+											</span>
+											<span className="text-[10px] text-slate-500 block">
+												MVA Sec 66/192A compliance, closed-loop wallet & safety rules
+											</span>
+										</div>
+									</div>
+									{onOpenTerms && (
+										<button
+											type="button"
+											onClick={onOpenTerms}
+											className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-2xs shrink-0"
+										>
+											View Charter <ArrowRight className="w-3 h-3 text-teal-600" />
+										</button>
 									)}
 								</div>
 							</>

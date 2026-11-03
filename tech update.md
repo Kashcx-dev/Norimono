@@ -1,26 +1,28 @@
-# Norimono (乗り物) — Comprehensive Technical Handover & Update
+# Norimono (乗り物) — Master Technical Documentation & System Specification
 
-> **Document Version:** 1.0.0  
-> **Date:** October 31, 2026  
+> **Document Version:** 2.1.0  
+> **Date:** November 3, 2026  
 > **Product Name:** Norimono Technologies — Enterprise Dual-Engine Mobility Platform  
 > **Repository:** [https://github.com/Kashcx-dev/Norimono](https://github.com/Kashcx-dev/Norimono) (`main` branch)  
-> **Target Production Platforms:** Web, Responsive Mobile (PWA / Capacitor / React Native WebView)
+> **Target Production Platforms:** Modern Web, Responsive Mobile (PWA / Capacitor / React Native WebView)
 
 ---
 
-## 1. Executive Summary & Product Vision
+## 1. Executive Summary & Product Architecture
 
-**Norimono** is a closed-loop corporate mobility platform engineered to solve the daily office commute crisis for enterprise tech workers, tech park campuses, and corporate HR/Facility teams. 
+**Norimono (乗り物)** is an enterprise-exclusive mobility platform engineered to solve the daily office commute crisis for tech workers, technology campuses, and corporate HR/Facility teams across major metropolitan centers (Bangalore, Hyderabad, Pune, Gurgaon, Mumbai, Chennai).
 
-Traditional ridesharing (Ola/Uber) suffers from surge pricing, driver cancellations, and lack of safety vetting. Traditional carpooling fails because of manual fare negotiation awkwardness, driver unreliability, and commercial transport licensing restrictions.
+### The Dual-Engine Mobility Paradigm
 
-### The Dual-Engine Platform Architecture
-1. **Engine 1: Closed-Loop Colleague Carpooling (P2P Non-Profit Cost Sharing)**
-   - Only employees with verified corporate work emails (`@tcs.com`, `@infosys.com`, `@wipro.com`, etc.) can enter.
-   - Drivers cannot arbitrarily set fares: algorithmic pricing strictly locks cost-sharing to actual fuel and toll split, keeping the platform **100% compliant with white-plate private vehicle laws**.
+1. **Engine 1: Closed-Loop Colleague Carpooling (P2P White-Plate Cost-Sharing)**
+   - Restricted strictly to employees with verified corporate work emails (`@tcs.com`, `@infosys.com`, `@wipro.com`, `@google.com`, etc.).
+   - White-plate private vehicle non-commercial compliance (Motor Vehicles Act Sec 66 & 192A).
+   - **Algorithmic Legal Pricing**: Drivers cannot manually set, inflate, or bargain fares. Pricing is algorithmically locked to actual OSRM road distance, certified vehicle fuel consumption, and seat count.
+   - **Zero Cash Policy**: Peer-to-peer double-entry wallet escrow with corporate green commute ESG subsidies.
+
 2. **Engine 2: Guaranteed Commercial Backup (Safety Net)**
-   - Solves the primary cause of carpool abandonment: *carpool anxiety* (what if my colleague cancels last-minute?).
-   - If a coworker cancels or no ride matches, Engine 2 automatically dispatches on-demand commercial cabs or autos with company corporate subsidies.
+   - Eliminates *carpool anxiety* (fear of colleague cancellation).
+   - If a coworker cancels last-minute or no route matches, Engine 2 automatically dispatches on-demand commercial cabs or autos backed by corporate commute subsidies.
 
 ---
 
@@ -28,125 +30,166 @@ Traditional ridesharing (Ola/Uber) suffers from surge pricing, driver cancellati
 
 | Tier | Technologies Used | Details / Responsibilities |
 | :--- | :--- | :--- |
-| **Frontend** | React 19, Vite, Tailwind CSS, Lucide React, React Router v7 | Responsive Uber-style mobile-first SPA, obsidian glassmorphic theme, zero horizontal scroll, tactile micro-interactions |
-| **Mapping & Geospatial** | Leaflet, React-Leaflet, OpenStreetMap, OSRM API, Uber H3 | Fullscreen edge-to-edge canvas, custom SVG vehicle markers, triple-layer Neon Route Line, H3 hexagonal corridor matching |
-| **Backend API** | Node.js, Express.js | RESTful routing, modular endpoints, JWT auth, input validation, role enforcement |
-| **Real-Time & Telemetry** | Socket.io, WebRTC | Live corridor location streaming, room-based ride chat, browser-to-browser voice calling, instant admin verification updates |
+| **Frontend SPA** | React 19, Vite, Tailwind CSS, Lucide React, React Router v7 | Mobile-first responsive interface, obsidian glassmorphic theme, zero horizontal scroll, tactile micro-interactions |
+| **Geospatial & Telemetry** | Leaflet, React-Leaflet, OpenStreetMap, OSRM API, Uber H3 | Fullscreen edge-to-edge canvas, custom SVG vehicle markers, triple-layer Neon Route Line, H3 hexagonal corridor matching |
+| **Backend REST API** | Node.js, Express.js | RESTful routing, modular endpoints, JWT auth, input validation, role enforcement |
+| **Real-Time Communications** | Socket.io, WebRTC | Live corridor location streaming, room-based ride chat, browser-to-browser voice calling, instant admin verification alerts |
 | **Database & Persistence** | PostgreSQL / Supabase, `pg` connection pool | Relational schema with JSONB coordinates, double-entry wallet ledger, transactional consistency |
-| **Payments & Wallets** | In-App Wallet Engine, Razorpay SDK | Zero-cash policy, automatic trip auto-settlement, UPI/Card top-up |
-| **Security & Safety** | DOMPurify, bcrypt, Corporate OTP Email Wall, Strict Gender Filters | XSS protection across chat/AI, verified corporate domain gating, female-only commute isolation |
+| **Payments & Wallets** | In-App Closed-Loop Commute Wallet, Razorpay SDK | Zero-cash policy, automatic trip escrow auto-settlement, non-withdrawable closed-loop ledger |
+| **Security & Safety** | DOMPurify, bcrypt, Corporate OTP Email Wall, Strict Gender Filters | Recursive payload XSS scrubbing, bcrypt password hashing, female-only commute isolation |
 | **DevOps & Windows Tooling** | Batch scripts (`run.bat`, `start.bat`, `stop.bat`) | One-click service orchestration, port auto-cleanup, dual-process window management |
 
 ---
 
-## 3. Exhaustive Feature Inventory (What We Have Built)
+## 3. White-Plate Non-Commercial Algorithmic Pricing Engine
 
-### A. The Verification Wall & Authentication Flow
-- **Corporate Work Email Gating**: Users must register with official work emails. Public domains (`@gmail.com`, `@yahoo.com`, `@hotmail.com`) are rejected at the verification wall.
-- **Dynamic Corporate Domain Detection**: Typing an email auto-detects corporate affiliation (e.g. `@tcs.in` -> **Tata Consultancy Services**, `@infosys.com` -> **Infosys**, `@wipro.com` -> **Wipro**, etc.).
-- **Frictionless 1-Step Onboarding**: Removed premature passenger vs. driver split during signup. All employees create their account with Name, Work Email, Mobile Phone, Company, Gender, and Password, then verify with a one-time OTP.
-- **Two-Factor Authentication (OTP)**: Generates secure corporate verification codes with dev fallback hints for seamless testing.
+### A. Statutory Legal Basis (Motor Vehicles Act, 1988)
 
-### B. The Digital ID Card & Trust Badges
-- **Corporate Logo Framing**: Every colleague profile avatar is dynamically ringed with their official SVG corporate badge (TCS navy blue, Infosys sky blue, Wipro multi-dot, Google quad-color, Microsoft 4-square, Accenture purple, Odoo fuchsia, etc.).
-- **Digital ID Card Modal**: Inspectable badge displaying verified employee ID, designation, department, corporate domain, safety rating, and closed-loop enterprise verification stamp.
+Under transport regulations across India (notably **Section 66** [Necessity for permits] and **Section 192A** [Using vehicle without permit] of the *Motor Vehicles Act, 1988*), private vehicles bearing **white registration plates** are strictly prohibited from engaging in commercial hire or reward operations. Operating as a commercial taxi without a transport permit is a severe statutory violation.
 
-### C. Uber-Style Mobile-First UI Redesign
-- **Fullscreen Edge-to-Edge Map Canvas**: The interactive Leaflet map covers 100% of the screen (`100vw`, `100vh`), replacing the legacy 2-column cluttered boxed layout.
-- **Floating Glass Top Bar**:
-  - Left: `Norimono` brand wordmark with live status pulse + Corporate affiliation pill (e.g., `TCS • Verified`).
-  - Right: Dedicated **"Offer a Ride"** smart button, **In-App Wallet balance pill**, and **Profile Avatar / Digital ID**.
-- **Uber-Style Docked Bottom Sheet (Drawer)**:
-  - Mobile: Docked to bottom with a native-style pull indicator, smooth scrolling, and compact touch targets.
-  - Desktop: Floats cleanly on bottom-left (`w-[440px]`), allowing the map to remain visible across the screen.
-- **"Where to?" Search Flow**:
-  - Connected origin (green dot with GPS auto-location) and destination (black square with autocomplete suggestions).
-  - **1-Tap Tech Hub Shortcuts**: Quick pills for top tech parks (`Ecospace`, `Manyata`, `ETV`, `Electronic City`, `Cyber City`, `BKC`, `Hinjewadi`).
-  - **Live OSRM Distance & Drive Duration Pill**: Calculates real road routes with turn-by-turn geometry.
-  - High-contrast tactile action button: `Find Colleague Rides →`.
-
-### D. Colleague Match Feed & Filtering
-- **Match Cards**: Displays colleague photo, company badge, car model, departure time, ETA, distance, and locked cost-share price.
-- **Strict Female-Only Safety Filter**: Toggle (`[ 🌸 Female-Only ]`) that filters the feed strictly for female drivers and female colleague passengers.
-- **Direct 1-Tap Booking**: Instantly reserves seat, debits the wallet in escrow, generates a unique 4-digit pickup OTP, and switches to active trip tracking.
-
-### E. White-Plate Non-Profit Algorithmic Pricing
-- **Zero Surge / Anti-Commercial Exploitation**: Drivers cannot manually set fares.
-- **Cost-Split Formula**:
-  $$\text{Fare per seat} = \frac{\text{OSRM Distance (km)} \times \text{Standard Fuel/Toll Rate}}{\text{Total Available Seats}}$$
-- Strictly complies with private vehicle non-commercial carpooling regulations.
-
-### F. Triple-Layer Glowing Route Neon Line
-- Leaflet map rendering with a glowing 3-tier polyline stroke:
-  1. Outer halo: 12px width, `#00F5D4` cyan, 28% opacity.
-  2. Vibrant core: 6px width, `#06B6D4` teal, 85% opacity.
-  3. Inner spine: 2.5px width, `#FFFFFF` crisp white, 95% opacity.
-
-### G. Smart Driver Onboarding & Commute Publisher
-- Dedicated `[ 🚗 Offer Ride ]` button in the top navigation:
-  - If **unregistered (`hasVehicle === "0"`)**: Opens the **Vehicle & Driver License Registration Modal** (DL number, vehicle plate, certified catalog of 2,000+ car models, seat capacity, fuel consumption ratio).
-  - If **pending approval (`hasVehicle === "1"`)**: Alerts user that credentials are being vetted by the corporate administrator.
-  - If **verified driver (`hasVehicle === "2"`)**: Opens the **Algorithmic Route Publisher Modal** (origin, destination tech park, departure time, seat count, and auto-calculated fuel split).
-
-### H. Zero-Cash Policy & Wallet System
-- **In-App Commute Wallet**: Eliminates awkward cash payments between colleagues at drop-off.
-- **Automated Drop-Off Settlement**: When a ride completes, the rider's wallet is debited and the driver's wallet is credited automatically.
-- **Razorpay SDK Integration**: Dynamic top-up modal with predefined amounts (`₹100`, `₹250`, `₹500`, `₹1,000`).
-- **Double-Entry Ledger**: Tracks all transactions (`fare_deduction`, `driver_earnings`, `company_subsidy`, `wallet_topup`, `refund`).
-
-### I. Real-Time Communications & Safety
-- **WebRTC Voice Calling**: Free, direct browser-to-browser voice calling without exposing personal phone numbers.
-- **Socket.io Live Ride Chat**: Encrypted room-isolated chat between booked passengers and the driver.
-- **Driver Pickup OTP Handshake**: Driver cannot start the ride without entering the passenger's 4-digit OTP, preventing ghost pickups.
-- **Emergency SOS Modal**: Instant broadcast to campus security and emergency contacts.
-
-### J. B2B Corporate HR & ESG Impact Dashboard
-- Dedicated campus portal for HR and corporate facility managers (`/admin`):
-  - **Live Metrics**: Total carpool rides completed, Total CO₂ emissions saved (kg), and Campus parking spaces freed today.
-  - **Campus Congestion Simulator**: Interactive slider (0 to 1,000 employees) dynamically calculating peak-hour traffic reduction.
-  - **Driver Verification Queue**: Administrator interface to approve or reject pending driver licenses and car registrations in real-time via WebSockets.
-
-### K. One-Click Windows Launch Scripts
-- `run.bat`: Master Windows startup script that launches the Node backend on port 5000 and Vite frontend on port 5173 in separate, cleanly titled consoles, checks health, and auto-opens the browser at `http://localhost:5173`.
-- `start.bat`: Convenience wrapper for `run.bat`.
-- `stop.bat`: One-click process termination that frees ports 5000 and 5173 cleanly.
-
-### L. BlaBlaCar Replica Features & Ride Customizations
-- **The "BlaBla" Chattiness Scale**:
-  - `Bla` (Quiet): Prefer a peaceful commute, work focus, or quiet journey.
-  - `BlaBla` (Friendly): Open to casual conversations and light workplace chat.
-  - `BlaBlaBla` (Chatty): Enjoys lively conversations, storytelling, and networking.
-  - Displayed visually as badges on every ride card in the browse feed.
-- **Commute Comfort & Amenity Toggles**:
-  - `❄️ AC Enabled`: Guaranteed air conditioning for Bangalore/Hyderabad/Pune summers.
-  - `🚭 Strictly No Smoking`: Tobacco and vape-free vehicle environment.
-  - `🎵 Music / Podcasts Allowed`: Commute with music or podcasts enabled.
-  - `👥 Max 2 in the Back`: BlaBlaCar's signature comfort guarantee leaving the middle rear seat empty.
-  - `⚡ Instant Booking`: Guaranteed 1-tap immediate confirmation without waiting for driver manual approval.
-- **En-Route Corridor Stopovers & Intermediate Waypoints**:
-  - Drivers can declare intermediate tech-park waypoints (e.g. Silk Board, Marathahalli, Bellandur, Hebbal, HSR Layout, Tin Factory, Phoenix Marketcity).
-  - Stored in JSONB and displayed as waypoint corridor badges on ride cards.
-  - Passengers can select specific en-route stopovers as their pickup location during booking.
-- **Luggage Capacity Tiers**:
-  - Drivers define maximum allowed luggage size; passengers select their luggage size when booking:
-    - `🎒 Small` (Backpack / Laptop bag)
-    - `🧳 Medium` (Cabin roller / duffel bag)
-    - `📦 Large` (Large suitcase / travel bag)
-- **Passenger Pickup Notes**:
-  - When requesting a seat, passengers can provide specific pickup instructions (e.g., "Waiting by Main Gate 2 next to the ATM").
-- **Daily Office Commute (Mon-Fri) Recurring Flag**:
-  - Toggle to indicate recurring corporate commute patterns for carpooling circles.
-
-### M. Driver Verification Management & Profile Vehicles Modal
-- **Subtle Glass Notification Toasts**:
-  - Converted blocking modal verification alerts into auto-fading glass toasts (`AlertModal.jsx`) that disappear smoothly after 3.2 seconds.
-- **Dynamic "Show Registered Vehicles" Action**:
-  - Drivers who have completed registration (`hasVehicle >= 1`) now have a dedicated "Show Registered Vehicles" button in the Top Navigation and Profile Modal.
-  - Modal (`RegisteredVehiclesModal.jsx`) displays license plate, car model, seating capacity, fuel ratio, and live approval status (`Pending Verification` vs. `Corporate Verified`).
+To remain **100% compliant with white-plate private vehicle laws**:
+1. **No Commercial Profit / Driver Gain**: The vehicle owner is travelling on their own personal commute anyway; they are merely sharing empty seats with verified colleagues.
+2. **Variable Operational Cost Sharing Only**: Financial split is strictly confined to sharing variable trip expenditures (fuel and tolls).
+3. **Strict Algorithmic Lock**: Drivers **cannot** set arbitrary, surge, or negotiated prices. The fare per seat is mathematically determined and locked on the backend.
 
 ---
 
-## 4. Database Schema Overview
+### B. Mathematical Formulation & Algorithmic Equations
+
+The pricing engine executes on both the estimation endpoint (`POST /rides/fare-estimate`) and the publishing endpoint (`POST /publish-ride`):
+
+#### 1. Real Road Distance Determination ($D_{\text{OSRM}}$)
+Rather than inaccurate straight-line Haversine estimates, the engine queries the Open Source Routing Machine (OSRM) driving API:
+$$D_{\text{OSRM}} = \frac{\text{Distance}_{\text{meters}}}{1000.0} \quad (\text{in kilometers})$$
+*(If OSRM is temporarily offline, the system safely falls back to: $D_{\text{fallback}} = \text{HaversineDistance} \times 1.35$ urban detour factor).*
+
+#### 2. Certified Vehicle Fuel Consumption Ratio ($\phi_{\text{burn}}$)
+Every vehicle registered in Norimono is mapped to a certified RTO catalog of 2,000+ car models with a standardized fuel consumption ratio $\phi_{\text{burn}}$:
+$$0.74 \le \phi_{\text{burn}} \le 1.35$$
+*(e.g., Highly efficient diesels / hybrids $\approx 0.74 - 0.85$, benchmark 15 km/l hatchbacks $\approx 1.00$, larger sedans/SUVs $\approx 1.10 - 1.25$).*
+
+#### 3. Base Fuel Expense per Kilometer ($C_{\text{fuel}}$)
+Configured per enterprise organization in the `org_settings` table (defaulting to ₹5.50/km, reflecting current average fuel tariffs).
+
+#### 4. Total Trip Fuel Expenditure ($\text{Cost}_{\text{trip}}$)
+$$\text{Cost}_{\text{trip}} = D_{\text{OSRM}} \times C_{\text{fuel}} \times \phi_{\text{burn}}$$
+
+#### 5. Pro-Rata Cost Share per Offered Seat ($\text{Fare}_{\text{gross}}$)
+The vehicle driver is commuting themselves, so the operational expense is shared equally across the offered seats $S_{\text{offered}}$:
+$$\text{Fare}_{\text{gross}} = \max\left(15, \text{round}\left(\frac{\text{Cost}_{\text{trip}}}{S_{\text{offered}}}\right)\right)$$
+
+#### 6. Corporate Green Commute Subsidy ($\text{Subsidy}_{\text{seat}}$)
+To encourage coworker carpooling, reduce campus parking congestion, and cut Scope 3 carbon emissions, enterprise employers sponsor a green commute subsidy $C_{\text{subsidy}}$ (typically ₹2.00/km), capped at 40% of the gross fare:
+$$\text{Subsidy}_{\text{seat}} = \min\left(\text{round}\left(\text{Fare}_{\text{gross}} \times 0.40\right), \text{round}\left(\frac{D_{\text{OSRM}} \times C_{\text{subsidy}}}{S_{\text{offered}}}\right)\right)$$
+
+#### 7. Net Colleague Out-of-Pocket Fare ($\text{Fare}_{\text{colleague}}$)
+The actual amount deducted from the colleague's commute wallet:
+$$\text{Fare}_{\text{colleague}} = \max\left(10, \text{Fare}_{\text{gross}} - \text{Subsidy}_{\text{seat}}\right)$$
+
+#### 8. Driver Fuel Reimbursement Settlement
+Upon successful OTP-verified trip completion, the driver receives:
+$$\text{Reimbursement}_{\text{driver}} = \text{Fare}_{\text{colleague}} + \text{Subsidy}_{\text{seat}} \equiv \text{Fare}_{\text{gross}}$$
+$$\text{Driver Net Commercial Profit} = ₹0.00$$
+
+---
+
+### C. Concrete Step-by-Step Numerical Example
+
+Consider a commute from **Electronic City Phase 1** to **Manyata Tech Park** in Bangalore:
+
+| Parameter | Symbol | Value | Source |
+| :--- | :--- | :--- | :--- |
+| **OSRM Road Distance** | $D_{\text{OSRM}}$ | **14.55 km** | OSRM Driving Polyline Engine |
+| **Estimated Road Duration** | $T_{\text{drive}}$ | **20 mins** | OSRM Speed Matrix |
+| **Vehicle Model** | — | Maruti Suzuki Swift Dzire Diesel | PostgreSQL `vehicles` table |
+| **Certified Fuel Ratio** | $\phi_{\text{burn}}$ | **0.95x** | Certified Vehicle Catalog |
+| **Org Fuel Cost Baseline** | $C_{\text{fuel}}$ | **₹5.50 / km** | PostgreSQL `org_settings` table |
+| **Org Travel Subsidy Baseline** | $C_{\text{subsidy}}$ | **₹2.00 / km** | PostgreSQL `org_settings` table |
+| **Seats Offered** | $S_{\text{offered}}$ | **3 passenger seats** | Driver Ride Publisher |
+
+#### Calculation Execution:
+1. **Total Trip Fuel Expenditure**:
+   $$\text{Cost}_{\text{trip}} = 14.55 \text{ km} \times 5.50 \text{ ₹/km} \times 0.95 = ₹76.02$$
+
+2. **Gross Legal Cost Share per Seat**:
+   $$\text{Fare}_{\text{gross}} = \text{round}\left(\frac{76.02}{3}\right) = \mathbf{₹25.00 \text{ / seat}}$$
+
+3. **Corporate Green Commute Subsidy**:
+   $$\text{Subsidy}_{\text{seat}} = \min\left(\text{round}(25 \times 0.40), \text{round}\left(\frac{14.55 \times 2.00}{3}\right)\right) = \min(10, 10) = \mathbf{₹10.00 \text{ / seat}}$$
+
+4. **Net Colleague Out-of-Pocket Fare**:
+   $$\text{Fare}_{\text{colleague}} = 25.00 - 10.00 = \mathbf{₹15.00 \text{ / seat}}$$
+
+5. **Driver Payout & Zero Profit Audit**:
+   - 3 colleagues pay $3 \times ₹15.00 = ₹45.00$.
+   - Enterprise employer pays $3 \times ₹10.00 = ₹30.00$ travel subsidy.
+   - Total driver fuel reimbursement = $₹45.00 + ₹30.00 = \mathbf{₹75.00}$.
+   - Actual trip fuel expenditure = $\mathbf{₹76.02}$.
+   - **Net Driver Profit = -₹1.02 (0% commercial markup — 100% white-plate compliant)**.
+
+---
+
+### D. Server-Side Tamper Proofing
+Even if a user attempts to tamper with the HTTP payload by sending a custom `fare_per_seat` to `POST /publish-ride`:
+- The backend ignores any client-supplied fare.
+- It queries the driver's registered vehicle record from PostgreSQL.
+- It recalculates the strict legal algorithmic price using OSRM coordinates.
+- It stores strictly `Fare_colleague` and `Subsidy_seat` in the database.
+
+---
+
+## 4. In-App Terms & Conditions Charter (`TermsModal.jsx` & `/terms`)
+
+Accessible via the floating Top Bar, the Profile Hub, the Login/Signup screen, and directly via URL `/terms`, the in-app charter provides a comprehensive, interactive legal agreement across six key pillars:
+
+1. **White-Plate Statutory Compliance**: Cites Section 66 & 192A of the Motor Vehicles Act; explicitly bans commercial taxi-metering or cash fare bargaining.
+2. **Algorithmic Fuel Cost Split**: Details the OSRM telemetry, fuel ratio formula, and employer ESG subsidy.
+3. **Closed-Loop Commute Wallet (RBI PPI Directives)**: Enforces that wallet balances cannot be withdrawn to personal bank accounts; funds are strictly closed-loop and non-withdrawable.
+4. **Corporate Work Email Gating**: Restricts access to verified enterprise employees; zero public access.
+5. **Cabin Safety, Boarding OTP & Dual Ratings**: Two-way evaluation system (Passenger Etiquette vs Driver Safety), mandatory 4-digit pickup OTP, and female-only commute isolation.
+6. **Cabin Amenities & BlaBlaCar Code**: Chattiness meter, AC, no smoking, music, and max 2 in the back comfort guarantee.
+
+---
+
+## 5. Security & Identity Infrastructure
+
+### A. Global Recursive DOMPurify XSS Sanitizer (`/backend/utils/sanitize.js`)
+- Globally mounted Express middleware (`xssSanitizerMiddleware`) scrubs all incoming `req.body`, `req.query`, and `req.params`.
+- Recursively strips malicious `<script>`, `<iframe>`, and event handler injections from deeply nested objects and arrays.
+- **Password Exemption**: Automatically preserves raw password fields so complex special characters (`<`, `>`, `&`) reach bcrypt hashing without corruption.
+
+### B. Bcrypt Cryptographic Hashing (`/backend/routes/auth.js`)
+- **Signup**: Hashes user passwords using `bcrypt.genSalt(10)` before writing to PostgreSQL.
+- **Login**: Verifies credentials using `bcrypt.compare`.
+- **Change Password (`POST /auth/change-password`)**: In-profile drawer validates current password with `bcrypt.compare`, enforces a 6+ character policy, and hashes the new password with bcrypt.
+
+### C. Dual Ratings & Trust System
+- **Passenger Etiquette Rating (⭐ 1.0 - 5.0)**: Reflects punctuality, cabin etiquette, and coworker courtesy.
+- **Driver Safety Score (⭐ 1.0 - 5.0)**: Reflects vehicle cleanliness, smooth driving, and route reliability.
+
+### D. Leadership Feedback Pipeline (`/backend/routes/feedback.js`)
+- Employee feedback and star ratings are permanently archived in the PostgreSQL `feedbacks` table and automatically dispatched as formatted HTML emails to platform leadership (`master.trainer049@gmail.com`).
+
+---
+
+## 6. Full BlaBlaCar Commute Customizations
+
+1. **The "BlaBla" Chattiness Scale**:
+   - `Bla` (Quiet): Prefer a peaceful commute, work focus, or quiet journey.
+   - `BlaBla` (Friendly): Open to casual conversations and light workplace chat.
+   - `BlaBlaBla` (Chatty): Enjoys lively conversations, storytelling, and networking.
+2. **Cabin Comfort Guarantees**:
+   - `❄️ AC Guaranteed`, `🚭 Strictly No Smoking`, `🎵 Music Allowed`.
+   - `👥 Max 2 in the Back`: Middle rear seat left empty for personal comfort.
+   - `⚡ Instant Booking`: Guaranteed 1-tap seat confirmation.
+3. **Corridor Stopovers & Waypoints**:
+   - En-route tech park corridor drop-offs (Silk Board, Marathahalli, Bellandur, Hebbal, HSR Layout, Cyber City).
+4. **Luggage Tiers**:
+   - `🎒 Small` (Laptop bag), `🧳 Medium` (Cabin roller), `📦 Large` (Suitcase).
+
+---
+
+## 7. Database Relational Schema
 
 ```
 +---------------------------------------------------------------------------------+
@@ -167,35 +210,37 @@ Traditional ridesharing (Ola/Uber) suffers from surge pricing, driver cancellati
   | is_vehicle_registered|          +----------------------+
   | passenger_rating     |
   | driving_rating       |          +----------------------+
-  | reset_otp            |          |       vehicles       |
-  | reset_otp_expiry     |          +----------------------+
-  +----------------------+          | veh_id (PK)          |
+  +----------------------+          |       vehicles       |
+            |                       +----------------------+
+            |                       | veh_id (PK)          |
             |                       | veh_no (UNIQUE)      |
             +---------------------->| emp_id (FK)          |
             |                       | vehicle_model        |
             |                       | seating_capacity     |
-            |                       +----------------------+
-            |                                  |
-            v                                  v
-  +----------------------+          +----------------------+
-  |       wallets        |          |        rides         |
-  +----------------------+          +----------------------+
-  | wallet_id (PK)       |          | ride_id (PK)         |
-  | emp_id (FK, UNIQUE)  |          | driver_id (FK)       |
-  | balance              |          | veh_no (FK)          |
-  +----------------------+          | origin (JSONB)       |
-            |                       | destination (JSONB)  |
-            v                       | departure_time       |
-  +----------------------+          | available_seats      |
-  | wallet_transactions  |          | fare_per_seat        |
-  +----------------------+          | status               |
-  | transaction_id (PK)  |          | polyline (TEXT)      |
-  | emp_id (FK)          |          | preferences (JSONB)  | <-- Chattiness, AC, Smoking, Music, Max2Back, Luggage
-  | ride_id (FK)         |          | stopovers (JSONB)    | <-- En-route corridor waypoints
-  | type                 |          | is_recurring (BOOL)  | <-- Daily Mon-Fri office commute
-  | amount               |          | instant_booking(BOOL)| <-- Instant 1-tap seat confirmation
-  | description          |          +----------------------+
+            |                       | fuel_consumption_ratio|
+            v                       +----------------------+
   +----------------------+                     |
+  |       wallets        |                     v
+  +----------------------+          +----------------------+
+  | wallet_id (PK)       |          |        rides         |
+  | emp_id (FK, UNIQUE)  |          +----------------------+
+  | balance              |          | ride_id (PK)         |
+  +----------------------+          | driver_id (FK)       |
+            |                       | veh_no (FK)          |
+            v                       | origin (JSONB)       |
+  +----------------------+          | destination (JSONB)  |
+  | wallet_transactions  |          | departure_time       |
+  +----------------------+          | available_seats      |
+  | transaction_id (PK)  |          | fare_per_seat        |
+  | emp_id (FK)          |          | subsidy_per_seat     |
+  | ride_id (FK)         |          | status               |
+  | type                 |          | polyline (TEXT)      |
+  | amount               |          | preferences (JSONB)  | <-- Chattiness, AC, Smoking, Music, Max2Back
+  | description          |          | stopovers (JSONB)    | <-- Corridor stopover waypoints
+  +----------------------+          | is_recurring (BOOL)  | <-- Mon-Fri daily office commute
+                                    | instant_booking(BOOL)| <-- Instant 1-tap confirmation
+                                    +----------------------+
+                                               |
                                                v
                                     +----------------------+
                                     |       bookings       |
@@ -209,78 +254,58 @@ Traditional ridesharing (Ola/Uber) suffers from surge pricing, driver cancellati
                                     | payment_status       |
                                     | otp                  |
                                     | fare_amount          |
-                                    | luggage_size (TEXT)  | <-- Declared passenger luggage (small/medium/large)
-                                    | passenger_notes(TEXT)| <-- En-route pickup notes for driver
-                                    | selected_stopover    | <-- Chosen intermediate pickup point
+                                    | luggage_size (TEXT)  |
+                                    | passenger_notes(TEXT)|
+                                    | selected_stopover    |
                                     +----------------------+
 ```
 
 ---
 
-## 5. API Routes Reference
+## 8. Complete API Endpoint Catalog
 
-### Authentication (`/auth`)
-- `POST /auth/signup` — Registers employee, validates corporate domain, hashes password, triggers OTP.
-- `POST /auth/verify-2fa` — Verifies corporate OTP and returns JWT token + user profile.
-- `POST /auth/login` — Corporate email + password authentication.
-- `GET /auth/me` — Fetches active profile, wallet balance, and driver verification state.
+### Authentication & Identity (`/auth`)
+- `POST /auth/signup` — Registers employee with verified corporate domain, generates salt with `bcrypt.genSalt(10)` and hashes password.
+- `POST /auth/login` — Authenticates user via `bcrypt.compare` against hashed passwords and issues JWT token.
+- `GET /auth/me` — Fetches active profile, corporate badge, vehicle status, commute wallet balance, and dual ratings.
+- `POST /auth/change-password` — Validates current password via `bcrypt.compare` and hashes new password with bcrypt.
+- `POST /auth/update-profile` — Updates user profile fields safely.
 - `POST /auth/logout` — Destroys session token.
 
-### Rides & Commute (`/rides`)
-- `GET /rides` — Geospatial discovery within 10 km radius with gender, tech park, and seat filtering. Supports BlaBlaCar query filters: `ac=true`, `instant=true`, `max_two_back=true`.
-- `POST /publish-ride` — Publishes commute with algorithmic price calculation, preferences (chattiness, AC, smoking, music, max 2 in back, luggage tier), stopovers JSONB, and recurring commute flag.
-- `POST /book-ride` — Locks available seat atomically with row-level locks, records declared luggage size, stopover choice, and custom pickup note, places fare in escrow, generates pickup OTP.
-- `GET /rides/driver/active` — Fetches driver's currently active ride, route, and booked passengers with luggage & note specs.
-- `GET /rides/passenger/active` — Fetches passenger's booked ride status, driver details, and OTP.
-- `POST /pickup-ride` — Driver enters passenger OTP to verify physical onboarding.
-- `POST /finish-ride` — Completes trip, executes wallet settlement, opens star ratings.
+### Rides & Legal Commute (`/rides`, `/publish-ride`)
+- `POST /rides/fare-estimate` — Queries OSRM road distance, fetches driver's vehicle fuel consumption ratio, and computes white-plate pro-rata fuel split and green subsidy.
+- `POST /publish-ride` — Publishes commute with strictly enforced server-side algorithmic pricing, OSRM polyline, preferences, stopovers, and recurring commute flag.
+- `GET /rides` — Spatial discovery within 10 km corridor with gender filter, tech park filter, and BlaBlaCar comfort toggles (`ac`, `instant`, `max_two_back`).
+- `POST /book-ride` — Locks available seat atomically with row-level locks (`FOR UPDATE`), places fare in escrow, generates 4-digit boarding OTP.
+- `GET /rides/driver/active` — Fetches driver's active ride, route, and booked passengers with luggage and pickup notes.
+- `GET /rides/passenger/active` — Fetches passenger's booked ride status, driver details, and pickup OTP.
+- `POST /pickup-ride` — Driver enters passenger's 4-digit OTP to verify physical onboarding.
+- `POST /finish-ride` — Completes trip, executes escrow wallet settlement, and opens two-way star ratings.
 
 ### Vehicle Verification (`/register-vehicle`, `/admin`)
-- `POST /register-vehicle` — Enters vehicle and DL into administrative approval queue.
-- `GET /admin/verifications` — Lists pending driver applications for campus admins.
-- `POST /admin/verify-rider` — Approves or rejects driver with real-time WebSocket alert.
-- `GET /admin/impact-metrics` — Supplies ESG carbon savings and parking space analytics.
+- `GET /register-vehicle` — Fetches current driver's registered vehicle specs and approval status.
+- `POST /register-vehicle` — Validates RTO license plate regex, DL format, seat capacity, fuel consumption ratio, and submits to admin queue.
+- `GET /admin/verifications` — Lists pending driver applications for campus facility managers.
+- `POST /admin/verify-rider` — Approves or rejects driver with real-time WebSocket toast alerts.
+- `GET /admin/impact-metrics` — Supplies ESG carbon savings and campus parking space analytics.
 
-### Wallet & Payments (`/wallet`)
-- `GET /wallet` — Returns user's balance and ledger history.
-- `POST /wallet/add` — Adds funds to personal commute wallet (non-withdrawable, closed-loop ride payment credit).
+### Personal Commute Wallet (`/wallet`)
+- `GET /wallet` — Returns user's balance and double-entry transaction history.
+- `POST /wallet/add` — Adds funds to personal commute wallet (non-withdrawable closed-loop ledger).
 - `GET /wallet/transactions` — Returns real-time transaction history from `wallet_transactions`.
 - `POST /wallet/transfer` — Executes escrow release and fuel cost-split transfer upon ride completion.
 
-### Authentication & Security (`/auth`)
-- `POST /auth/signup` — Registers employee with verified corporate domain, generates salt with `bcrypt.genSalt(10)` and securely hashes passwords before storing in PostgreSQL.
-- `POST /auth/login` — Authenticates user via `bcrypt.compare` against hashed passwords and issues JWT token.
-- `GET /auth/me` — Fetches current authenticated employee profile, corporate badge, vehicle status, live commute wallet balance, and dual ratings (`passenger_rating`, `driving_rating`).
-- `POST /auth/change-password` — Validates current password via `bcrypt.compare` and hashes new password with `bcrypt.hash(newPassword, 10)`.
-- `POST /auth/update-profile` — Updates user profile fields safely.
-
-### Global XSS Sanitization Engine (`/backend/utils/sanitize.js`)
-- **Recursive Payload Sanitizer (`sanitizeData`)**: Automatically traverses and sanitizes nested objects and arrays using `DOMPurify` / regex sanitizer, stripping malicious `<script>`, `<iframe>`, and event-handler injections while preserving password fields for bcrypt validation.
-- **Express Middleware (`xssSanitizerMiddleware`)**: Globally mounted on the Express application to scrub all incoming `req.body`, `req.query`, and `req.params`.
-
-### Feedback System (`/feedback`)
-- `POST /feedback/send_feedback` — Records star rating (1-5) and detailed description in PostgreSQL `feedbacks` table and automatically dispatches an HTML notification email to leadership (`master.trainer049@gmail.com`).
-
-### System Diagnostics & Custom Error Handlers (`/api`)
-- `GET /api/errors/catalog` — Returns machine-readable dictionary of all custom error codes (`VALIDATION_ERROR`, `INVALID_PHONE_FORMAT`, `INVALID_VEHICLE_NO`, `RIDE_FULL`, `UNAUTHORIZED`, etc.) with HTTP statuses and resolution hints.
+### Feedback & Diagnostics (`/feedback`, `/api`)
+- `POST /feedback/send_feedback` — Saves star rating (1-5) and description in PostgreSQL and dispatches an HTML email to leadership (`master.trainer049@gmail.com`).
+- `GET /api/errors/catalog` — Returns machine-readable dictionary of all custom error codes with HTTP statuses and resolution hints.
 - `GET /api/health` — Returns real-time platform health, PostgreSQL connection status, query latency (ms), and server uptime.
-
-### Ride Publishing & Algorithmic Legal Pricing (`/publish-ride` & `/rides/fare-estimate`)
-- **Motor Vehicles Act (Sec 66 & 192A) White-Plate Compliance**: Private non-commercial vehicles are legally barred from making commercial profits or surge-pricing carpools. Fares are mathematically locked to certified fuel consumption and seat counts.
-- **OSRM Real Route Telemetry (`getRouteDetails`)**: Queries the Open Source Routing Machine to compute exact driving route road distance (meters/km) and estimated road travel duration (minutes), with Haversine × 1.35 urban detour fallback.
-- **Certified Vehicle Fuel Ratio Integration**: Pulls driver's registered vehicle model and certified fuel consumption ratio from PostgreSQL `vehicles` table (`0.74x` to `1.35x` burn ratio).
-- **Strict Server-Side Non-Profit Pricing Formula**:
-  $$\text{Total Fuel Cost} = \text{OSRM Distance (km)} \times \text{Org Fuel Rate (₹/km)} \times \text{Certified Fuel Ratio}$$
-  $$\text{Gross Legal Cost Share per Seat} = \text{round}\left(\frac{\text{Total Fuel Cost}}{\text{Offered Seats}}\right)$$
-  $$\text{Org Green Subsidy} = \text{min}\left(\text{Gross Share} \times 0.40, \frac{\text{Distance} \times \text{Subsidy Rate}}{\text{Offered Seats}}\right)$$
-  $$\text{Net Colleague Fare} = \text{Gross Share} - \text{Org Green Subsidy}$$
-- **Driver Fare Lock**: The backend strictly overrides any client-side fare tampering with the legal calculated value, returning the complete compliance certificate.
 
 ---
 
-## 6. Git Commit Highlights (Chronological Track)
+## 9. Chronological Git Commit Highlights
 
-- `[Current]` — **feat(legal-pricing):** Strictly enforce white-plate non-commercial pricing compliance (MVA Sec 66/192A) based on OSRM driving distance, certified vehicle fuel ratio, and seat count; lock driver fare input, return compliance breakdown, and display transparent fuel-split telemetry card.
+- `[Current]` — **feat(terms-docs):** Add comprehensive in-app Terms & Conditions modal (`TermsModal.jsx`) and `/terms` route; rewrite master technical documentation with full statutory framework (MVA Sec 66/192A), mathematical algorithmic pricing formula, and worked numerical demonstration.
+- `c8f9931` — **feat(legal-pricing):** Strictly enforce white-plate non-commercial pricing based on OSRM driving distance, certified fuel consumption ratio, and seat count; lock driver fare input, return compliance breakdown, and display transparent fuel-split telemetry card.
 - `ee8992b` — **feat(security-profile):** Implement global recursive DOMPurify XSS sanitization middleware across all routes, bcrypt password hashing & change-password endpoint, Corporate Profile & Trust Hub with Dual Ratings (Passenger Etiquette & Driver Safety), and embedded Personal Commute Wallet with dynamic QR code.
 - `b63ca27` — **feat(wallet-feedback):** Enforce feedback email dispatch to leadership via Nodemailer (`master.trainer049@gmail.com`), integrate personal Closed-Loop Commute Wallet with dynamic personal QR Code, non-withdrawable policy banner, and direct wallet top-up.
 - `1b5efdd` — **feat(security):** Remove all demo fallbacks, enforce strict field-level typing and validation (10-digit phone, RTO vehicle plate regex, alphabetical name restrictions), and add custom error endpoints (`/api/errors/catalog`, `/api/health`).
@@ -291,38 +316,7 @@ Traditional ridesharing (Ola/Uber) suffers from surge pricing, driver cancellati
 - `622220e` — **fix(backend):** Fix Node 24 / Express 5 `path-to-regexp` crash by replacing unparameterized wildcard route with pathless SPA middleware.
 - `c65e4d5` — **feat(driver):** Implement dedicated Driver Cockpit UI, individual passenger entity isolation, real-time Socket.io seat count synchronization, and PostgreSQL row-level transaction locks (`FOR UPDATE`) preventing double-booking and double-settlement race conditions.
 - `390ea59` — **feat(ui):** Complete Uber-style mobile-first redesign with fullscreen map canvas and dedicated smart ride publisher.
-- `5cc0c1e` — **fix(signup):** Restore mobile phone number input in registration form with phone icon and validation.
-- `12e2368` — **feat:** Add one-click Windows launch and stop batch scripts (`run.bat`, `start.bat`, `stop.bat`).
-- `ae31ef3` — **fix:** Implement Pitch Deck specifications: Digital ID card, Work Email Wall, Algorithmic Pricing, Glowing Route Neon Line, Female-only filter, Engine 2 backup, and B2B Impact Screen.
-- `6ffecac` — **feat:** Full product rebrand to Norimono, corporate wallet subsidies, and H3 corridor en-route ridesharing.
-- `94e5e5f` — **fix:** Seat booking race condition resolution, chat socket integration, and custom alert modals.
-- `f23dd91` — **security:** Add DOMPurify sanitization across chat, AI responses, live sockets, and feedback endpoints.
 
 ---
 
-## 7. Driver Cockpit & Concurrency Verification System (Completed)
-
-1. **Entity Isolation Architecture**:
-   - Every passenger in the driver cockpit is rendered as an isolated corporate entity with their corporate logo badge, department, designation, safety indicators, direct call capability, and individual 4-digit boarding OTP input.
-   - Separate state management per passenger prevents any cross-contamination of boarding, drop-off, or payment settlement.
-
-2. **Real-Time Concurrency & Race Condition Elimination**:
-   - **Atomic Seat Decrement**: `UPDATE rides SET available_seats = available_seats - $1 WHERE ride_id = $2 AND available_seats >= $1` in PostgreSQL row-locked transaction (`FOR UPDATE`) guarantees zero overbooking even with simultaneous clicks.
-   - **Real-Time Seat Broadcasting**: Instant `ride_seats_updated` WebSocket events update all user browse cards in real time without refreshing. Rides with 0 seats instantly switch to "Ride Full" status.
-   - **Double-Settlement Prevention**: `finishRide.js` transaction acquires an immediate row-level lock on the ride before checking completion status, preventing duplicate wallet deductions or credits.
-
-3. **Trip Completion & ESG Impact Summary Card**:
-   - Comprehensive post-commute driver summary displaying net earnings credited, gross colleague cost-shares, enterprise green subsidies, coworkers transported, kg CO₂ emissions cut, and campus parking spots freed.
-
----
-
-## 8. Next Phase Roadmap: Mobile Native Export
-
-1. **Capacitor Mobile Packaging**:
-   - Configure Capacitor 6.x to export Norimono into native Android APK and iOS ipa bundles.
-2. **Push Notifications**:
-   - Web Push and Firebase Cloud Messaging for instant lockscreen notifications when a coworker requests a seat along the driver's route.
-
----
-*Created by Google DeepMind Advanced Agentic Coding for the Norimono Engineering Team.*
-
+*Authored by Google DeepMind Advanced Agentic Coding for the Norimono Engineering Team.*

@@ -11,7 +11,8 @@ import {
 	User, 
 	Bell,
 	Plus,
-	ChevronDown
+	ChevronDown,
+	Scale
 } from "lucide-react";
 import WalletModal from "./WalletModal";
 import DigitalIdCard from "./DigitalIdCard";
@@ -29,7 +30,8 @@ function Header({
 	onOpenHistory, 
 	onOpenFeedback, 
 	onOpenProfile,
-	onOpenImpact
+	onOpenImpact,
+	onOpenTerms
 }) {
 	const [menuOpen, setMenuOpen] = useState(false);
 	const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -280,6 +282,18 @@ function Header({
 											className="w-full text-left px-3 py-2 text-xs text-slate-700 hover:bg-slate-100 rounded-xl flex items-center gap-2.5 font-bold transition-colors cursor-pointer"
 										>
 											<User className="w-4 h-4 text-slate-500" /> View Account Profile
+										</button>
+									)}
+
+									{onOpenTerms && (
+										<button
+											onClick={() => {
+												setMenuOpen(false);
+												onOpenTerms();
+											}}
+											className="w-full text-left px-3 py-2 text-xs text-slate-700 hover:bg-slate-100 rounded-xl flex items-center gap-2.5 font-bold transition-colors cursor-pointer"
+										>
+											<Scale className="w-4 h-4 text-teal-600" /> Terms & Commute Charter
 										</button>
 									)}
 

@@ -17,6 +17,7 @@ import ProfileModal from "./ProfileModal";
 import PublishRideModal from "./PublishRideModal";
 import RegisteredVehiclesModal from "./RegisteredVehiclesModal";
 import ImpactScreen from "./ImpactScreen";
+import TermsModal from "./TermsModal";
 
 // Initialize socket connection (connects to the same origin by default)
 const socket = io();
@@ -45,6 +46,7 @@ function Dashboard() {
 	const [showHistoryModal, setShowHistoryModal] = useState(false);
 	const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 	const [showProfileModal, setShowProfileModal] = useState(false);
+	const [showTermsModal, setShowTermsModal] = useState(false);
 	const [isIncomingCall, setIsIncomingCall] = useState(false);
 	const [incomingCall, setIncomingCall] = useState(null);
 
@@ -440,6 +442,7 @@ function Dashboard() {
 				onOpenHistory={() => setShowHistoryModal(true)}
 				onOpenFeedback={() => setShowFeedbackModal(true)}
 				onOpenProfile={() => setShowProfileModal(true)}
+				onOpenTerms={() => setShowTermsModal(true)}
 			/>
 
 			{/* Uber-Style Bottom Sheet / Floating Drawer */}
@@ -572,6 +575,16 @@ function Dashboard() {
 				isOpen={showProfileModal}
 				onClose={() => setShowProfileModal(false)}
 				onOpenVehicleModal={() => setShowVehicleModal(true)}
+				onOpenTerms={() => {
+					setShowProfileModal(false);
+					setShowTermsModal(true);
+				}}
+			/>
+
+			{/* Terms & Conditions / White-Plate Commute Charter Modal */}
+			<TermsModal
+				isOpen={showTermsModal}
+				onClose={() => setShowTermsModal(false)}
 			/>
 
 			{/* Dedicated Registered Vehicles Modal (Compact & Simple) */}
