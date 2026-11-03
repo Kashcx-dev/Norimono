@@ -304,7 +304,8 @@ Accessible via the floating Top Bar, the Profile Hub, the Login/Signup screen, a
 
 ## 9. Chronological Git Commit Highlights
 
-- `[Current]` — **feat(terms-docs):** Add comprehensive in-app Terms & Conditions modal (`TermsModal.jsx`) and `/terms` route; rewrite master technical documentation with full statutory framework (MVA Sec 66/192A), mathematical algorithmic pricing formula, and worked numerical demonstration.
+- `[Current]` — **feat(deploy-ready):** Render deployment orchestration via root `package.json` with unified build/start scripts; 1-tap demo credentials on login screen (`ananya.s@tcs.com`, `rohan.k@infosys.com`, `admin@norimono.com`); fallback devOtp verification when SMTP is offline; and complete SPA routing exclusions.
+- `3d8922d` — **feat(terms-docs):** Add comprehensive in-app Terms & Conditions modal (`TermsModal.jsx`) and `/terms` route; rewrite master technical documentation with full statutory framework (MVA Sec 66/192A), mathematical algorithmic pricing formula, and worked numerical demonstration.
 - `c8f9931` — **feat(legal-pricing):** Strictly enforce white-plate non-commercial pricing based on OSRM driving distance, certified fuel consumption ratio, and seat count; lock driver fare input, return compliance breakdown, and display transparent fuel-split telemetry card.
 - `ee8992b` — **feat(security-profile):** Implement global recursive DOMPurify XSS sanitization middleware across all routes, bcrypt password hashing & change-password endpoint, Corporate Profile & Trust Hub with Dual Ratings (Passenger Etiquette & Driver Safety), and embedded Personal Commute Wallet with dynamic QR code.
 - `b63ca27` — **feat(wallet-feedback):** Enforce feedback email dispatch to leadership via Nodemailer (`master.trainer049@gmail.com`), integrate personal Closed-Loop Commute Wallet with dynamic personal QR Code, non-withdrawable policy banner, and direct wallet top-up.

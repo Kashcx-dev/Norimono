@@ -147,7 +147,7 @@ io.on("connection", (socket) => {
 // SPA fallback for frontend client routing
 app.use((req, res, next) => {
     if (req.method !== 'GET') return next();
-    if (req.path.startsWith("/auth") || req.path.startsWith("/rides") || req.path.startsWith("/book-ride") || req.path.startsWith("/publish-ride") || req.path.startsWith("/pickup-ride") || req.path.startsWith("/finish-ride") || req.path.startsWith("/drop-passenger") || req.path.startsWith("/admin") || req.path.startsWith("/wallet") || req.path.startsWith("/feedback") || req.path.startsWith("/chat") || req.path.startsWith("/history") || req.path.startsWith("/rate") || req.path.startsWith("/h3") || req.path.startsWith("/api")) {
+    if (req.path.startsWith("/auth") || req.path.startsWith("/rides") || req.path.startsWith("/book-ride") || req.path.startsWith("/publish-ride") || req.path.startsWith("/pickup-ride") || req.path.startsWith("/finish-ride") || req.path.startsWith("/drop-passenger") || req.path.startsWith("/admin") || req.path.startsWith("/wallet") || req.path.startsWith("/feedback") || req.path.startsWith("/chat") || req.path.startsWith("/history") || req.path.startsWith("/rate") || req.path.startsWith("/h3") || req.path.startsWith("/api") || req.path.startsWith("/register-vehicle")) {
         return next();
     }
     const indexPath = path.join(__dirname, "../../react-frontend/dist/index.html");

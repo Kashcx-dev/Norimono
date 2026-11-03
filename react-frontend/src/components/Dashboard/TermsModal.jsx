@@ -493,3 +493,4 @@ function TermsModal({ isOpen, onClose, standalone = false }) {
 }
 
 export default TermsModal;
+

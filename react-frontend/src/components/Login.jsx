@@ -229,7 +229,7 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
 						<button
 							type="submit"
 							disabled={isLoading}
-							className="w-full py-3.5 px-4 bg-[#714B67] hover:bg-[#5c3c54] text-white font-semibold rounded-xl transition-all duration-200 transform active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-75 disabled:pointer-events-none shadow-md hover:shadow-lg shadow-[#714B67]/10"
+							className="w-full py-3.5 px-4 bg-[#714B67] hover:bg-[#5c3c54] text-white font-semibold rounded-xl transition-all duration-200 transform active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-75 disabled:pointer-events-none shadow-md hover:shadow-lg shadow-[#714B67]/10 cursor-pointer"
 						>
 							{isLoading ? (
 								<div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -239,6 +239,46 @@ function Login({ onSwitchToSignup, onLoginSuccess }) {
 								</>
 							)}
 						</button>
+
+						{/* 1-Tap Demo Logins for Reviewers / Evaluators */}
+						<div className="pt-2">
+							<div className="flex items-center justify-between text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">
+								<span>Quick Demo Accounts:</span>
+								<span className="text-teal-600 font-mono">Pass: Norimono@2026</span>
+							</div>
+							<div className="grid grid-cols-3 gap-1.5">
+								<button
+									type="button"
+									onClick={() => {
+										setEmail("ananya.s@tcs.com");
+										setPassword("Norimono@2026");
+									}}
+									className="px-2 py-1.5 bg-slate-50 hover:bg-teal-50 text-slate-700 hover:text-teal-700 border border-slate-200 hover:border-teal-300 rounded-lg text-center font-bold text-[10px] transition-colors cursor-pointer"
+								>
+									🚗 TCS Driver
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										setEmail("rohan.k@infosys.com");
+										setPassword("Norimono@2026");
+									}}
+									className="px-2 py-1.5 bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200 hover:border-blue-300 rounded-lg text-center font-bold text-[10px] transition-colors cursor-pointer"
+								>
+									🎒 Infosys Rider
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										setEmail("admin@norimono.com");
+										setPassword("Norimono@2026");
+									}}
+									className="px-2 py-1.5 bg-slate-50 hover:bg-purple-50 text-slate-700 hover:text-purple-700 border border-slate-200 hover:border-purple-300 rounded-lg text-center font-bold text-[10px] transition-colors cursor-pointer"
+								>
+									🛡️ Admin
+								</button>
+							</div>
+						</div>
 					</form>
 				) : (
 					<form

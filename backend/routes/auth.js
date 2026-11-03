@@ -236,7 +236,7 @@ router.post("/signup", async (req, res, next) => {
             requires2FA: true,
             rider_type: selectedRiderType,
             organization: resolvedOrg,
-            devOtp: process.env.DEV_MODE === 'true' ? otp : undefined
+            devOtp: (!process.env.EMAIL_USER || process.env.DEV_MODE === 'true') ? otp : undefined
         });
     } catch (err) {
         return next(err);
@@ -404,7 +404,7 @@ router.post("/login", async (req, res, next) => {
                     message: `OTP sent successfully to ${user.email}.`,
                     requires2FA: true,
                     resolvedEmail: user.email,
-                    devOtp: process.env.DEV_MODE === 'true' ? otp : undefined
+                    devOtp: (!process.env.EMAIL_USER || process.env.DEV_MODE === 'true') ? otp : undefined
                 });
             } else {
                 return res.status(401).json({ message: "Incorrect password" });
