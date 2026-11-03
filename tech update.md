@@ -265,11 +265,23 @@ Traditional ridesharing (Ola/Uber) suffers from surge pricing, driver cancellati
 - `GET /api/errors/catalog` — Returns machine-readable dictionary of all custom error codes (`VALIDATION_ERROR`, `INVALID_PHONE_FORMAT`, `INVALID_VEHICLE_NO`, `RIDE_FULL`, `UNAUTHORIZED`, etc.) with HTTP statuses and resolution hints.
 - `GET /api/health` — Returns real-time platform health, PostgreSQL connection status, query latency (ms), and server uptime.
 
+### Ride Publishing & Algorithmic Legal Pricing (`/publish-ride` & `/rides/fare-estimate`)
+- **Motor Vehicles Act (Sec 66 & 192A) White-Plate Compliance**: Private non-commercial vehicles are legally barred from making commercial profits or surge-pricing carpools. Fares are mathematically locked to certified fuel consumption and seat counts.
+- **OSRM Real Route Telemetry (`getRouteDetails`)**: Queries the Open Source Routing Machine to compute exact driving route road distance (meters/km) and estimated road travel duration (minutes), with Haversine × 1.35 urban detour fallback.
+- **Certified Vehicle Fuel Ratio Integration**: Pulls driver's registered vehicle model and certified fuel consumption ratio from PostgreSQL `vehicles` table (`0.74x` to `1.35x` burn ratio).
+- **Strict Server-Side Non-Profit Pricing Formula**:
+  $$\text{Total Fuel Cost} = \text{OSRM Distance (km)} \times \text{Org Fuel Rate (₹/km)} \times \text{Certified Fuel Ratio}$$
+  $$\text{Gross Legal Cost Share per Seat} = \text{round}\left(\frac{\text{Total Fuel Cost}}{\text{Offered Seats}}\right)$$
+  $$\text{Org Green Subsidy} = \text{min}\left(\text{Gross Share} \times 0.40, \frac{\text{Distance} \times \text{Subsidy Rate}}{\text{Offered Seats}}\right)$$
+  $$\text{Net Colleague Fare} = \text{Gross Share} - \text{Org Green Subsidy}$$
+- **Driver Fare Lock**: The backend strictly overrides any client-side fare tampering with the legal calculated value, returning the complete compliance certificate.
+
 ---
 
 ## 6. Git Commit Highlights (Chronological Track)
 
-- `[Current]` — **feat(security-profile):** Implement global recursive DOMPurify XSS sanitization middleware across all routes, bcrypt password hashing & change-password endpoint, Corporate Profile & Trust Hub with Dual Ratings (Passenger Etiquette & Driver Safety), and embedded Personal Commute Wallet with dynamic QR code.
+- `[Current]` — **feat(legal-pricing):** Strictly enforce white-plate non-commercial pricing compliance (MVA Sec 66/192A) based on OSRM driving distance, certified vehicle fuel ratio, and seat count; lock driver fare input, return compliance breakdown, and display transparent fuel-split telemetry card.
+- `ee8992b` — **feat(security-profile):** Implement global recursive DOMPurify XSS sanitization middleware across all routes, bcrypt password hashing & change-password endpoint, Corporate Profile & Trust Hub with Dual Ratings (Passenger Etiquette & Driver Safety), and embedded Personal Commute Wallet with dynamic QR code.
 - `b63ca27` — **feat(wallet-feedback):** Enforce feedback email dispatch to leadership via Nodemailer (`master.trainer049@gmail.com`), integrate personal Closed-Loop Commute Wallet with dynamic personal QR Code, non-withdrawable policy banner, and direct wallet top-up.
 - `1b5efdd` — **feat(security):** Remove all demo fallbacks, enforce strict field-level typing and validation (10-digit phone, RTO vehicle plate regex, alphabetical name restrictions), and add custom error endpoints (`/api/errors/catalog`, `/api/health`).
 - `28e86d4` — **feat(ui):** Minimalist search results view: stripped bulky covers, search inputs, and disclaimers from `BrowseRidesPanel.jsx`; added ultra-compact header with `Edit Route`, `Female-Only` toggle, and small results count pill so colleague rides are immediately visible and scrollable.

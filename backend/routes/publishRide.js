@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../handlers/dbHandler');
-const { getRouting } = require('../handlers/GPS_CalcHandler');
+const { getRouteDetails, getRouting } = require('../handlers/GPS_CalcHandler');
 const { haversineDistance } = require('../utils/geoUtils');
 
 router.post('/', async (req, res, next) => {
     try {
-        const { origin, destination, departure_time, fare_per_seat } = req.body;
+        const { origin, destination, departure_time } = req.body;
         
         // Ensure user is authenticated (populated by FN_verifyTkn)
         if (!req.user || !req.user.emp_id) {
@@ -15,9 +15,9 @@ router.post('/', async (req, res, next) => {
         
         const driver_EMP_ID = req.user.emp_id;
 
-        // Basic validation
-        if (!origin || !destination || !departure_time || !fare_per_seat) {
-            return res.status(400).json({ message: "Missing required fields (origin, destination, departure_time, fare_per_seat)" });
+        // Strict field validation
+        if (!origin || !destination || !departure_time) {
+            return res.status(400).json({ message: "Missing required fields (origin, destination, departure_time)" });
         }
 
         // Checking if the user has a registered and approved vehicle
@@ -39,10 +39,11 @@ router.post('/', async (req, res, next) => {
         }
 
         const vehicleResult = await db.query(
-            `SELECT v.veh_no, v.seating_capacity, u.is_vehicle_registered 
+            `SELECT v.veh_no, v.seating_capacity, v.fuel_consumption_ratio, v.vehicle_model, u.is_vehicle_registered 
              FROM vehicles v 
              JOIN users u ON v.emp_id = u.emp_id 
-             WHERE v.emp_id = $1`, 
+             WHERE v.emp_id = $1 
+             ORDER BY v.created_at DESC LIMIT 1`, 
             [driver_EMP_ID]
         );
 
@@ -57,21 +58,44 @@ router.post('/', async (req, res, next) => {
         }
 
         const veh_no = vehicle.veh_no;
-        const total_seats = vehicle.seating_capacity;
+        const vehicleCapacity = parseInt(vehicle.seating_capacity) || 4;
+        // Driver can choose to offer fewer seats (e.g. for comfort guarantee), but cannot exceed vehicle capacity
+        const total_seats = Math.min(vehicleCapacity, Math.max(1, parseInt(req.body.seats) || vehicleCapacity));
 
-        // Formating coordinates for OSRM: "longitude,latitude"
-        const startStr = `${origin.lng},${origin.lat}`;
-        const endStr = `${destination.lng},${destination.lat}`;
+        // Format coordinates for OSRM: "longitude,latitude"
+        const oLat = parseFloat(origin.lat);
+        const oLon = parseFloat(origin.lng || origin.lon);
+        const dLat = parseFloat(destination.lat);
+        const dLon = parseFloat(destination.lng || destination.lon);
 
-        // Get the route polyline from OSRM
-        const routeCoords = await getRouting(startStr, endStr);
+        const startStr = `${oLon},${oLat}`;
+        const endStr = `${dLon},${dLat}`;
+
+        // Get accurate driving route details from OSRM
+        const routeDetails = await getRouteDetails(startStr, endStr);
         let polylineStr = null;
-        if (routeCoords) {
-            polylineStr = JSON.stringify(routeCoords);
+        let distKm = 12.0;
+        let durationMins = 25;
+        let isOsrmVerified = false;
+
+        if (routeDetails && routeDetails.distanceKm > 0) {
+            polylineStr = JSON.stringify(routeDetails.coordinates);
+            distKm = routeDetails.distanceKm;
+            durationMins = routeDetails.durationMins;
+            isOsrmVerified = true;
+        } else {
+            // Graceful fallback if OSRM is temporarily offline or times out
+            const routeCoords = await getRouting(startStr, endStr);
+            if (routeCoords) polylineStr = JSON.stringify(routeCoords);
+            if (!isNaN(oLat) && !isNaN(oLon) && !isNaN(dLat) && !isNaN(dLon)) {
+                distKm = Math.max(3.0, parseFloat((haversineDistance(oLat, oLon, dLat, dLon) * 1.35).toFixed(1)));
+                durationMins = Math.max(5, Math.round(distKm * 2.2));
+            }
         }
 
-        // Algorithmic Legal Pricing: Driver cannot manually set a custom fare.
-        // Pure non-profit cost-sharing compliance based on distance, vehicle consumption, and seats.
+        // Algorithmic Legal Pricing: Driver cannot manually set or inflate custom fares.
+        // Motor Vehicles Act (Sec 66 & 192A) White-Plate Compliance:
+        // Pure non-profit cost-sharing strictly calculated from road distance, certified fuel burn, and seat split.
         const orgRes = await db.query(
             "SELECT fuel_cost_per_km, travel_cost_per_km FROM org_settings WHERE org_name = $1",
             [req.user.org_name || 'Odoo']
@@ -80,20 +104,15 @@ router.post('/', async (req, res, next) => {
         const travelSubsidy = parseFloat(orgRes.rows[0]?.travel_cost_per_km || 2.00);
         const fuelRatio = parseFloat(vehicle.fuel_consumption_ratio || 1.0);
 
-        const oLat = parseFloat(origin.lat);
-        const oLon = parseFloat(origin.lng || origin.lon);
-        const dLat = parseFloat(destination.lat);
-        const dLon = parseFloat(destination.lng || destination.lon);
+        // Calculate verified trip fuel expense
+        const totalTripFuelCost = parseFloat((distKm * fuelCostPerKm * fuelRatio).toFixed(2));
 
-        let distKm = 12.0;
-        if (!isNaN(oLat) && !isNaN(oLon) && !isNaN(dLat) && !isNaN(dLon)) {
-            distKm = Math.max(3.0, haversineDistance(oLat, oLon, dLat, dLon) * 1.3);
-        }
-
-        // Algorithmic fare calculation (strictly computed by system for legality)
-        const algorithmicGrossFare = Math.round((distKm * fuelCostPerKm * fuelRatio) / total_seats);
-        let subsidyPerSeat = Math.round(Math.min(algorithmicGrossFare * 0.45, (distKm * travelSubsidy) / total_seats));
-        const algorithmicNetFare = Math.max(25, algorithmicGrossFare - subsidyPerSeat);
+        // Exact pro-rata operational fuel expense split per offered seat:
+        const algorithmicGrossFare = Math.max(15, Math.round(totalTripFuelCost / total_seats));
+        // Org Green Commute Subsidy: incentive covered by enterprise for coworker carpooling
+        let subsidyPerSeat = Math.round(Math.min(algorithmicGrossFare * 0.40, (distKm * travelSubsidy) / total_seats));
+        // Net out-of-pocket fare paid by colleague:
+        const algorithmicNetFare = Math.max(10, algorithmicGrossFare - subsidyPerSeat);
 
         const isFemaleOnly = req.body.is_female_only === true || req.body.is_female_only === 'true';
         const destinationTechPark = req.body.destination_tech_park || destination.name || 'Tech Park Campus';
@@ -157,7 +176,22 @@ router.post('/', async (req, res, next) => {
             preferences,
             stopovers,
             is_recurring: isRecurring,
-            instant_booking: instantBooking
+            instant_booking: instantBooking,
+            white_plate_compliance: {
+                certified: true,
+                distance_km: distKm,
+                duration_mins: durationMins,
+                osrm_verified: isOsrmVerified,
+                vehicle_model: vehicle.vehicle_model,
+                fuel_consumption_ratio: fuelRatio,
+                fuel_cost_per_km: fuelCostPerKm,
+                total_trip_fuel_cost: Math.round(totalTripFuelCost),
+                seats_offered: total_seats,
+                gross_cost_share_per_seat: algorithmicGrossFare,
+                org_green_subsidy_per_seat: subsidyPerSeat,
+                net_colleague_fare_per_seat: algorithmicNetFare,
+                legal_statute: "Motor Vehicles Act Section 66 & 192A Non-Commercial Carpooling Mandate"
+            }
         });
 
     } catch (error) {

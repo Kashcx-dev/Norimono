@@ -23,7 +23,10 @@ import {
 	Zap,
 	Repeat,
 	Plus,
-	Trash2
+	Trash2,
+	Car,
+	Gauge,
+	Info
 } from "lucide-react";
 import { fetchPlaceSuggestions } from "../../utils/geoService";
 import { POPULAR_TECH_PARKS } from "../../utils/companyBadges";
@@ -43,6 +46,7 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 	const [fare, setFare] = useState("45");
 	const [fareBreakdown, setFareBreakdown] = useState(null);
 	const [estimatingFare, setEstimatingFare] = useState(false);
+	const [driverVehicle, setDriverVehicle] = useState(null);
 
 	// BlaBlaCar Preferences
 	const [chattiness, setChattiness] = useState("blabla"); // 'bla', 'blabla', 'blablabla'
@@ -85,6 +89,31 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 		document.addEventListener("mousedown", handleClickOutside);
 		return () =>
 			document.removeEventListener("mousedown", handleClickOutside);
+	}, []);
+
+	// Load driver's verified vehicle specifications & fuel consumption ratio
+	useEffect(() => {
+		let isMounted = true;
+		const fetchDriverVehicle = async () => {
+			try {
+				const token = localStorage.getItem("token");
+				if (!token) return;
+				const res = await fetch("/register-vehicle", {
+					headers: { Authorization: `Bearer ${token}` }
+				});
+				const data = await res.json();
+				if (isMounted && data.success && data.vehicle) {
+					setDriverVehicle(data.vehicle);
+					if (data.vehicle.seating_capacity) {
+						setSeats(Math.max(1, data.vehicle.seating_capacity));
+					}
+				}
+			} catch (err) {
+				console.warn("Could not load driver vehicle specs:", err);
+			}
+		};
+		fetchDriverVehicle();
+		return () => { isMounted = false; };
 	}, []);
 
 	// Set default origin to Current Location when GPS is detected
@@ -744,21 +773,55 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 							</div>
 						</div>
 
+						{/* Driver Certified Vehicle Banner */}
+						{driverVehicle && (
+							<div className="p-3 bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-xl flex items-center justify-between text-xs border border-slate-700 shadow-xs">
+								<div className="flex items-center gap-2">
+									<div className="w-7 h-7 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center">
+										<Car className="w-4 h-4" />
+									</div>
+									<div>
+										<span className="font-bold text-white block text-xs">
+											{driverVehicle.vehicle_model}
+										</span>
+										<span className="text-[10px] text-slate-300 font-mono">
+											{driverVehicle.veh_no} • {driverVehicle.seating_capacity} Seater
+										</span>
+									</div>
+								</div>
+								<div className="text-right">
+									<span className="text-[9px] uppercase tracking-wider text-teal-400 font-bold block">
+										Certified Fuel Ratio
+									</span>
+									<span className="text-xs font-mono font-bold text-slate-200">
+										{driverVehicle.fuel_consumption_ratio || "1.00"}x Burn
+									</span>
+								</div>
+							</div>
+						)}
+
 						<div className="grid grid-cols-2 gap-4">
 							{/* Seats */}
 							<div className="space-y-1.5">
-								<label className="text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center gap-1.5">
-									<Users className="w-3.5 h-3.5 text-gray-500" />
-									Available Seats
-								</label>
+								<div className="flex items-center justify-between">
+									<label className="text-xs font-semibold text-gray-600 uppercase tracking-wider flex items-center gap-1.5">
+										<Users className="w-3.5 h-3.5 text-gray-500" />
+										Offered Seats
+									</label>
+									{driverVehicle && (
+										<span className="text-[10px] text-gray-400">
+											Max {driverVehicle.seating_capacity}
+										</span>
+									)}
+								</div>
 								<input
 									required
 									type="number"
 									min="1"
-									max="8"
+									max={driverVehicle?.seating_capacity || 8}
 									value={seats}
-									onChange={(e) => setSeats(e.target.value)}
-									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
+									onChange={(e) => setSeats(Math.min(driverVehicle?.seating_capacity || 8, Math.max(1, parseInt(e.target.value) || 1)))}
+									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
 								/>
 							</div>
 
@@ -766,11 +829,11 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 							<div className="space-y-1.5">
 								<div className="flex items-center justify-between">
 									<label className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-										<Lock className="w-3.5 h-3.5 text-amber-600" />
-										Algorithmic Cost-Share
+										<Lock className="w-3.5 h-3.5 text-teal-600" />
+										Cost-Share / Seat
 									</label>
-									<span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
-										Locked
+									<span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-teal-100 text-teal-800">
+										White-Plate Locked
 									</span>
 								</div>
 								<div className="relative">
@@ -778,7 +841,7 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 										readOnly
 										type="number"
 										value={fare}
-										className="w-full px-4 py-3 bg-slate-100/80 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 cursor-not-allowed select-none font-mono"
+										className="w-full px-4 py-3 bg-slate-100/90 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 cursor-not-allowed select-none font-mono"
 									/>
 									<span className="absolute right-3.5 top-3.5 text-xs text-slate-400 font-bold">
 										₹ / seat
@@ -787,48 +850,67 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 							</div>
 						</div>
 
-						{/* Legal Cost-Sharing Compliance Note */}
-						<div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl flex items-start gap-2 text-[11px] text-slate-600">
-							<ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-							<div>
-								<span className="font-bold text-slate-800">Legal Non-Profit Cost-Sharing: </span>
-								Drivers cannot manually increase fares. Cost is locked algorithmically by route distance, standard fuel rate, and seat split in accordance with non-commercial white-plate transit regulations.
-							</div>
-						</div>
-
-						{/* Corporate Green Commute Subsidy Breakdown Card */}
-						{fareBreakdown && (
-							<div className="bg-gradient-to-r from-teal-50/70 via-white to-purple-50/70 border border-teal-100/80 rounded-2xl p-3.5 space-y-2 text-xs animate-in fade-in duration-200">
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-1.5 text-teal-800 font-bold">
-										<Sparkles className="w-4 h-4 text-[#00A09D]" />
-										<span>Corporate Fair-Share Commute Pricing</span>
+						{/* White-Plate Algorithmic Pricing Breakdown Card */}
+						{fareBreakdown ? (
+							<div className="bg-gradient-to-br from-teal-50/80 via-white to-slate-50 border border-teal-200/80 rounded-2xl p-4 space-y-2.5 text-xs animate-in fade-in duration-200 shadow-xs">
+								<div className="flex items-center justify-between border-b border-teal-100/80 pb-2">
+									<div className="flex items-center gap-1.5 text-teal-900 font-bold">
+										<ShieldCheck className="w-4 h-4 text-teal-600 shrink-0" />
+										<span>White-Plate Legal Pricing (Sec 66 MVA)</span>
 									</div>
-									<span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full">
-										{fareBreakdown.distanceKm} km trip
-									</span>
+									<div className="flex items-center gap-1.5">
+										<span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-mono">
+											{fareBreakdown.distanceKm} km {fareBreakdown.isOsrmVerified ? "• OSRM Road" : ""}
+										</span>
+										{fareBreakdown.durationMins && (
+											<span className="text-[10px] font-bold px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded-md font-mono">
+												~{fareBreakdown.durationMins}m
+											</span>
+										)}
+									</div>
 								</div>
 
-								<div className="grid grid-cols-3 gap-2 pt-1 border-t border-gray-100 text-[11px]">
-									<div>
-										<span className="text-gray-400 block text-[9px] uppercase font-bold">Trip Fuel Cost</span>
-										<span className="font-bold text-gray-800 font-mono">₹{fareBreakdown.totalTripFuelCost}</span>
+								<div className="grid grid-cols-3 gap-2.5 pt-0.5 text-[11px]">
+									<div className="bg-white/80 p-2 rounded-lg border border-slate-100">
+										<span className="text-gray-400 block text-[9px] uppercase font-bold tracking-tight">Total Trip Fuel</span>
+										<span className="font-bold text-gray-800 font-mono text-xs">₹{fareBreakdown.totalTripFuelCost}</span>
+										<span className="text-[9px] text-gray-400 block mt-0.5">({fareBreakdown.fuelRatio || "1.0"}x ratio)</span>
 									</div>
-									<div>
-										<span className="text-gray-400 block text-[9px] uppercase font-bold">Org Green Subsidy</span>
-										<span className="font-bold text-emerald-600 font-mono">+₹{fareBreakdown.subsidyPerSeat}/seat</span>
+									<div className="bg-white/80 p-2 rounded-lg border border-slate-100">
+										<span className="text-gray-400 block text-[9px] uppercase font-bold tracking-tight">Org Green Subsidy</span>
+										<span className="font-bold text-emerald-600 font-mono text-xs">-₹{fareBreakdown.subsidyPerSeat}</span>
+										<span className="text-[9px] text-emerald-700 block mt-0.5">per colleague</span>
 									</div>
-									<div>
-										<span className="text-gray-400 block text-[9px] uppercase font-bold">Total Driver Payout</span>
-										<span className="font-bold text-[#714B67] font-mono">
-											₹{(parseFloat(fare) || 0) + (fareBreakdown.subsidyPerSeat || 0)}/seat
+									<div className="bg-white/80 p-2 rounded-lg border border-slate-100">
+										<span className="text-gray-400 block text-[9px] uppercase font-bold tracking-tight">Colleague Fare</span>
+										<span className="font-bold text-teal-700 font-mono text-xs">
+											₹{fare}
+										</span>
+										<span className="text-[9px] text-slate-500 block mt-0.5">
+											(Driver: ₹{(parseFloat(fare) || 0) + (fareBreakdown.subsidyPerSeat || 0)})
 										</span>
 									</div>
 								</div>
 
-								<p className="text-[10px] text-gray-500 leading-tight">
-									💡 Your organization covers <strong>₹{fareBreakdown.subsidyPerSeat}</strong> per passenger as an eco-friendly travel subsidy. Passengers pay only <strong>₹{fare || 0}</strong>.
-								</p>
+								<div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-start gap-2 text-[10px] text-slate-600 leading-relaxed">
+									<Info className="w-3.5 h-3.5 text-teal-600 shrink-0 mt-0.5" />
+									<p>
+										<strong>Zero Driver Markup:</strong> Fares are algorithmically locked based on exact OSRM road distance, your vehicle's certified fuel consumption ratio ({fareBreakdown.fuelRatio || "1.0"}x), and seat split. Total reimbursements strictly equal variable trip fuel expenditure.
+									</p>
+								</div>
+							</div>
+						) : estimatingFare ? (
+							<div className="p-4 bg-teal-50/50 border border-teal-100 rounded-2xl flex items-center justify-center gap-2 text-xs text-teal-800">
+								<Loader2 className="w-4 h-4 animate-spin text-teal-600" />
+								<span>Calculating OSRM road distance and legal fuel cost-share...</span>
+							</div>
+						) : (
+							<div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl flex items-start gap-2 text-[11px] text-slate-600">
+								<ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+								<div>
+									<span className="font-bold text-slate-800">White-Plate Legal Pricing: </span>
+									Select origin and destination to calculate the non-profit fuel split. Drivers cannot manually adjust fares.
+								</div>
 							</div>
 						)}
 

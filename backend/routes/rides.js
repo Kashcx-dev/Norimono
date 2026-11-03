@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../handlers/dbHandler');
 const { deductAmt, creditAmt } = require('../handlers/WalletHandler');
 const { matchRideCorridor, haversineDistance } = require('../utils/geoUtils');
+const { getRouteDetails } = require('../handlers/GPS_CalcHandler');
 const h3Engine = require('../handlers/h3Engine');
 
 // GET /rides
@@ -712,7 +713,8 @@ router.post('/driver/confirm-payment', async (req, res, next) => {
 });
 
 // POST /rides/fare-estimate
-// Computes dynamic fair commute pricing, vehicle consumption split, and corporate green commute subsidy
+// Computes dynamic legal white-plate commute pricing based on OSRM road distance,
+// certified vehicle fuel consumption ratio, and offered seats.
 router.post('/fare-estimate', async (req, res, next) => {
     try {
         if (!req.user || !req.user.emp_id) {
@@ -729,14 +731,27 @@ router.post('/fare-estimate', async (req, res, next) => {
         const dLat = parseFloat(destination.lat);
         const dLon = parseFloat(destination.lng || destination.lon);
 
-        let distanceKm = 15.0; // fallback default
+        let distanceKm = 12.0;
+        let durationMins = 25;
+        let isOsrmVerified = false;
+
         if (!isNaN(oLat) && !isNaN(oLon) && !isNaN(dLat) && !isNaN(dLon)) {
-            const rawDist = haversineDistance(oLat, oLon, dLat, dLon);
-            distanceKm = parseFloat((rawDist * 1.3).toFixed(1));
+            const startStr = `${oLon},${oLat}`;
+            const endStr = `${dLon},${dLat}`;
+            const routeDetails = await getRouteDetails(startStr, endStr);
+            if (routeDetails && routeDetails.distanceKm > 0) {
+                distanceKm = routeDetails.distanceKm;
+                durationMins = routeDetails.durationMins;
+                isOsrmVerified = true;
+            } else {
+                const rawDist = haversineDistance(oLat, oLon, dLat, dLon);
+                distanceKm = parseFloat((rawDist * 1.35).toFixed(1));
+                durationMins = Math.max(5, Math.round(distanceKm * 2.2));
+            }
         }
 
         const orgName = req.user.org_name || 'Odoo';
-        // Fetch org settings (fuel reimbursement & green commute subsidy)
+        // Fetch org settings (fuel reimbursement baseline & green commute subsidy)
         const orgRes = await db.query(
             "SELECT fuel_cost_per_km, travel_cost_per_km FROM org_settings WHERE org_name = $1",
             [orgName]
@@ -744,33 +759,50 @@ router.post('/fare-estimate', async (req, res, next) => {
         const fuelCostPerKm = parseFloat(orgRes.rows[0]?.fuel_cost_per_km || 5.50);
         const travelSubsidyPerKm = parseFloat(orgRes.rows[0]?.travel_cost_per_km || 2.00);
 
-        // Fetch driver's vehicle fuel consumption ratio if available
+        // Fetch driver's vehicle specs & certified fuel consumption ratio
         const vehRes = await db.query(
-            "SELECT fuel_consumption_ratio, seating_capacity FROM vehicles WHERE emp_id = $1",
+            "SELECT veh_no, vehicle_model, fuel_consumption_ratio, seating_capacity FROM vehicles WHERE emp_id = $1 ORDER BY created_at DESC LIMIT 1",
             [req.user.emp_id]
         );
-        const fuelRatio = parseFloat(vehRes.rows[0]?.fuel_consumption_ratio || 1.0);
-        const totalSeats = parseInt(seats) || parseInt(vehRes.rows[0]?.seating_capacity || 4);
+        const veh = vehRes.rows[0];
+        const vehicleModel = veh?.vehicle_model || "Standard Commute Vehicle";
+        const vehicleCapacity = parseInt(veh?.seating_capacity || 4);
+        const fuelRatio = parseFloat(veh?.fuel_consumption_ratio || 1.0);
+        const offeredSeats = Math.min(vehicleCapacity, Math.max(1, parseInt(seats) || vehicleCapacity));
 
-        // Dynamic Fare Split Formula
-        const totalTripFuelCost = Math.round(distanceKm * fuelCostPerKm * fuelRatio);
-        const baseFarePerSeat = Math.max(15, Math.round(totalTripFuelCost / totalSeats));
-        const subsidyPerSeat = Math.round(Math.min(baseFarePerSeat * 0.45, (distanceKm * travelSubsidyPerKm) / totalSeats));
-        const recommendedPassengerFare = Math.max(10, baseFarePerSeat - subsidyPerSeat);
-        const driverEarningsPerSeat = baseFarePerSeat; // driver receives passenger fare + company subsidy
+        // White-Plate Non-Commercial Pricing Formula:
+        // Total fuel cost for the trip = Distance (km) * Fuel Cost per km * Certified Fuel Consumption Ratio
+        const totalTripFuelCost = parseFloat((distanceKm * fuelCostPerKm * fuelRatio).toFixed(2));
+        
+        // Exact pro-rata operational fuel expense split per offered seat:
+        const grossFarePerSeat = Math.max(15, Math.round(totalTripFuelCost / offeredSeats));
+        
+        // Corporate Green Commute Subsidy (capped at 40% of the cost to maintain fiscal policy):
+        const subsidyPerSeat = Math.round(Math.min(grossFarePerSeat * 0.40, (distanceKm * travelSubsidyPerKm) / offeredSeats));
+        
+        // Net out-of-pocket fare paid by colleague:
+        const recommendedPassengerFare = Math.max(10, grossFarePerSeat - subsidyPerSeat);
+        const driverEarningsPerSeat = grossFarePerSeat; // driver receives colleague fare + corporate subsidy
 
         return res.json({
             success: true,
             distanceKm,
+            durationMins,
+            isOsrmVerified,
             fuelCostPerKm,
             travelSubsidyPerKm,
             fuelRatio,
-            totalSeats,
-            totalTripFuelCost,
-            baseFarePerSeat,
+            vehicleModel,
+            totalSeats: offeredSeats,
+            maxVehicleSeats: vehicleCapacity,
+            totalTripFuelCost: Math.round(totalTripFuelCost),
+            baseFarePerSeat: grossFarePerSeat,
+            grossFarePerSeat,
             subsidyPerSeat,
             recommendedPassengerFare,
-            driverEarningsPerSeat
+            driverEarningsPerSeat,
+            whitePlateCompliant: true,
+            legalNotice: "Motor Vehicles Act Section 66 & 192A compliant: Strictly non-profit pro-rata fuel cost split."
         });
     } catch (err) {
         console.error("Error calculating fare estimate:", err);
