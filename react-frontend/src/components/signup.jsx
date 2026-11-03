@@ -17,11 +17,15 @@ import {
 	Sparkles, 
 	RefreshCw,
 	FileText,
-	KeyRound
+	KeyRound,
+	MapPin,
+	Navigation,
+	Loader2
 } from "lucide-react";
 import vehicleCatalog from "../data/vehicle_catalog.json";
 import { io } from "socket.io-client";
 import { getCompanyInfo } from "../utils/companyBadges";
+import { reverseGeocodeIndia, fetchIndiaPlaceSuggestions } from "../utils/geoService";
 
 function checkPasswordStrength(password) {
 	let score = 0;
@@ -65,6 +69,16 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 	const [gender, setGender] = useState("female"); // 'female' | 'male' | 'other' (Crucial for female-only rides!)
 	const [designation, setDesignation] = useState("Senior Cloud Architect");
 	const [department, setDepartment] = useState("Technology Operations");
+
+	// Location State (India Only with Auto-Detect GPS)
+	const [location, setLocation] = useState("");
+	const [locationCoords, setLocationCoords] = useState(null);
+	const [isLocating, setIsLocating] = useState(false);
+	const [locationError, setLocationError] = useState("");
+	const [locationSuggestions, setLocationSuggestions] = useState([]);
+	const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+	const locationRef = useRef(null);
+
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
@@ -110,6 +124,20 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 		}
 	}, [email]);
 
+	// Close dropdowns when clicking outside
+	useEffect(() => {
+		const handleOutside = (e) => {
+			if (locationRef.current && !locationRef.current.contains(e.target)) {
+				setShowLocationDropdown(false);
+			}
+			if (modelInputRef.current && !modelInputRef.current.contains(e.target)) {
+				setShowModelDropdown(false);
+			}
+		};
+		document.addEventListener("mousedown", handleOutside);
+		return () => document.removeEventListener("mousedown", handleOutside);
+	}, []);
+
 	// Filter vehicle catalog suggestions
 	useEffect(() => {
 		if (!modelSearch || modelSearch.trim().length < 2) {
@@ -150,6 +178,55 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 		};
 	}, [currentStep, registeredUserData]);
 
+	// Auto-detect user GPS location within India
+	const handleAutoDetectLocation = () => {
+		setLocationError("");
+		if (!navigator.geolocation) {
+			setLocationError("Geolocation is not supported on this device.");
+			return;
+		}
+		setIsLocating(true);
+		navigator.geolocation.getCurrentPosition(
+			async (position) => {
+				const { latitude, longitude } = position.coords;
+				const res = await reverseGeocodeIndia(latitude, longitude);
+				setIsLocating(false);
+				if (res.success) {
+					setLocation(res.address);
+					setLocationCoords(res.coords);
+					setShowLocationDropdown(false);
+				} else {
+					setLocationError(res.error || "Could not detect Indian location.");
+				}
+			},
+			(err) => {
+				setIsLocating(false);
+				let msg = "GPS permission denied. Please tap 'Allow' or type your area.";
+				if (err.code === 2) msg = "GPS signal unavailable. Please type your area.";
+				else if (err.code === 3) msg = "GPS timed out. Please tap retry.";
+				setLocationError(msg);
+			},
+			{ timeout: 10000, enableHighAccuracy: true }
+		);
+	};
+
+	// India Place Suggestions when typing
+	useEffect(() => {
+		if (!location || location.trim().length < 2) {
+			setLocationSuggestions([]);
+			return;
+		}
+
+		// Don't search if location matches an already picked suggestion
+		const timer = setTimeout(async () => {
+			const results = await fetchIndiaPlaceSuggestions(location);
+			setLocationSuggestions(results);
+			if (results.length > 0) setShowLocationDropdown(true);
+		}, 300);
+
+		return () => clearTimeout(timer);
+	}, [location]);
+
 	const handleSelectModel = (item) => {
 		setVehicleModel(item.name);
 		setModelSearch(item.name);
@@ -172,6 +249,7 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 		}
 
 		if (!phone.trim()) return setError("Please enter your mobile phone number.");
+		if (!location.trim()) return setError("Please auto-detect or enter your office commute location in India.");
 		if (!password) return setError("Please create a password.");
 		if (password !== confirmPassword) return setError("Passwords do not match.");
 		if (!agreeTerms) return setError("Please agree to the Terms of Service & Corporate Commute Policy.");
@@ -195,6 +273,8 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 			gender,
 			designation,
 			department,
+			address: location.trim(),
+			location: location.trim(),
 			...(riderType === "rider" && {
 				dl_no: dlNo.trim(),
 				vehicle_no: vehicleNo.trim().toUpperCase(),
@@ -884,6 +964,112 @@ function Signup({ onSwitchToLogin, onSignupSuccess }) {
 								className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
 							/>
 						</div>
+					</div>
+
+					{/* Primary Commute Location in India with Auto-Detect GPS Button */}
+					<div className="space-y-1.5 relative" ref={locationRef}>
+						<div className="flex items-center justify-between">
+							<label className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+								<MapPin className="w-3.5 h-3.5 text-teal-600" />
+								Office Commute Location (India Only)
+							</label>
+							<span className="text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded flex items-center gap-1">
+								🇮🇳 India Only
+							</span>
+						</div>
+
+						{/* Phone-friendly input with Auto-Detect button */}
+						<div className="flex items-stretch gap-1.5">
+							<div className="relative flex-1">
+								<input
+									type="text"
+									value={location}
+									onChange={(e) => {
+										setLocation(e.target.value);
+										setLocationError("");
+									}}
+									onFocus={() => {
+										if (locationSuggestions.length > 0) setShowLocationDropdown(true);
+									}}
+									placeholder="e.g. Indiranagar, Bengaluru or Hitec City, Hyderabad"
+									className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+									required
+								/>
+								<MapPin className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+							</div>
+
+							{/* Tactile Auto-Detect GPS Button (Mobile-First Tap Target) */}
+							<button
+								type="button"
+								onClick={handleAutoDetectLocation}
+								disabled={isLocating}
+								title="Auto-Detect My Current GPS Location"
+								className="px-3 py-2.5 bg-teal-600 hover:bg-teal-700 active:scale-95 text-white font-bold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-60 min-h-[40px]"
+							>
+								{isLocating ? (
+									<>
+										<Loader2 className="w-4 h-4 animate-spin text-white" />
+										<span className="hidden sm:inline text-[11px]">Locating...</span>
+									</>
+								) : (
+									<>
+										<Navigation className="w-4 h-4 text-white" />
+										<span className="text-[11px] font-bold">Auto-Detect</span>
+									</>
+								)}
+							</button>
+						</div>
+
+						{/* Location Error Warning if outside India or GPS denied */}
+						{locationError && (
+							<p className="text-[10px] text-rose-600 font-semibold flex items-center gap-1 pt-0.5 animate-in fade-in">
+								<AlertTriangle className="w-3 h-3 shrink-0" />
+								<span>{locationError}</span>
+							</p>
+						)}
+
+						{/* Mobile-Friendly Indian Tech Corridor Quick Pills */}
+						<div className="flex items-center gap-1 overflow-x-auto pt-0.5 pb-0.5 no-scrollbar text-[10px]">
+							<span className="text-slate-400 text-[9px] uppercase font-bold shrink-0">Popular:</span>
+							{["Bengaluru", "Hyderabad", "Pune", "Gurgaon", "Noida", "Mumbai", "Chennai"].map((city) => (
+								<button
+									key={city}
+									type="button"
+									onClick={() => {
+										setLocation(`${city}, India`);
+										setLocationError("");
+										setShowLocationDropdown(false);
+									}}
+									className="px-2 py-0.5 bg-white hover:bg-teal-50 hover:text-teal-700 text-slate-600 border border-slate-200 rounded-md whitespace-nowrap cursor-pointer transition-colors"
+								>
+									{city}
+								</button>
+							))}
+						</div>
+
+						{/* Autocomplete Dropdown */}
+						{showLocationDropdown && locationSuggestions.length > 0 && (
+							<div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-50 max-h-48 overflow-y-auto py-1 animate-in fade-in duration-150">
+								{locationSuggestions.map((item, idx) => (
+									<button
+										key={idx}
+										type="button"
+										onClick={() => {
+											setLocation(item.fullAddress);
+											setLocationCoords(item.coords);
+											setShowLocationDropdown(false);
+										}}
+										className="w-full text-left px-3 py-2 text-xs hover:bg-teal-50 transition-colors flex items-start gap-2 border-b border-slate-100 last:border-b-0 cursor-pointer"
+									>
+										<MapPin className="w-3.5 h-3.5 text-teal-600 shrink-0 mt-0.5" />
+										<div className="min-w-0 flex-1">
+											<span className="font-bold text-slate-800 block truncate">{item.title}</span>
+											{item.subtitle && <span className="text-[10px] text-slate-500 block truncate">{item.subtitle}</span>}
+										</div>
+									</button>
+								))}
+							</div>
+						)}
 					</div>
 
 					{/* Password & Confirm */}

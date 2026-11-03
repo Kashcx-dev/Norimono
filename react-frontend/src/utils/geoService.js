@@ -65,6 +65,101 @@ export async function fetchPlaceSuggestions(query, userLoc) {
 }
 
 /**
+ * Reverse geocode GPS coordinates specifically within India
+ * @param {number} lat
+ * @param {number} lon
+ * @returns {Promise<{success: boolean, address?: string, city?: string, state?: string, error?: string}>}
+ */
+export async function reverseGeocodeIndia(lat, lon) {
+	// Latitude & Longitude bounding box for India (approx 6.5N - 37.5N, 68.0E - 97.5E)
+	const isInsideIndia = lat >= 6.5 && lat <= 37.5 && lon >= 68.0 && lon <= 97.5;
+	if (!isInsideIndia) {
+		return {
+			success: false,
+			error: "Location detected is outside India. Norimono is exclusively available within Indian tech corridors."
+		};
+	}
+
+	try {
+		const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&countrycodes=in&zoom=16&addressdetails=1`;
+		const res = await fetch(url, { headers: { "Accept-Language": "en" } });
+		if (!res.ok) throw new Error("Reverse geocode request failed");
+		const data = await res.json();
+
+		if (data && data.address) {
+			const addr = data.address;
+			// Ensure country is India
+			if (addr.country_code && addr.country_code.toLowerCase() !== "in") {
+				return {
+					success: false,
+					error: "Location is outside India. Norimono is currently available exclusively for Indian office commutes."
+				};
+			}
+
+			const suburb = addr.suburb || addr.neighbourhood || addr.residential || addr.road || "";
+			const city = addr.city || addr.town || addr.municipality || addr.district || "";
+			const state = addr.state || "";
+
+			const shortParts = [suburb, city, state].filter(Boolean);
+			const formatted = shortParts.length > 0 ? shortParts.join(", ") : data.display_name.split(",").slice(0, 3).join(", ");
+
+			return {
+				success: true,
+				address: formatted,
+				city,
+				state,
+				fullAddress: data.display_name,
+				coords: [lat, lon]
+			};
+		}
+
+		return {
+			success: true,
+			address: `Lat ${lat.toFixed(4)}, Lon ${lon.toFixed(4)} (India)`,
+			coords: [lat, lon]
+		};
+	} catch (err) {
+		console.warn("Reverse geocode failed:", err.message);
+		return {
+			success: true,
+			address: `Location (${lat.toFixed(4)}, ${lon.toFixed(4)})`,
+			coords: [lat, lon]
+		};
+	}
+}
+
+/**
+ * Place suggestions scoped strictly to India
+ */
+export async function fetchIndiaPlaceSuggestions(query) {
+	if (!query || query.trim().length < 2) return [];
+
+	try {
+		const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query.trim())}&countrycodes=in&limit=6&addressdetails=1`;
+		const res = await fetch(url, { headers: { "Accept-Language": "en" } });
+		const data = await res.json();
+		if (data && data.length > 0) {
+			return data.map((item) => {
+				const parts = item.display_name.split(",").map(p => p.trim());
+				const title = parts[0];
+				const subtitle = parts.slice(1, 4).join(", ");
+				return {
+					title,
+					subtitle,
+					fullAddress: `${title}${subtitle ? `, ${subtitle}` : ""}`,
+					coords: [parseFloat(item.lat), parseFloat(item.lon)]
+				};
+			});
+		}
+	} catch (err) {
+		console.warn("India place suggestions failed, trying fallback:", err);
+		return fetchPlaceSuggestions(query + ", India");
+	}
+
+	return [];
+}
+
+/**
  * Calculates straight-line distance in kilometers between two points using the Haversine formula
  * @param {number} lat1 
  * @param {number} lon1 

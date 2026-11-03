@@ -117,6 +117,8 @@ router.post("/signup", async (req, res, next) => {
         gender,
         designation,
         department,
+        address,
+        location,
         dl_no,
         vehicle_no,
         vehicle_model,
@@ -209,6 +211,7 @@ router.post("/signup", async (req, res, next) => {
             gender: selectedGender,
             designation: designation || 'Software Engineer',
             department: department || 'Engineering',
+            address: (address || location || '').trim() || null,
             hashedPassword, 
             org_name: resolvedOrg,
             code: otp, 
@@ -267,13 +270,13 @@ router.post("/verify-signup-otp", async (req, res, next) => {
                 `INSERT INTO users (
                     emp_id, name, email, org_name, phone, role, rider_type, 
                     is_vehicle_registered, password_hash, gender, designation, department,
-                    trust_score, total_rides_completed, co2_saved_kg
-                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`, 
+                    trust_score, total_rides_completed, co2_saved_kg, address
+                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`, 
                 [
                     emp_id, record.name, email, record.org_name, record.phone || null, 
                     userRole, riderType, isVehicleRegistered, record.hashedPassword,
                     record.gender || 'unspecified', record.designation || 'Software Engineer', record.department || 'Engineering',
-                    99.4, 12, 28.5
+                    99.4, 12, 28.5, record.address || null
                 ]
             );
 
@@ -324,6 +327,7 @@ router.post("/verify-signup-otp", async (req, res, next) => {
                 gender: record.gender || 'unspecified',
                 designation: record.designation || 'Software Engineer',
                 department: record.department || 'Engineering',
+                address: record.address || null,
                 trust_score: 99.4,
                 total_rides_completed: 12,
                 co2_saved_kg: 28.5
