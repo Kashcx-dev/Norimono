@@ -326,6 +326,7 @@ export default function Map({
 	onSelectRide,
 	activeTrip = null,
 	h3Hexagons = [],
+	vehicleLocation = null,
 }) {
 	// Fallback coordinates: Kolkata Hub
 	const defaultPosition = [22.5726, 88.3639];
@@ -624,6 +625,21 @@ export default function Map({
 				{/* Active Trip Route Polyline & Markers */}
 				{activeTrip && (
 					<>
+						{/* Real-time Moving Vehicle Marker */}
+						{vehicleLocation && (
+							<Marker 
+								position={vehicleLocation} 
+								icon={createCarIcon(true, activeTrip.ride?.driver_name || "Driver", activeTrip.ride?.fare_per_seat)}
+								zIndexOffset={1000}
+							>
+								<Popup>
+									<div className="font-semibold text-xs text-[#00A09D]">
+										🚗 Commute Navigation in Progress
+									</div>
+								</Popup>
+							</Marker>
+						)}
+
 						{/* Active Origin Marker */}
 						{activeOriginCoords && (
 							<Marker position={activeOriginCoords} icon={createLocationPinIcon("#00A09D", "🟢 Pickup")}>

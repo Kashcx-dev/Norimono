@@ -164,10 +164,39 @@ router.post('/', async (req, res, next) => {
             instantBooking
         ]);
 
+        const newRideId = insertResult.rows[0].ride_id;
+
+        // Broadcast newly published ride in real time to all connected clients & browsing passengers
+        const io = req.app.get("socketio");
+        if (io) {
+            const ridePayload = {
+                ride_id: newRideId,
+                driver_id: driver_EMP_ID,
+                driver_name: req.user.name,
+                origin,
+                destination,
+                departure_time,
+                total_seats,
+                available_seats: total_seats,
+                fare_per_seat: algorithmicNetFare,
+                subsidy_per_seat: subsidyPerSeat,
+                is_female_only: isFemaleOnly,
+                destination_tech_park: destinationTechPark,
+                allow_neighbor_companies: true,
+                target_arrival_time: targetArrivalTime,
+                preferences,
+                stopovers,
+                is_recurring: isRecurring,
+                instant_booking: instantBooking
+            };
+            io.emit('new_ride_published', ridePayload);
+            io.emit('refresh_rides');
+        }
+
         return res.json({ 
             success: true, 
             message: 'Ride published with algorithmic non-profit cost-sharing & BlaBlaCar preferences',
-            ride_id: insertResult.rows[0].ride_id,
+            ride_id: newRideId,
             fare_per_seat: algorithmicNetFare,
             gross_cost_share: algorithmicGrossFare,
             subsidy_per_seat: subsidyPerSeat,

@@ -49,6 +49,7 @@ function Dashboard() {
 	const [showTermsModal, setShowTermsModal] = useState(false);
 	const [isIncomingCall, setIsIncomingCall] = useState(false);
 	const [incomingCall, setIncomingCall] = useState(null);
+	const [liveVehicleLocation, setLiveVehicleLocation] = useState(null);
 
 	const user = JSON.parse(localStorage.getItem("user") || "{}");
 
@@ -207,12 +208,61 @@ function Dashboard() {
 			}
 		};
 
+		// Real-time alert & browse list refresh when a colleague publishes a new carpool
+		const handleNewRidePublished = (newRide) => {
+			fetchPassengerActiveRide();
+			const current = JSON.parse(localStorage.getItem("user") || "{}");
+			if (newRide && newRide.driver_id !== current.emp_id) {
+				showAlert(
+					`🚗 Colleague ${newRide.driver_name || "A colleague"} just offered a carpool to ${newRide.destination_tech_park || newRide.destination?.name || "Tech Park"}!`,
+					"New Carpool Published",
+					"info"
+				);
+			}
+		};
+
+		// Real-time cancellation handler
+		const handleRideCancelled = (data) => {
+			fetchPassengerActiveRide();
+			fetchDriverActiveRide();
+			setLiveVehicleLocation(null);
+			setActiveTrip((prev) => {
+				if (prev && Number(prev.ride?.ride_id || prev.ride_id) === Number(data.ride_id)) {
+					return null;
+				}
+				return prev;
+			});
+		};
+
+		// Real-time ride finish handler
+		const handleRideFinished = (data) => {
+			fetchPassengerActiveRide();
+			fetchDriverActiveRide();
+			setLiveVehicleLocation(null);
+			window.dispatchEvent(new CustomEvent("norimono_wallet_updated"));
+		};
+
+		// Real-time vehicle GPS navigation telemetry stream
+		const handleLiveLocationUpdate = (data) => {
+			if (data && data.currentLocation) {
+				const [a, b] = data.currentLocation;
+				const lat = Math.abs(a) > 50 ? b : a;
+				const lng = Math.abs(a) > 50 ? a : b;
+				setLiveVehicleLocation([lat, lng]);
+			}
+		};
+
 		socket.on("incoming_call", handleIncomingCall);
 		socket.on("voice_signal", handleVoiceSignal);
 		socket.on("rider_verification_status", handleVerificationUpdate);
 		socket.on("ride_seats_updated", handleSeatsUpdated);
 		socket.on("driver_refresh_bookings", handleDriverRefresh);
 		socket.on("new_notification", handleNotification);
+		socket.on("new_ride_published", handleNewRidePublished);
+		socket.on("refresh_rides", fetchPassengerActiveRide);
+		socket.on("ride_cancelled", handleRideCancelled);
+		socket.on("ride_finished", handleRideFinished);
+		socket.on("location_update", handleLiveLocationUpdate);
 
 		return () => {
 			socket.off("incoming_call", handleIncomingCall);
@@ -221,6 +271,11 @@ function Dashboard() {
 			socket.off("ride_seats_updated", handleSeatsUpdated);
 			socket.off("driver_refresh_bookings", handleDriverRefresh);
 			socket.off("new_notification", handleNotification);
+			socket.off("new_ride_published", handleNewRidePublished);
+			socket.off("refresh_rides", fetchPassengerActiveRide);
+			socket.off("ride_cancelled", handleRideCancelled);
+			socket.off("ride_finished", handleRideFinished);
+			socket.off("location_update", handleLiveLocationUpdate);
 		};
 	}, []);
 
@@ -397,6 +452,7 @@ function Dashboard() {
 
 	const handleTripEnded = () => {
 		setActiveTrip(null);
+		setLiveVehicleLocation(null);
 	};
 
 	return (
@@ -413,6 +469,7 @@ function Dashboard() {
 					selectedRide={selectedRide}
 					onSelectRide={setSelectedRide}
 					activeTrip={activeTrip}
+					vehicleLocation={liveVehicleLocation}
 				/>
 			</div>
 

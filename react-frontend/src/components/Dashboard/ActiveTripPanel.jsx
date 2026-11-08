@@ -227,9 +227,27 @@ export default function ActiveTripPanel({
 			}
 		};
 
+		const handleRideFinished = (data) => {
+			if (!isDriver) {
+				setPassengerStatus("completed");
+				setPaymentStatus("completed");
+				fetchWalletBalance();
+				if (onRefreshPassenger) onRefreshPassenger();
+			} else {
+				fetchDriverBookings();
+			}
+		};
+
+		const handleRideCancelled = (data) => {
+			showAlert("The driver has cancelled this commute. Any deducted fare has been refunded to your wallet.", "Ride Cancelled", "warning");
+			if (onRefreshPassenger) onRefreshPassenger();
+		};
+
 		socket.on("booking_status_updated", handleBookingStatusUpdated);
 		socket.on("booking_payment_updated", handleBookingPaymentUpdated);
 		socket.on("en_route_pickup_alert", handleEnRouteAlert);
+		socket.on("ride_finished", handleRideFinished);
+		socket.on("ride_cancelled", handleRideCancelled);
 
 		return () => {
 			socket.off("location_update", handleLocationUpdate);
@@ -237,6 +255,8 @@ export default function ActiveTripPanel({
 			socket.off("booking_status_updated", handleBookingStatusUpdated);
 			socket.off("booking_payment_updated", handleBookingPaymentUpdated);
 			socket.off("en_route_pickup_alert", handleEnRouteAlert);
+			socket.off("ride_finished", handleRideFinished);
+			socket.off("ride_cancelled", handleRideCancelled);
 		};
 	}, [socket, activeTrip, isDriver, onRefreshPassenger]);
 
@@ -272,13 +292,21 @@ export default function ActiveTripPanel({
 				showAlert("Passenger Verified! Starting navigation.", "OTP Verified", "success");
 
 				if (socket && activeTrip.ride) {
-					const start = activeTrip.ride.origin?.coords || [
-						22.5726, 88.3639,
-					];
-					const end = activeTrip.ride.destination?.coords || [22.6, 88.4];
+					const r = activeTrip.ride;
+					const getPt = (p) => {
+						if (!p) return null;
+						if (Array.isArray(p) && p.length >= 2) return [parseFloat(p[0]), parseFloat(p[1])];
+						if (p.coords && Array.isArray(p.coords)) return [parseFloat(p.coords[0]), parseFloat(p.coords[1])];
+						const lat = parseFloat(p.lat ?? p.latitude);
+						const lng = parseFloat(p.lng ?? p.lon ?? p.longitude);
+						if (!isNaN(lat) && !isNaN(lng)) return [lat, lng];
+						return null;
+					};
+					const start = getPt(r.origin) || [12.9784, 77.6408];
+					const end = getPt(r.destination) || [13.0475, 77.6212];
 
 					socket.emit("start_tracking", {
-						ride_id: activeTrip.ride.ride_id,
+						ride_id: r.ride_id,
 						startCoords: start,
 						endCoords: end,
 						phase: "driving",

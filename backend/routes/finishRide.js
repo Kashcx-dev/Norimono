@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../handlers/dbHandler');
 const { deductAmt, creditAmt } = require('../handlers/WalletHandler');
+const { stopLiveTracking } = require('./GPS_fetch');
 
 router.post('/', async (req, res, next) => {
     try {
@@ -121,6 +122,9 @@ router.post('/', async (req, res, next) => {
             );
 
             await client.query('COMMIT');
+
+            // Clear live GPS navigation loop
+            stopLiveTracking(ride_id);
 
             // 6. Broadcast ride completion to passengers and driver via Socket.io
             const io = req.app.get("socketio");

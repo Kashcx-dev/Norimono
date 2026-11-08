@@ -4,6 +4,7 @@ const db = require('../handlers/dbHandler');
 const { deductAmt, creditAmt } = require('../handlers/WalletHandler');
 const { matchRideCorridor, haversineDistance } = require('../utils/geoUtils');
 const { getRouteDetails } = require('../handlers/GPS_CalcHandler');
+const { stopLiveTracking } = require('./GPS_fetch');
 const h3Engine = require('../handlers/h3Engine');
 
 // GET /rides
@@ -458,6 +459,7 @@ router.post('/driver/cancel', async (req, res, next) => {
             }
 
             await client.query('COMMIT');
+            stopLiveTracking(ride_id);
 
             const io = req.app.get("socketio");
             if (io) {
