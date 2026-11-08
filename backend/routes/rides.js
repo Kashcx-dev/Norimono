@@ -209,8 +209,9 @@ router.get('/driver/active', async (req, res, next) => {
         // Query to get bookings for this ride with individual passenger profiles
         const bookingsQuery = `
             SELECT b.booking_id, b.passenger_id, b.pickup_location, b.dropoff_location, 
-                   b.booking_status, b.payment_status, b.is_en_route, b.created_at as booking_time,
-                   r.fare_per_seat,
+                   b.booking_status, b.payment_status, b.is_en_route, b.otp, b.fare_amount,
+                   b.luggage_size, b.passenger_notes, b.selected_stopover, b.created_at as booking_time,
+                   COALESCE(b.fare_amount, r.fare_per_seat) as fare_per_seat,
                    u.name as passenger_name, u.phone as passenger_phone, u.org_name, 
                    u.gender, u.designation, u.department, u.email as passenger_email
             FROM bookings b
@@ -555,7 +556,7 @@ router.post('/passenger/pay', async (req, res, next) => {
 
         // Verify booking belongs to this passenger
         const bookingResult = await db.query(`
-            SELECT b.booking_id, b.booking_status, b.payment_status, b.ride_id, r.fare_per_seat, r.driver_id
+            SELECT b.booking_id, b.booking_status, b.payment_status, b.ride_id, b.fare_amount, r.fare_per_seat, r.driver_id
             FROM bookings b
             JOIN rides r ON b.ride_id = r.ride_id
             WHERE b.booking_id = $1 AND b.passenger_id = $2
@@ -566,7 +567,7 @@ router.post('/passenger/pay', async (req, res, next) => {
         }
 
         const booking = bookingResult.rows[0];
-        const fare = parseFloat(booking.fare_per_seat || 45);
+        const fare = parseFloat(booking.fare_amount || booking.fare_per_seat || 45);
 
         // Process payment deduction from passenger's wallet if paying with wallet
         const client = await db.getClient();
@@ -649,7 +650,7 @@ router.post('/driver/confirm-payment', async (req, res, next) => {
 
         // Verify driver owns the ride for this booking
         const bookingResult = await db.query(`
-            SELECT b.booking_id, b.booking_status, b.payment_status, b.ride_id, r.fare_per_seat, r.driver_id
+            SELECT b.booking_id, b.booking_status, b.payment_status, b.ride_id, b.fare_amount, r.fare_per_seat, r.driver_id
             FROM bookings b
             JOIN rides r ON b.ride_id = r.ride_id
             WHERE b.booking_id = $1 AND r.driver_id = $2
@@ -660,7 +661,7 @@ router.post('/driver/confirm-payment', async (req, res, next) => {
         }
 
         const booking = bookingResult.rows[0];
-        const fare = parseFloat(booking.fare_per_seat || 45);
+        const fare = parseFloat(booking.fare_amount || booking.fare_per_seat || 45);
 
         const client = await db.getClient();
         try {

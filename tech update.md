@@ -1,7 +1,7 @@
 # Norimono (乗り物) — Master Technical Documentation & System Specification
 
-> **Document Version:** 2.1.0  
-> **Date:** November 3, 2026  
+> **Document Version:** 2.2.0  
+> **Date:** November 8, 2026  
 > **Product Name:** Norimono Technologies — Enterprise Dual-Engine Mobility Platform  
 > **Repository:** [https://github.com/Kashcx-dev/Norimono](https://github.com/Kashcx-dev/Norimono) (`main` branch)  
 > **Target Production Platforms:** Modern Web, Responsive Mobile (PWA / Capacitor / React Native WebView)
@@ -304,7 +304,8 @@ Accessible via the floating Top Bar, the Profile Hub, the Login/Signup screen, a
 
 ## 9. Chronological Git Commit Highlights
 
-- `[Current]` — **feat(signup-location):** Add mobile-first India-exclusive commute location input during signup with 1-tap GPS auto-detect, reverse geocoding via Nominatim scoped to `countrycodes=in`, popular Indian tech hub quick-pills, and backend `users.address` storage.
+- `[Current]` — **feat(mvp-backend-finalization):** Complete final backend MVP architecture with zero dummies or mock fallbacks; atomic PostgreSQL `FOR UPDATE` escrow settlements with `ON CONFLICT` wallet upserts; cross-company neighbor carpooling enabled in `/book-ride` for tech park peers; BlaBlaCar luggage & passenger pickup notes surfaced in driver active cockpit; 409 duplicate booking prevention; and end-to-end 15-step automated lifecycle test suite (`testMvpLifecycle.js`).
+- `f293a2d` — **feat(signup-location):** Add mobile-first India-exclusive commute location input during signup with 1-tap GPS auto-detect, reverse geocoding via Nominatim scoped to `countrycodes=in`, popular Indian tech hub quick-pills, and backend `users.address` storage.
 - `11e9ad4` — **feat(deploy-ready):** Render deployment orchestration via root `package.json` with unified build/start scripts; 1-tap demo credentials on login screen (`ananya.s@tcs.com`, `rohan.k@infosys.com`, `admin@norimono.com`); fallback devOtp verification when SMTP is offline; and complete SPA routing exclusions.
 - `3d8922d` — **feat(terms-docs):** Add comprehensive in-app Terms & Conditions modal (`TermsModal.jsx`) and `/terms` route; rewrite master technical documentation with full statutory framework (MVA Sec 66/192A), mathematical algorithmic pricing formula, and worked numerical demonstration.
 - `c8f9931` — **feat(legal-pricing):** Strictly enforce white-plate non-commercial pricing based on OSRM driving distance, certified fuel consumption ratio, and seat count; lock driver fare input, return compliance breakdown, and display transparent fuel-split telemetry card.

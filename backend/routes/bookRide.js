@@ -25,9 +25,22 @@ router.post('/', async (req, res, next) => {
 
         await client.query('BEGIN');
 
+        // Check for duplicate active reservation by this passenger on this ride
+        const dupCheck = await client.query(
+            `SELECT booking_id FROM bookings 
+             WHERE ride_id = $1 AND passenger_id = $2 AND booking_status IN ('confirmed', 'in_progress', 'pending')`,
+            [ride_id, passenger_id]
+        );
+
+        if (dupCheck.rows.length > 0) {
+            await client.query('ROLLBACK');
+            client.release();
+            return res.status(409).json({ message: "You already have an active seat reservation on this commute." });
+        }
+
         // Check if the ride exists and fetch metadata (locks the row with FOR UPDATE to prevent concurrent booking)
         const rideResult = await client.query(
-            `SELECT r.available_seats, r.driver_id, r.status, r.departure_time, r.fare_per_seat, r.subsidy_per_seat, u.org_name 
+            `SELECT r.available_seats, r.driver_id, r.status, r.departure_time, r.fare_per_seat, r.subsidy_per_seat, r.allow_neighbor_companies, u.org_name 
              FROM rides r
              JOIN users u ON r.driver_id = u.emp_id
              WHERE r.ride_id = $1
@@ -49,11 +62,18 @@ router.post('/', async (req, res, next) => {
             return res.status(400).json({ message: "You cannot book your own published ride." });
         }
 
-        if (ride.org_name !== req.user.org_name) {
+        // Allow booking if same company OR if ride allows neighbor tech companies
+        if (ride.org_name !== req.user.org_name && !ride.allow_neighbor_companies) {
             await client.query('ROLLBACK');
             client.release();
-            return res.status(403).json({ message: "You can only book rides within your own organization." });
+            return res.status(403).json({ message: "You can only book rides within your own organization or partner tech parks." });
         }
+
+        // Ensure passenger wallet exists in wallets table
+        await client.query(
+            `INSERT INTO wallets (emp_id, balance) VALUES ($1, 500.00) ON CONFLICT (emp_id) DO NOTHING`,
+            [passenger_id]
+        );
 
         // Allow booking scheduled rides or en-route active rides
         if (ride.status !== 'scheduled' && ride.status !== 'in_progress') {
@@ -148,6 +168,7 @@ router.post('/', async (req, res, next) => {
             success: true, 
             message: 'Ride booked successfully!',
             booking_id: insertResult.rows[0].booking_id,
+            otp: otp,
             pickup_otp: otp
         });
 

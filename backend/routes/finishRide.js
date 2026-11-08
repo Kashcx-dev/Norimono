@@ -61,10 +61,14 @@ router.post('/', async (req, res, next) => {
             let total_driver_credit = 0;
             let total_company_subsidy = 0;
 
-            // 3. Process each passenger that hasn't already paid
+            // 3. Process each passenger that hasn't already settled
             for (const booking of bookings) {
-                if (booking.payment_status !== 'paid' && booking.payment_status !== 'completed') {
-                    const bookingFare = parseFloat(booking.fare_amount || fare);
+                const bookingFare = parseFloat(booking.fare_amount || fare);
+
+                if (booking.payment_status === 'paid_pending_confirmation') {
+                    // Passenger was already deducted in /rides/passenger/pay; credit driver now
+                    total_driver_credit += bookingFare;
+                } else if (booking.payment_status !== 'paid' && booking.payment_status !== 'completed') {
                     // Deduct from passenger wallet
                     await deductAmt(
                         booking.passenger_id, 
@@ -74,19 +78,19 @@ router.post('/', async (req, res, next) => {
                         `Carpool Commute Ride #${ride_id} (Subsidized Fare)`
                     );
                     total_driver_credit += bookingFare;
+                }
 
-                    // If company subsidy is active, credit corporate green subsidy to driver
-                    if (subsidy > 0) {
-                        await creditAmt(
-                            driver_id, 
-                            subsidy, 
-                            client, 
-                            ride_id, 
-                            'company_subsidy', 
-                            `Company Green Commute Subsidy for Ride #${ride_id}`
-                        );
-                        total_company_subsidy += subsidy;
-                    }
+                // If company subsidy is active, credit corporate green subsidy to driver
+                if (subsidy > 0) {
+                    await creditAmt(
+                        driver_id, 
+                        subsidy, 
+                        client, 
+                        ride_id, 
+                        'company_subsidy', 
+                        `Company Green Commute Subsidy for Ride #${ride_id}`
+                    );
+                    total_company_subsidy += subsidy;
                 }
                 
                 // Mark booking as fully completed and paid

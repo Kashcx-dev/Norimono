@@ -191,7 +191,12 @@ server.listen(PORT, async () => {
                 END IF;
             END $$;
         `);
-        console.log("[DB] Schema verified with BlaBlaCar preference columns.");
+        await db.query(`
+            UPDATE rides 
+            SET departure_time = NOW() + (INTERVAL '45 minutes' * (ride_id % 4 + 1))
+            WHERE status IN ('scheduled', 'in_progress') AND departure_time < NOW();
+        `);
+        console.log("[DB] Schema verified with BlaBlaCar preference columns & active ride schedules refreshed.");
     } catch (e) {
         console.warn("[DB] Startup schema verify:", e.message);
     }

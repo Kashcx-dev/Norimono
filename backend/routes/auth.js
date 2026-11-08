@@ -288,6 +288,14 @@ router.post("/verify-signup-otp", async (req, res, next) => {
                 [record.org_name]
             );
 
+            // Initialize user wallet with starting welcome credit (₹500.00)
+            await db.query(
+                `INSERT INTO wallets (emp_id, balance) 
+                 VALUES ($1, 500.00) 
+                 ON CONFLICT (emp_id) DO NOTHING`,
+                [emp_id]
+            );
+
             // If rider, create pending entry in rider_verifications
             let verificationRecord = null;
             if (riderType === 'rider' && record.driver_credentials) {
@@ -543,26 +551,28 @@ router.get("/me", FN_verifyTkn, async (req, res, next) => {
         profile.total_rides_completed = parseInt(profile.total_rides_completed || 12, 10);
         profile.co2_saved_kg = parseFloat(profile.co2_saved_kg || 28.5);
 
-        // Fetch wallet details
-        const walletQuery = await db.query(
+        // Fetch wallet details (guaranteeing persistent record in wallets table)
+        let walletQuery = await db.query(
             "SELECT wallet_id, balance, bank_connection, updated_at FROM wallets WHERE emp_id = $1",
             [emp_id]
         );
-        if (walletQuery.rows.length > 0) {
-            profile.wallet = {
-                wallet_id: walletQuery.rows[0].wallet_id,
-                balance: parseFloat(walletQuery.rows[0].balance),
-                bank_connection: walletQuery.rows[0].bank_connection || "Personal Commute Wallet",
-                updated_at: walletQuery.rows[0].updated_at
-            };
-        } else {
-            profile.wallet = {
-                wallet_id: `W-${emp_id}`,
-                balance: 500.0,
-                bank_connection: "Personal Commute Wallet",
-                updated_at: new Date().toISOString()
-            };
+        if (walletQuery.rows.length === 0) {
+            await db.query(
+                `INSERT INTO wallets (emp_id, balance) VALUES ($1, 500.00) ON CONFLICT (emp_id) DO NOTHING`,
+                [emp_id]
+            );
+            walletQuery = await db.query(
+                "SELECT wallet_id, balance, bank_connection, updated_at FROM wallets WHERE emp_id = $1",
+                [emp_id]
+            );
         }
+
+        profile.wallet = {
+            wallet_id: walletQuery.rows[0].wallet_id,
+            balance: parseFloat(walletQuery.rows[0].balance),
+            bank_connection: walletQuery.rows[0].bank_connection || "Personal Commute Wallet",
+            updated_at: walletQuery.rows[0].updated_at
+        };
         
         // Fetch vehicle if any
         const vehicleQuery = await db.query(

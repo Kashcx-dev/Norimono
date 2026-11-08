@@ -99,17 +99,34 @@ const addMoney = async (req, res, next) => {
 }
 
 const deductAmt = async (emp_id, amount, client, ride_id = null, description = null) => {
-    // We allow the wallet to go negative so the driver is guaranteed payment
-    await client.query(`UPDATE wallets SET balance = balance - $1 WHERE emp_id = $2`, [amount, emp_id]);
+    const numAmount = parseFloat(amount);
+    const dbClient = client || db;
+    // Ensure wallet exists and deduct balance (allows negative if needed for guaranteed driver payment)
+    await dbClient.query(
+        `INSERT INTO wallets (emp_id, balance) 
+         VALUES ($1, 500.00 - $2) 
+         ON CONFLICT (emp_id) 
+         DO UPDATE SET balance = wallets.balance - $2, updated_at = CURRENT_TIMESTAMP`,
+        [emp_id, numAmount]
+    );
     if (description || ride_id) {
-        await recordTransaction(emp_id, ride_id, 'fare_deduction', amount, description || 'Ride Fare Deduction', client);
+        await recordTransaction(emp_id, ride_id, 'fare_deduction', numAmount, description || 'Ride Fare Deduction', dbClient);
     }
 }
 
 const creditAmt = async (emp_id, amount, client, ride_id = null, type = 'driver_earnings', description = null) => {
-    await client.query(`UPDATE wallets SET balance = balance + $1 WHERE emp_id = $2`, [amount, emp_id]);
+    const numAmount = parseFloat(amount);
+    const dbClient = client || db;
+    // Ensure wallet exists and credit balance
+    await dbClient.query(
+        `INSERT INTO wallets (emp_id, balance) 
+         VALUES ($1, 500.00 + $2) 
+         ON CONFLICT (emp_id) 
+         DO UPDATE SET balance = wallets.balance + $2, updated_at = CURRENT_TIMESTAMP`,
+        [emp_id, numAmount]
+    );
     if (description || ride_id) {
-        await recordTransaction(emp_id, ride_id, type, amount, description || 'Ride Earnings Credit', client);
+        await recordTransaction(emp_id, ride_id, type, numAmount, description || 'Ride Earnings Credit', dbClient);
     }
 }
 
