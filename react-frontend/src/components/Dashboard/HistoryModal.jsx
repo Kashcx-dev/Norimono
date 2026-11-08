@@ -37,43 +37,40 @@ export default function HistoryModal({ isOpen, onClose }) {
 		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xl animate-in fade-in duration-300">
 			<div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl flex flex-col transform transition-all h-[80vh] border border-gray-100 overflow-hidden">
 				
-				{/* Elaborate Odoo Header */}
-				<div className="p-6 bg-gradient-to-r from-[#714B67] to-[#8C5D80] relative overflow-hidden shrink-0">
-					{/* Abstract Background Design */}
-					<div className="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-					<div className="absolute left-0 bottom-0 w-40 h-40 bg-black/10 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none"></div>
-					
+				{/* Header - Tactile 3D Yellow / Obsidian */}
+				<div className="h-1.5 w-full bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-500 shrink-0" />
+				<div className="p-6 bg-black relative shrink-0">
 					<div className="flex justify-between items-center relative z-10">
 						<div>
-							<h2 className="text-2xl font-bold text-white tracking-tight drop-shadow-md">Activity History</h2>
-							<p className="text-white/80 text-sm font-medium mt-1">Review your past rides and bookings</p>
+							<h2 className="text-2xl font-black text-white tracking-tight">Activity History</h2>
+							<p className="text-zinc-400 text-sm font-medium mt-0.5">Review your past rides, carpools, and cost-share records</p>
 						</div>
 						<button 
 							onClick={onClose}
-							className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer border border-white/10 hover:scale-105"
+							className="w-9 h-9 flex items-center justify-center rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors cursor-pointer border border-zinc-700"
 						>
 							<X className="w-5 h-5" />
 						</button>
 					</div>
 
 					{/* Custom Tabs */}
-					<div className="flex gap-4 mt-8 relative z-10">
+					<div className="flex gap-4 mt-6 relative z-10">
 						<button
 							onClick={() => setActiveTab("driver")}
-							className={`pb-3 px-2 text-sm font-bold uppercase tracking-wider transition-colors relative ${activeTab === "driver" ? "text-white" : "text-white/50 hover:text-white/80"}`}
+							className={`pb-2.5 px-3 text-xs font-bold uppercase tracking-wider transition-colors relative ${activeTab === "driver" ? "text-yellow-400" : "text-zinc-400 hover:text-white"}`}
 						>
 							Driver Activity
 							{activeTab === "driver" && (
-								<div className="absolute bottom-0 left-0 right-0 h-1 bg-white rounded-t-md"></div>
+								<div className="absolute bottom-0 left-0 right-0 h-1 bg-yellow-400 rounded-t-md"></div>
 							)}
 						</button>
 						<button
 							onClick={() => setActiveTab("passenger")}
-							className={`pb-3 px-2 text-sm font-bold uppercase tracking-wider transition-colors relative ${activeTab === "passenger" ? "text-white" : "text-white/50 hover:text-white/80"}`}
+							className={`pb-2.5 px-3 text-xs font-bold uppercase tracking-wider transition-colors relative ${activeTab === "passenger" ? "text-yellow-400" : "text-zinc-400 hover:text-white"}`}
 						>
 							Passenger Activity
 							{activeTab === "passenger" && (
-								<div className="absolute bottom-0 left-0 right-0 h-1 bg-white rounded-t-md"></div>
+								<div className="absolute bottom-0 left-0 right-0 h-1 bg-yellow-400 rounded-t-md"></div>
 							)}
 						</button>
 					</div>
@@ -82,7 +79,7 @@ export default function HistoryModal({ isOpen, onClose }) {
 				<div className="flex-1 overflow-y-auto p-4 bg-gray-50/50">
 					{loading ? (
 						<div className="flex flex-col justify-center items-center h-40 gap-3">
-							<div className="w-8 h-8 border-4 border-[#714B67]/30 border-t-[#714B67] rounded-full animate-spin"></div>
+							<div className="w-8 h-8 border-4 border-yellow-400/30 border-t-yellow-400 rounded-full animate-spin"></div>
 							<p className="text-sm font-bold text-gray-400">Loading History...</p>
 						</div>
 					) : historyData.length === 0 ? (
@@ -114,7 +111,7 @@ export default function HistoryModal({ isOpen, onClose }) {
 										
 										<div className="space-y-2">
 											<div className="flex items-start gap-2.5">
-												<MapPin className="w-4 h-4 text-[#00A09D] shrink-0 mt-0.5" />
+												<MapPin className="w-4 h-4 text-yellow-600 shrink-0 mt-0.5" />
 												<p className="text-sm font-bold text-gray-900 truncate">
 													{typeof item.origin === 'string' ? item.origin : item.origin?.name || "Origin Point"}
 												</p>
@@ -131,9 +128,9 @@ export default function HistoryModal({ isOpen, onClose }) {
 									<div className="text-right flex flex-col items-end gap-3 shrink-0">
 										<div className="bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200">
 											<span className="text-[10px] uppercase font-bold text-gray-400 block mb-0.5">Fare</span>
-											<span className="font-black text-[#714B67]">₹{item.fare || "45.00"}</span>
+											<span className="font-black text-black">₹{item.fare || "45.00"}</span>
 										</div>
-										<button className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-[#00A09D] group-hover:text-white transition-colors border border-gray-200 cursor-pointer">
+										<button className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-yellow-400 group-hover:text-black group-hover:text-white transition-colors border border-gray-200 cursor-pointer">
 											<ChevronRight className="w-4 h-4" />
 										</button>
 									</div>

@@ -472,11 +472,11 @@ export default function ActiveTripPanel({
 				order_id: orderData.order.id,
 				prefill: {
 					name: user.name || "Passenger",
-					email: user.email || "passenger@odoo.com",
+					email: user.email || "passenger@company.com",
 					contact: user.phone || "9876543210",
 				},
 				theme: {
-					color: "#714B67",
+					color: "#FACC15",
 				},
 				modal: {
 					ondismiss: () => {
@@ -754,71 +754,71 @@ export default function ActiveTripPanel({
 	// Trip Summary Card rendered on trip completion for driver
 	if (tripSummary) {
 		return (
-			<div className="flex flex-col h-full bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden text-left p-5 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+			<div className="flex flex-col h-full bg-white rounded-3xl shadow-[0_16px_40px_rgba(0,0,0,0.12)] border border-neutral-200 overflow-hidden text-left p-6 space-y-4 animate-in fade-in zoom-in-95 duration-200">
 				<div className="text-center space-y-2 pt-2">
-					<div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
-						<CheckCircle2 className="w-8 h-8" />
+					<div className="w-16 h-16 bg-yellow-400 text-black rounded-2xl flex items-center justify-center mx-auto shadow-[0_6px_16px_rgba(250,204,21,0.35)]">
+						<CheckCircle2 className="w-9 h-9 stroke-[2.5]" />
 					</div>
-					<h3 className="text-lg font-black text-slate-900 tracking-tight">
+					<h3 className="text-xl font-black text-black tracking-tight">
 						Commute Completed!
 					</h3>
-					<p className="text-xs text-slate-500 max-w-xs mx-auto">
+					<p className="text-xs text-neutral-500 max-w-xs mx-auto font-medium">
 						Fares and enterprise green subsidies have been settled directly to your Norimono wallet.
 					</p>
 				</div>
 
 				{/* Earnings Breakdown Card */}
-				<div className="bg-gradient-to-br from-purple-50 via-white to-teal-50 border border-purple-200/80 rounded-2xl p-4 space-y-3 shadow-xs">
-					<div className="flex items-center justify-between pb-2 border-b border-purple-200/60">
-						<span className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
-							<Wallet className="w-3.5 h-3.5 text-[#714B67]" /> Total Credited
+				<div className="bg-black text-white border border-neutral-800 rounded-3xl p-5 space-y-3 shadow-[0_10px_25px_rgba(0,0,0,0.35)]">
+					<div className="flex items-center justify-between pb-3 border-b border-neutral-800">
+						<span className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+							<Wallet className="w-4 h-4 text-yellow-400" /> Total Credited
 						</span>
-						<span className="text-2xl font-black text-[#714B67] font-mono">
+						<span className="text-3xl font-black text-yellow-400 font-mono">
 							+₹{tripSummary.earnings}
 						</span>
 					</div>
 
 					<div className="space-y-1.5 text-xs">
-						<div className="flex justify-between items-center text-slate-600">
+						<div className="flex justify-between items-center text-neutral-300">
 							<span>Colleague Cost-Shares:</span>
-							<span className="font-bold text-slate-900 font-mono">₹{tripSummary.fares_collected}</span>
+							<span className="font-black text-white font-mono">₹{tripSummary.fares_collected}</span>
 						</div>
-						<div className="flex justify-between items-center text-emerald-700">
+						<div className="flex justify-between items-center text-yellow-300">
 							<span className="flex items-center gap-1">
-								<Sparkles className="w-3 h-3 text-emerald-600" />
+								<Sparkles className="w-3.5 h-3.5 text-yellow-400" />
 								Enterprise Green Subsidy:
 							</span>
-							<span className="font-bold font-mono">+₹{tripSummary.company_subsidy}</span>
+							<span className="font-black font-mono">+₹{tripSummary.company_subsidy}</span>
 						</div>
 					</div>
 				</div>
 
 				{/* ESG & Sustainability Metric Cards */}
 				<div className="grid grid-cols-3 gap-2 text-center">
-					<div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-						<Users className="w-4 h-4 text-teal-600 mx-auto mb-1" />
-						<div className="text-base font-black text-slate-900">{tripSummary.coworkersCount}</div>
-						<span className="text-[10px] text-slate-500 font-bold uppercase">Coworkers</span>
+					<div className="p-3 bg-neutral-50 border border-neutral-200 rounded-2xl shadow-xs">
+						<Users className="w-4 h-4 text-black mx-auto mb-1" />
+						<div className="text-base font-black text-black">{tripSummary.coworkersCount}</div>
+						<span className="text-[10px] text-neutral-500 font-bold uppercase">Coworkers</span>
 					</div>
-					<div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-						<Leaf className="w-4 h-4 text-emerald-600 mx-auto mb-1" />
-						<div className="text-base font-black text-slate-900">{tripSummary.co2SavedKg} kg</div>
-						<span className="text-[10px] text-slate-500 font-bold uppercase">CO₂ Cut</span>
+					<div className="p-3 bg-neutral-50 border border-neutral-200 rounded-2xl shadow-xs">
+						<Leaf className="w-4 h-4 text-amber-600 mx-auto mb-1" />
+						<div className="text-base font-black text-black">{tripSummary.co2SavedKg} kg</div>
+						<span className="text-[10px] text-neutral-500 font-bold uppercase">CO₂ Cut</span>
 					</div>
-					<div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-						<Car className="w-4 h-4 text-indigo-600 mx-auto mb-1" />
-						<div className="text-base font-black text-slate-900">{tripSummary.parkingSaved}</div>
-						<span className="text-[10px] text-slate-500 font-bold uppercase">Spot Freed</span>
+					<div className="p-3 bg-neutral-50 border border-neutral-200 rounded-2xl shadow-xs">
+						<Car className="w-4 h-4 text-black mx-auto mb-1" />
+						<div className="text-base font-black text-black">{tripSummary.parkingSaved}</div>
+						<span className="text-[10px] text-neutral-500 font-bold uppercase">Spot Freed</span>
 					</div>
 				</div>
 
 				<div className="pt-2">
 					<button
 						onClick={onTripEnded}
-						className="w-full py-3.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+						className="w-full py-3.5 px-4 bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs rounded-2xl shadow-[0_4px_0_#CA8A04] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-2"
 					>
 						<span>Return to Commute Home</span>
-						<ArrowLeft className="w-3.5 h-3.5 rotate-180" />
+						<ArrowLeft className="w-3.5 h-3.5 rotate-180 stroke-[2.5]" />
 					</button>
 				</div>
 			</div>
@@ -826,25 +826,19 @@ export default function ActiveTripPanel({
 	}
 
 	return (
-		<div className="flex flex-col h-full bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden text-left">
-			{/* Top Header */}
-			<div
-				className={`p-4 border-b flex items-center justify-between transition-colors duration-300 ${headerTheme.bg}`}
-			>
+		<div className="flex flex-col h-full bg-white rounded-3xl shadow-[0_16px_40px_rgba(0,0,0,0.08)] border border-neutral-200 overflow-hidden text-left">
+			{/* Top Header in Clean Obsidian Black */}
+			<div className="p-4 bg-black text-white border-b border-neutral-800 flex items-center justify-between transition-colors duration-300">
 				<div>
 					<div className="flex items-center gap-2">
-						<h2
-							className={`text-base font-extrabold ${headerTheme.titleColor}`}
-						>
+						<h2 className="text-base font-black text-white">
 							{headerTheme.title}
 						</h2>
-						<span
-							className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${headerTheme.chipBg}`}
-						>
+						<span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-yellow-400 text-black">
 							{headerTheme.chipLabel}
 						</span>
 					</div>
-					<p className="text-xs text-gray-600 mt-0.5">
+					<p className="text-xs text-neutral-400 mt-0.5 font-medium">
 						{phase}{" "}
 						{liveLocation
 							? `(GPS: ${liveLocation[0].toFixed(3)}, ${liveLocation[1].toFixed(3)})`
@@ -853,9 +847,9 @@ export default function ActiveTripPanel({
 				</div>
 				<button
 					onClick={onTripEnded}
-					className="flex items-center gap-1 text-xs font-bold text-gray-700 hover:text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 px-3 py-1.5 rounded-xl shadow-2xs transition-all cursor-pointer"
+					className="flex items-center gap-1 text-xs font-black text-white bg-white/10 hover:bg-white/20 border border-white/20 px-3 py-1.5 rounded-xl transition-all cursor-pointer shadow-xs active:translate-y-0.5"
 				>
-					<ArrowLeft className="w-3.5 h-3.5 text-[#714B67]" />
+					<ArrowLeft className="w-3.5 h-3.5 stroke-[2.5]" />
 					<span>Exit</span>
 				</button>
 			</div>
@@ -863,46 +857,46 @@ export default function ActiveTripPanel({
 			{/* Scrollable Body Container */}
 			<div className="flex-1 overflow-y-auto p-4 space-y-4">
 				{/* Ride Details Card */}
-				<div className="p-4 rounded-xl border border-gray-200 bg-gray-50/70 relative">
+				<div className="p-4 rounded-2xl border border-neutral-200 bg-neutral-50 relative shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
 					<button
 						onClick={() => setIsChatOpen(true)}
-						className="absolute top-3.5 right-3.5 bg-white border border-gray-200 hover:border-[#714B67] hover:text-[#714B67] text-gray-700 px-2.5 py-1.5 rounded-lg shadow-2xs flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer"
+						className="absolute top-3.5 right-3.5 bg-white border border-neutral-200 hover:border-black text-black px-2.5 py-1.5 rounded-xl shadow-[0_2px_0_rgba(0,0,0,0.04)] flex items-center gap-1.5 text-xs font-black transition-all cursor-pointer active:translate-y-0.5"
 					>
-						<MessageSquare className="w-3.5 h-3.5 text-[#00A09D]" />
+						<MessageSquare className="w-3.5 h-3.5 text-amber-600" />
 						<span>Chat</span>
 					</button>
 
 					<div className="flex items-center gap-3 mb-3 pr-20">
-						<div className="w-10 h-10 rounded-xl bg-[#714B67]/10 text-[#714B67] flex items-center justify-center font-bold text-base shrink-0 border border-[#714B67]/20">
-							<Car className="w-5 h-5" />
+						<div className="w-10 h-10 rounded-2xl bg-yellow-400 text-black flex items-center justify-center font-black text-base shrink-0 shadow-[0_2px_8px_rgba(250,204,21,0.35)]">
+							<Car className="w-5 h-5 stroke-[2.5]" />
 						</div>
 						<div className="min-w-0">
-							<p className="text-sm font-bold text-gray-900 truncate">
+							<p className="text-sm font-black text-black truncate">
 								{isDriver
 									? "Your Published Route"
 									: `Driver: ${activeTrip.ride?.driver_name || "Rahul M."}`}
 							</p>
-							<p className="text-xs text-gray-500 truncate">
+							<p className="text-xs text-neutral-500 font-medium truncate">
 								{activeTrip.ride?.vehicle_model || "Swift Dzire"} •{" "}
 								{activeTrip.ride?.veh_no || "WB 02 AB 1234"}
 							</p>
 							<div className="flex items-center gap-2 mt-1">
 								{!isDriver && (
-									<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-teal-50 border border-teal-200 text-[#00A09D] text-[10px] font-extrabold">
+									<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-yellow-100 border border-yellow-300 text-amber-900 text-[10px] font-black">
 										💺 {activeTrip.seat_no || "Seat #1"}
 									</span>
 								)}
-								<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 border border-purple-200 text-[#714B67] text-[10px] font-extrabold">
+								<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-black text-yellow-400 text-[10px] font-black">
 									Fare: ₹{fareAmount}
 								</span>
 							</div>
 						</div>
 					</div>
 
-					<div className="space-y-2 text-xs text-gray-700 pt-2 border-t border-gray-200/80">
+					<div className="space-y-2 text-xs text-neutral-700 pt-2 border-t border-neutral-200">
 						<div className="flex items-start gap-2">
-							<MapPin className="w-3.5 h-3.5 text-[#00A09D] shrink-0 mt-0.5" />
-							<span className="font-semibold truncate">
+							<MapPin className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+							<span className="font-bold text-black truncate">
 								Pickup:{" "}
 								{typeof activeTrip.ride?.origin === "string"
 									? activeTrip.ride.origin
@@ -912,8 +906,8 @@ export default function ActiveTripPanel({
 							</span>
 						</div>
 						<div className="flex items-start gap-2">
-							<MapPin className="w-3.5 h-3.5 text-[#EF4444] shrink-0 mt-0.5" />
-							<span className="font-semibold truncate">
+							<MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
+							<span className="font-bold text-black truncate">
 								Dropoff:{" "}
 								{typeof activeTrip.ride?.destination === "string"
 									? activeTrip.ride.destination
@@ -926,22 +920,22 @@ export default function ActiveTripPanel({
 				</div>
 
 				{/* Rich Time Slot Info */}
-				<div className="p-3.5 rounded-xl border border-indigo-100 bg-gradient-to-r from-indigo-50/60 via-purple-50/40 to-pink-50/30 flex items-center justify-between">
+				<div className="p-3.5 rounded-2xl border border-neutral-200 bg-neutral-50 flex items-center justify-between shadow-xs">
 					<div className="flex items-center gap-2.5">
-						<div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-600 shrink-0">
-							<Clock className="w-4 h-4" />
+						<div className="w-8 h-8 rounded-xl bg-black text-yellow-400 flex items-center justify-center shrink-0">
+							<Clock className="w-4 h-4 stroke-[2.5]" />
 						</div>
 						<div>
-							<p className="text-[10px] font-extrabold text-indigo-950 uppercase tracking-wider">
+							<p className="text-[10px] font-black text-neutral-500 uppercase tracking-wider">
 								Departure Time Slot
 							</p>
-							<p className="text-xs font-bold text-gray-800 flex items-center gap-1 mt-0.5">
-								<Calendar className="w-3 h-3 text-indigo-500" />
+							<p className="text-xs font-black text-black flex items-center gap-1 mt-0.5">
+								<Calendar className="w-3.5 h-3.5 text-neutral-600" />
 								{activeTrip.ride?.departure_time || "Today, 9:30 AM"}
 							</p>
 						</div>
 					</div>
-					<span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-100 text-indigo-700 border border-indigo-200">
+					<span className="inline-flex items-center px-2.5 py-1 rounded-xl text-[10px] font-black bg-yellow-400 text-black shadow-[0_2px_0_#CA8A04]">
 						Fare: ₹{fareAmount}
 					</span>
 				</div>
@@ -974,7 +968,7 @@ export default function ActiveTripPanel({
 									<div
 										className={`text-3xl font-mono font-black tracking-widest ${
 											passengerStatus === "confirmed"
-												? "text-[#00A09D]"
+												? "text-yellow-500"
 												: "text-amber-600"
 										}`}
 									>
@@ -999,7 +993,7 @@ export default function ActiveTripPanel({
 							<div className="p-4 rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50/80 via-white to-pink-50/40 shadow-sm space-y-3.5">
 								<div className="flex items-center justify-between">
 									<div className="flex items-center gap-2">
-										<div className="w-8 h-8 rounded-lg bg-[#714B67] text-white flex items-center justify-center font-bold">
+										<div className="w-8 h-8 rounded-lg bg-black text-white flex items-center justify-center font-bold">
 											<CreditCard className="w-4 h-4" />
 										</div>
 										<div>
@@ -1012,12 +1006,12 @@ export default function ActiveTripPanel({
 										</div>
 									</div>
 									<div className="text-right">
-										<span className="text-base font-extrabold text-[#714B67]">
+										<span className="text-base font-extrabold text-black">
 											₹{fareAmount}
 										</span>
 										{walletBalance !== null && (
 											<p className="text-[10px] text-gray-500 flex items-center gap-1 justify-end">
-												<Wallet className="w-3 h-3 text-[#00A09D]" />
+												<Wallet className="w-3 h-3 text-yellow-500" />
 												Wallet:{" "}
 												<span className="font-semibold text-gray-700">
 													₹{walletBalance.toFixed(2)}
@@ -1113,7 +1107,7 @@ export default function ActiveTripPanel({
 										<button
 											onClick={handlePassengerPayWithRazorpay}
 											disabled={loading}
-											className="w-full bg-[#714B67] hover:bg-[#5c3c54] text-white py-2.5 px-4 rounded-xl font-bold text-xs shadow-sm transition-all flex items-center justify-between gap-2 border border-[#5c3c54] cursor-pointer"
+											className="w-full bg-black hover:bg-zinc-800 text-white py-2.5 px-4 rounded-xl font-bold text-xs shadow-sm transition-all flex items-center justify-between gap-2 border border-zinc-800 cursor-pointer"
 										>
 											<div className="flex items-center gap-2">
 												<CreditCard className="w-4 h-4 text-pink-200" />
@@ -1131,7 +1125,7 @@ export default function ActiveTripPanel({
 						{/* Live Trip Status Stepper */}
 						<div className="p-4 border border-gray-200 rounded-xl bg-white shadow-2xs">
 							<h3 className="font-bold text-xs uppercase tracking-wider text-gray-700 mb-3.5 flex items-center gap-1.5">
-								<MapPin className="w-3.5 h-3.5 text-[#00A09D]" />
+								<MapPin className="w-3.5 h-3.5 text-yellow-500" />
 								Live Trip Progress
 							</h3>
 							<div className="space-y-3 relative before:absolute before:inset-0 before:ml-[11px] before:-translate-x-px before:h-full before:w-0.5 before:bg-gray-100">
@@ -1188,7 +1182,7 @@ export default function ActiveTripPanel({
 										<div
 											className={`z-10 w-5 h-5 rounded-full border-2 flex items-center justify-center text-[10px] font-extrabold transition-all duration-300 shrink-0 mt-0.5 shadow-2xs ${
 												step.active
-													? "bg-[#00A09D] border-[#00A09D] text-white"
+													? "bg-yellow-400 border-yellow-400 text-black font-black"
 													: "bg-white border-gray-200 text-gray-400"
 											}`}
 										>
@@ -1222,7 +1216,7 @@ export default function ActiveTripPanel({
 							<h3 className="text-xs font-bold uppercase tracking-wider text-gray-700">
 								Passenger Requests ({bookings.length})
 							</h3>
-							<span className="text-[11px] text-[#00A09D] font-bold">
+							<span className="text-[11px] text-yellow-500 font-bold">
 								{
 									bookings.filter(
 										(b) =>
@@ -1278,7 +1272,7 @@ export default function ActiveTripPanel({
 														</span>
 													)}
 													{booking.is_en_route && (
-														<span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-purple-100 text-[#714B67] border border-purple-200">
+														<span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-purple-100 text-black border border-purple-200">
 															⚡ En-Route
 														</span>
 													)}
@@ -1350,9 +1344,9 @@ export default function ActiveTripPanel({
 									{/* Cost Share Info */}
 									<div className="flex items-center justify-between text-[11px] px-1 text-slate-600">
 										<span className="flex items-center gap-1 font-medium">
-											<Wallet className="w-3 h-3 text-[#714B67]" /> Fuel Cost-Share:
+											<Wallet className="w-3 h-3 text-black" /> Fuel Cost-Share:
 										</span>
-										<span className="font-bold text-[#714B67] font-mono">
+										<span className="font-bold text-black font-mono">
 											₹{bookingFare}.00
 										</span>
 									</div>
@@ -1419,7 +1413,7 @@ export default function ActiveTripPanel({
 														(otpInputs[booking.booking_id]?.length ||
 															0) < 4
 													}
-													className="flex-1 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl font-bold text-xs shadow-xs transition-all py-2 cursor-pointer flex items-center justify-center gap-1.5"
+													className="flex-1 bg-yellow-400 hover:bg-yellow-300 disabled:bg-neutral-200 disabled:text-neutral-400 text-black rounded-xl font-black text-xs shadow-[0_3px_0_#CA8A04] active:translate-y-0.5 active:shadow-none transition-all py-2.5 cursor-pointer flex items-center justify-center gap-1.5"
 												>
 													{loading ? (
 														<Loader2 className="w-3.5 h-3.5 animate-spin mx-auto" />
@@ -1440,7 +1434,7 @@ export default function ActiveTripPanel({
 													handleDropOff(booking.booking_id)
 												}
 												disabled={loading}
-												className="w-full bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-xl font-bold text-xs shadow-xs transition-all flex justify-center items-center gap-1.5 cursor-pointer"
+												className="w-full bg-black hover:bg-neutral-800 text-yellow-400 py-2.5 rounded-xl font-black text-xs shadow-[0_3px_0_#262626] active:translate-y-0.5 active:shadow-none transition-all flex justify-center items-center gap-1.5 cursor-pointer"
 											>
 												{loading ? (
 													<Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -1510,7 +1504,7 @@ export default function ActiveTripPanel({
 							<button
 								onClick={handleFinishTrip}
 								disabled={loading}
-								className="w-full bg-gradient-to-r from-[#714B67] to-purple-800 hover:from-[#5c3c54] hover:to-purple-900 text-white py-3 rounded-2xl font-black text-xs shadow-md transition-all flex justify-center items-center gap-2 cursor-pointer disabled:opacity-75"
+								className="w-full bg-yellow-400 hover:bg-yellow-300 active:translate-y-0.5 text-black py-3.5 rounded-2xl font-black text-xs shadow-[0_4px_0_#CA8A04] active:shadow-none transition-all flex justify-center items-center gap-2 cursor-pointer disabled:opacity-75"
 							>
 								{loading ? (
 									<Loader2 className="w-4 h-4 animate-spin" />

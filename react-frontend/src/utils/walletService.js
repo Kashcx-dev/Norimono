@@ -298,7 +298,7 @@ export const addMoneyToWallet = async (empId, amount, paymentMethod = "UPI") => 
 				contact: "9999999999"
 			},
 			theme: {
-				color: "#714B67"
+				color: "#FACC15"
 			}
 		};
 		

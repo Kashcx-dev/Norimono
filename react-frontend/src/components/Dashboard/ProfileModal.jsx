@@ -320,7 +320,7 @@ export default function ProfileModal({ isOpen, onClose, onOpenVehicleModal, onOp
 								<div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs space-y-3">
 									<div className="flex items-center justify-between">
 										<h3 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-											<Car className="w-3.5 h-3.5 text-[#714B67]" />
+											<Car className="w-3.5 h-3.5 text-yellow-500" />
 											Registered Vehicle
 										</h3>
 

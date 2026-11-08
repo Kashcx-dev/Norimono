@@ -471,17 +471,17 @@ function AdminDashboard() {
 	return (
 		<div className="flex h-screen bg-[#F4F6F9] font-sans antialiased text-gray-900 overflow-hidden text-left page-transition">
 			{/* 1. ODOO DARK SIDEBAR */}
-			<aside className="w-64 bg-[#714B67] text-white flex flex-col justify-between shadow-xl z-30 transition-all">
+			<aside className="w-64 bg-black text-white flex flex-col justify-between shadow-xl z-30 transition-all">
 				<div>
 					{/* Brand header */}
 					<div className="p-5 border-b border-white/10 flex items-center gap-3">
 						<div className="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center backdrop-blur-xs border border-white/20 shadow-inner">
-							<Car className="w-6 h-6 text-[#E8D07A]" />
+							<Car className="w-6 h-6 text-yellow-400" />
 						</div>
 						<div>
 							<div className="font-extrabold text-lg tracking-tight flex items-center gap-1.5">
 								Norimono
-								<span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 bg-[#00A09D] text-white rounded font-black">
+								<span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 bg-yellow-400 text-black text-white rounded font-black">
 									Admin
 								</span>
 							</div>
@@ -518,7 +518,7 @@ function AdminDashboard() {
 							onClick={() => setActiveTab("overview")}
 							className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
 								activeTab === "overview"
-									? "bg-white text-[#714B67] shadow-sm font-black"
+									? "bg-white text-black shadow-sm font-black"
 									: "text-white/80 hover:bg-white/10 hover:text-white"
 							}`}
 						>
@@ -530,7 +530,7 @@ function AdminDashboard() {
 							onClick={() => setActiveTab("employees")}
 							className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
 								activeTab === "employees"
-									? "bg-white text-[#714B67] shadow-sm font-black"
+									? "bg-white text-black shadow-sm font-black"
 									: "text-white/80 hover:bg-white/10 hover:text-white"
 							}`}
 						>
@@ -542,7 +542,7 @@ function AdminDashboard() {
 							onClick={() => setActiveTab("vehicles")}
 							className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
 								activeTab === "vehicles"
-									? "bg-white text-[#714B67] shadow-sm font-black"
+									? "bg-white text-black shadow-sm font-black"
 									: "text-white/80 hover:bg-white/10 hover:text-white"
 							}`}
 						>
@@ -554,7 +554,7 @@ function AdminDashboard() {
 							onClick={() => setActiveTab("verifications")}
 							className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
 								activeTab === "verifications"
-									? "bg-white text-[#714B67] shadow-sm font-black"
+									? "bg-white text-black shadow-sm font-black"
 									: "text-white/80 hover:bg-white/10 hover:text-white"
 							}`}
 						>
@@ -573,7 +573,7 @@ function AdminDashboard() {
 							onClick={() => setActiveTab("settings")}
 							className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
 								activeTab === "settings"
-									? "bg-white text-[#714B67] shadow-sm font-black"
+									? "bg-white text-black shadow-sm font-black"
 									: "text-white/80 hover:bg-white/10 hover:text-white"
 							}`}
 						>
@@ -620,7 +620,7 @@ function AdminDashboard() {
 						<div className="flex items-center gap-2 text-xs font-bold">
 							<span className="text-gray-400">Norimono</span>
 							<ChevronRight className="w-3.5 h-3.5 text-gray-300" />
-							<span className="text-[#00A09D] uppercase tracking-wider">
+							<span className="text-yellow-600 uppercase tracking-wider">
 								{activeTab === "impact"
 									? "Campus ESG & Impact Simulation"
 									: activeTab === "overview"
@@ -644,7 +644,7 @@ function AdminDashboard() {
 									value={searchTerm}
 									onChange={(e) => setSearchTerm(e.target.value)}
 									placeholder={`Search ${activeTab}...`}
-									className="w-full pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
+									className="w-full pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-yellow-400/40 focus:border-yellow-400 transition-all"
 								/>
 							</div>
 						)}
@@ -659,10 +659,10 @@ function AdminDashboard() {
 								setDropdownOpen(false);
 								setNotificationsOpen(false);
 							}}
-							className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-50/70 hover:bg-purple-100/70 text-[#714B67] border border-[#714B67]/20 transition-all cursor-pointer group"
+							className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-50/70 hover:bg-purple-100/70 text-black border border-yellow-400/20 transition-all cursor-pointer group"
 							title="Open Norimono Commute Wallet"
 						>
-							<div className="w-5 h-5 rounded-lg bg-[#714B67] text-white flex items-center justify-center group-hover:scale-105 transition-transform">
+							<div className="w-5 h-5 rounded-lg bg-black text-white flex items-center justify-center group-hover:scale-105 transition-transform">
 								<Wallet className="w-3 h-3" />
 							</div>
 							<div className="text-left flex flex-col leading-tight">
@@ -693,7 +693,7 @@ function AdminDashboard() {
 								className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors cursor-pointer relative"
 							>
 								<Bell className="w-4 h-4" />
-								<span className="absolute top-1 right-1 w-2 h-2 bg-[#00A09D] rounded-full ring-2 ring-white"></span>
+								<span className="absolute top-1 right-1 w-2 h-2 bg-yellow-400 text-black rounded-full ring-2 ring-white"></span>
 							</button>
 
 							{notificationsOpen && (
@@ -702,7 +702,7 @@ function AdminDashboard() {
 										<p className="text-xs font-bold text-gray-900">
 											System Alerts
 										</p>
-										<span className="text-[10px] text-[#00A09D] font-bold">
+										<span className="text-[10px] text-yellow-600 font-bold">
 											2 New
 										</span>
 									</div>
@@ -719,7 +719,7 @@ function AdminDashboard() {
 											</div>
 										</div>
 										<div className="p-3 hover:bg-gray-50 flex items-start gap-2.5">
-											<Car className="w-4 h-4 text-[#714B67] shrink-0 mt-0.5" />
+											<Car className="w-4 h-4 text-black shrink-0 mt-0.5" />
 											<div>
 												<p className="font-semibold text-gray-800">
 													Vehicles synchronized
@@ -767,9 +767,9 @@ function AdminDashboard() {
 											setDropdownOpen(false);
 											navigate("/dashboard");
 										}}
-										className="w-full px-4 py-2.5 text-left text-xs font-semibold text-gray-700 hover:bg-[#714B67]/5 hover:text-[#714B67] flex items-center gap-2.5 cursor-pointer transition-colors"
+										className="w-full px-4 py-2.5 text-left text-xs font-semibold text-gray-700 hover:bg-black/5 hover:text-black flex items-center gap-2.5 cursor-pointer transition-colors"
 									>
-										<ArrowRightLeft className="w-4 h-4 text-[#714B67]" />
+										<ArrowRightLeft className="w-4 h-4 text-black" />
 										Switch to Employee Dashboard
 									</button>
 
@@ -815,11 +815,11 @@ function AdminDashboard() {
 										<span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
 											Total Employees
 										</span>
-										<div className="w-8 h-8 rounded-lg bg-[#00A09D]/10 text-[#00A09D] flex items-center justify-center">
+										<div className="w-8 h-8 rounded-lg bg-yellow-400 text-black/10 text-yellow-600 flex items-center justify-center">
 											<Users className="w-4 h-4" />
 										</div>
 									</div>
-									<div className="text-3xl font-extrabold text-[#00A09D] tracking-tight">
+									<div className="text-3xl font-extrabold text-yellow-600 tracking-tight">
 										{metrics.total_employees}
 									</div>
 									<p className="text-[11px] text-gray-500 mt-1">
@@ -832,11 +832,11 @@ function AdminDashboard() {
 										<span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
 											Registered Vehicles
 										</span>
-										<div className="w-8 h-8 rounded-lg bg-[#714B67]/10 text-[#714B67] flex items-center justify-center">
+										<div className="w-8 h-8 rounded-lg bg-black/10 text-black flex items-center justify-center">
 											<Car className="w-4 h-4" />
 										</div>
 									</div>
-									<div className="text-3xl font-extrabold text-[#714B67] tracking-tight">
+									<div className="text-3xl font-extrabold text-black tracking-tight">
 										{metrics.total_vehicles}
 									</div>
 									<p className="text-[11px] text-gray-500 mt-1">
@@ -894,7 +894,7 @@ function AdminDashboard() {
 										</div>
 										<button
 											onClick={() => setActiveTab("vehicles")}
-											className="text-xs font-bold text-[#00A09D] hover:underline flex items-center gap-1 cursor-pointer"
+											className="text-xs font-bold text-yellow-600 hover:underline flex items-center gap-1 cursor-pointer"
 										>
 											View All{" "}
 											<ChevronRight className="w-3.5 h-3.5" />
@@ -908,7 +908,7 @@ function AdminDashboard() {
 												className="p-4 bg-gray-50/80 rounded-xl border border-gray-200/80 flex items-center justify-between"
 											>
 												<div className="flex items-center gap-3">
-													<div className="w-9 h-9 rounded-lg bg-[#714B67]/10 text-[#714B67] flex items-center justify-center">
+													<div className="w-9 h-9 rounded-lg bg-black/10 text-black flex items-center justify-center">
 														<Car className="w-5 h-5" />
 													</div>
 													<div>
@@ -952,7 +952,7 @@ function AdminDashboard() {
 												setActiveTab("employees");
 												setShowAddEmployeeModal(true);
 											}}
-											className="w-full p-3 bg-[#00A09D]/10 hover:bg-[#00A09D]/20 text-[#00A09D] rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 cursor-pointer"
+											className="w-full p-3 bg-yellow-400 text-black/10 hover:bg-yellow-400 text-black/20 text-yellow-600 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 cursor-pointer"
 										>
 											<Plus className="w-4 h-4" />
 											Add New Employee
@@ -963,7 +963,7 @@ function AdminDashboard() {
 												setActiveTab("vehicles");
 												setShowAddVehicleModal(true);
 											}}
-											className="w-full p-3 bg-[#714B67]/10 hover:bg-[#714B67]/20 text-[#714B67] rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 cursor-pointer"
+											className="w-full p-3 bg-black/10 hover:bg-black/20 text-black rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 cursor-pointer"
 										>
 											<Plus className="w-4 h-4" />
 											Register New Vehicle
@@ -1022,7 +1022,7 @@ function AdminDashboard() {
 									{/* + Add Employee Button */}
 									<button
 										onClick={() => setShowAddEmployeeModal(true)}
-										className="px-4 py-2 bg-[#00A09D] hover:bg-[#008f8c] text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+										className="px-4 py-2 bg-yellow-400 text-black hover:bg-yellow-300 text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
 									>
 										<Plus className="w-4 h-4" /> Add Employee
 									</button>
@@ -1034,7 +1034,7 @@ function AdminDashboard() {
 								<div className="overflow-x-auto">
 									<table className="w-full text-left border-collapse">
 										<thead>
-											<tr className="border-b border-gray-200 bg-gray-50/70 text-xs font-bold text-[#00A09D]">
+											<tr className="border-b border-gray-200 bg-gray-50/70 text-xs font-bold text-yellow-600">
 												<th className="py-3.5 px-6">Name</th>
 												<th className="py-3.5 px-6">Email</th>
 												<th className="py-3.5 px-6">Department</th>
@@ -1130,7 +1130,7 @@ function AdminDashboard() {
 								<div className="flex items-center gap-3">
 									<button
 										onClick={() => setShowAddVehicleModal(true)}
-										className="px-4 py-2 bg-[#00A09D] hover:bg-[#008f8c] text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+										className="px-4 py-2 bg-yellow-400 text-black hover:bg-yellow-300 text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
 									>
 										<Plus className="w-4 h-4" /> Add Vehicle
 									</button>
@@ -1142,7 +1142,7 @@ function AdminDashboard() {
 								<div className="overflow-x-auto">
 									<table className="w-full text-left border-collapse">
 										<thead>
-											<tr className="border-b border-gray-200 bg-gray-50/70 text-xs font-bold text-[#00A09D]">
+											<tr className="border-b border-gray-200 bg-gray-50/70 text-xs font-bold text-yellow-600">
 												<th className="py-3.5 px-6">
 													Registration Number
 												</th>
@@ -1229,11 +1229,11 @@ function AdminDashboard() {
 							<div className="bg-white border border-gray-200/90 rounded-2xl p-6 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
 								<div>
 									<div className="flex items-center gap-2 mb-1">
-										<ShieldCheck className="w-5 h-5 text-[#714B67]" />
+										<ShieldCheck className="w-5 h-5 text-black" />
 										<h3 className="text-lg font-bold text-gray-900">
 											Driver Verification Applications
 										</h3>
-										<span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-purple-50 text-[#714B67] border border-purple-100">
+										<span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-purple-50 text-black border border-purple-100">
 											{verifications.filter(v => v.status === "pending").length} Pending Review
 										</span>
 									</div>
@@ -1299,7 +1299,7 @@ function AdminDashboard() {
 														</td>
 														<td className="py-3.5 px-4 font-semibold text-gray-800">
 															<div className="flex items-center gap-1.5">
-																<Car className="w-3.5 h-3.5 text-[#714B67]" />
+																<Car className="w-3.5 h-3.5 text-black" />
 																<span>{v.vehicle_model}</span>
 															</div>
 														</td>
@@ -1411,7 +1411,7 @@ function AdminDashboard() {
 											})
 										}
 										placeholder="5.50"
-										className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
+										className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-yellow-400/40 focus:border-yellow-400"
 									/>
 								</div>
 
@@ -1430,7 +1430,7 @@ function AdminDashboard() {
 											})
 										}
 										placeholder="2.00"
-										className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
+										className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-yellow-400/40 focus:border-yellow-400"
 									/>
 								</div>
 
@@ -1448,7 +1448,7 @@ function AdminDashboard() {
 											})
 										}
 										placeholder="5"
-										className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
+										className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-yellow-400/40 focus:border-yellow-400"
 									/>
 								</div>
 
@@ -1456,7 +1456,7 @@ function AdminDashboard() {
 									<button
 										type="submit"
 										disabled={savingSettings}
-										className="px-6 py-2.5 bg-[#714B67] hover:bg-[#5c3c54] text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-2"
+										className="px-6 py-2.5 bg-black hover:bg-zinc-800 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-2"
 									>
 										<Save className="w-4 h-4" />
 										{savingSettings
@@ -1476,7 +1476,7 @@ function AdminDashboard() {
 					<div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
 						<div className="flex items-center justify-between p-5 border-b border-gray-100 bg-gray-50/50">
 							<div className="flex items-center gap-2.5">
-								<div className="w-8 h-8 bg-[#00A09D]/10 rounded-lg flex items-center justify-center text-[#00A09D]">
+								<div className="w-8 h-8 bg-yellow-400 text-black/10 rounded-lg flex items-center justify-center text-yellow-600">
 									<Users className="w-4 h-4" />
 								</div>
 								<h3 className="text-base font-bold text-gray-900">
@@ -1507,7 +1507,7 @@ function AdminDashboard() {
 										setNewEmp({ ...newEmp, name: e.target.value })
 									}
 									placeholder="e.g. Raj Patel"
-									className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#00A09D]/20 focus:border-[#00A09D]"
+									className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-yellow-400/40 focus:border-yellow-400"
 								/>
 							</div>
 
@@ -1523,7 +1523,7 @@ function AdminDashboard() {
 										setNewEmp({ ...newEmp, email: e.target.value })
 									}
 									placeholder="raj.patel@co.com"
-									className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#00A09D]/20 focus:border-[#00A09D]"
+									className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-yellow-400/40 focus:border-yellow-400"
 								/>
 							</div>
 
@@ -1540,7 +1540,7 @@ function AdminDashboard() {
 												department: e.target.value,
 											})
 										}
-										className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#00A09D]/20 focus:border-[#00A09D]"
+										className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-yellow-400/40 focus:border-yellow-400"
 									>
 										<option value="Engineering">Engineering</option>
 										<option value="Sales">Sales</option>
@@ -1564,7 +1564,7 @@ function AdminDashboard() {
 											})
 										}
 										placeholder="e.g. A. Shah"
-										className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#00A09D]/20 focus:border-[#00A09D]"
+										className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-yellow-400/40 focus:border-yellow-400"
 									/>
 								</div>
 							</div>
@@ -1580,7 +1580,7 @@ function AdminDashboard() {
 										setNewEmp({ ...newEmp, location: e.target.value })
 									}
 									placeholder="Ahmedabad"
-									className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#00A09D]/20 focus:border-[#00A09D]"
+									className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-yellow-400/40 focus:border-yellow-400"
 								/>
 							</div>
 
@@ -1594,7 +1594,7 @@ function AdminDashboard() {
 								</button>
 								<button
 									type="submit"
-									className="flex-1 py-2 text-xs font-bold text-white bg-[#00A09D] hover:bg-[#008f8c] rounded-xl transition-colors cursor-pointer shadow-xs"
+									className="flex-1 py-2 text-xs font-bold text-white bg-yellow-400 text-black hover:bg-yellow-300 rounded-xl transition-colors cursor-pointer shadow-xs"
 								>
 									Add Employee
 								</button>
@@ -1610,7 +1610,7 @@ function AdminDashboard() {
 					<div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
 						<div className="flex items-center justify-between p-5 border-b border-gray-100 bg-gray-50/50">
 							<div className="flex items-center gap-2.5">
-								<div className="w-8 h-8 bg-[#714B67]/10 rounded-lg flex items-center justify-center text-[#714B67]">
+								<div className="w-8 h-8 bg-black/10 rounded-lg flex items-center justify-center text-black">
 									<Car className="w-4 h-4" />
 								</div>
 								<h3 className="text-base font-bold text-gray-900">
@@ -1636,7 +1636,7 @@ function AdminDashboard() {
 									onChange={(e) =>
 										setNewVeh({ ...newVeh, emp_id: e.target.value })
 									}
-									className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
+									className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-yellow-400/40 focus:border-yellow-400"
 								>
 									<option value="" disabled>
 										Select an employee
@@ -1662,7 +1662,7 @@ function AdminDashboard() {
 											vehicle_model: e.target.value,
 										})
 									}
-									className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
+									className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-yellow-400/40 focus:border-yellow-400"
 								>
 									{carModels.map((m) => (
 										<option key={m} value={m}>
@@ -1687,7 +1687,7 @@ function AdminDashboard() {
 										})
 									}
 									placeholder="GJ01AB1234"
-									className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs uppercase focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
+									className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs uppercase focus:outline-none focus:ring-2 focus:ring-yellow-400/40 focus:border-yellow-400"
 								/>
 							</div>
 
@@ -1708,7 +1708,7 @@ function AdminDashboard() {
 												seating_capacity: e.target.value,
 											})
 										}
-										className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
+										className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-yellow-400/40 focus:border-yellow-400"
 									/>
 								</div>
 
@@ -1727,7 +1727,7 @@ function AdminDashboard() {
 												fuel_consumption_ratio: e.target.value,
 											})
 										}
-										className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67]"
+										className="w-full px-3.5 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-yellow-400/40 focus:border-yellow-400"
 									/>
 								</div>
 							</div>
@@ -1742,7 +1742,7 @@ function AdminDashboard() {
 								</button>
 								<button
 									type="submit"
-									className="flex-1 py-2 text-xs font-bold text-white bg-[#714B67] hover:bg-[#5c3c54] rounded-xl transition-colors cursor-pointer shadow-xs"
+									className="flex-1 py-2 text-xs font-bold text-white bg-black hover:bg-zinc-800 rounded-xl transition-colors cursor-pointer shadow-xs"
 								>
 									Add Vehicle
 								</button>

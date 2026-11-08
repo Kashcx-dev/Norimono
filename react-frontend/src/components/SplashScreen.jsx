@@ -25,7 +25,7 @@ const SplashScreen = () => {
 
 	return (
 		<div
-			className={`fixed inset-0 bg-gradient-to-br from-[#714B67] via-[#5c3c54] to-[#392433] flex flex-col items-center justify-center transition-opacity duration-1000 z-50 ${
+			className={`fixed inset-0 bg-black flex flex-col items-center justify-center transition-opacity duration-1000 z-50 ${
 				fadeOut ? "opacity-0" : "opacity-100"
 			}`}
 		>
@@ -59,8 +59,8 @@ const SplashScreen = () => {
       `}</style>
       
       {/* Background Decals for realism */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#00A09D]/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-400/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-yellow-400/10 rounded-full blur-3xl pointer-events-none"></div>
 
 			<div className="text-center px-4 w-full relative h-screen flex flex-col items-center justify-center overflow-hidden">
 				

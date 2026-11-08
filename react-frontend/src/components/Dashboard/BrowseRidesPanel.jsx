@@ -181,12 +181,12 @@ export default function BrowseRidesPanel({
 	return (
 		<div className="flex flex-col h-full text-left">
 			{/* Ultra-Minimal Results Header */}
-			<div className="px-4 py-2.5 bg-white border-b border-slate-100 flex items-center justify-between shrink-0 shadow-2xs">
+			<div className="px-4 py-3 bg-white border-b border-neutral-100 flex items-center justify-between shrink-0 shadow-xs">
 				<button
 					onClick={onBack}
-					className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all cursor-pointer group"
+					className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-black text-black bg-white hover:bg-neutral-50 border-2 border-neutral-200 hover:border-black rounded-xl transition-all cursor-pointer shadow-[0_2px_0_rgba(0,0,0,0.06)] active:translate-y-0.5 active:shadow-none group"
 				>
-					<ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+					<ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform stroke-[2.5]" />
 					<span>Edit Route</span>
 				</button>
 
@@ -194,10 +194,10 @@ export default function BrowseRidesPanel({
 					{/* Female-Only Toggle */}
 					<button
 						onClick={() => setFemaleOnlyFilter(!femaleOnlyFilter)}
-						className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${
+						className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-[11px] font-black transition-all cursor-pointer border-2 ${
 							femaleOnlyFilter
-								? "bg-rose-500 text-white border-rose-500 shadow-xs"
-								: "bg-rose-50 text-rose-700 hover:bg-rose-100 border-rose-200"
+								? "bg-rose-500 text-white border-rose-600 shadow-[0_2px_0_#be123c] active:translate-y-0.5 active:shadow-none"
+								: "bg-white text-rose-700 hover:bg-rose-50 border-rose-200 shadow-[0_2px_0_rgba(0,0,0,0.04)]"
 						}`}
 						title="Toggle Female-Only carpools"
 					>
@@ -205,8 +205,8 @@ export default function BrowseRidesPanel({
 						<span>Female-Only</span>
 					</button>
 
-					{/* Small Results Count Pill */}
-					<span className="px-2.5 py-1 bg-slate-900 text-white rounded-lg text-xs font-black shadow-xs tracking-tight">
+					{/* Small Results Count Pill in Obsidian Black with Yellow Text */}
+					<span className="px-3 py-1.5 bg-black text-yellow-400 border border-neutral-800 rounded-xl text-xs font-black shadow-[0_2px_0_#262626] tracking-tight">
 						{filteredRides.length} {filteredRides.length === 1 ? "ride" : "rides"}
 					</span>
 				</div>
@@ -215,9 +215,9 @@ export default function BrowseRidesPanel({
 			{/* Rides List Container - Directly shows results */}
 			<div className="flex-1 overflow-y-auto p-3.5 space-y-3">
 				{loading ? (
-					<div className="py-12 flex flex-col items-center justify-center text-gray-400 space-y-2">
-						<div className="w-8 h-8 border-3 border-[#00A09D] border-t-transparent rounded-full animate-spin"></div>
-						<p className="text-xs font-semibold">
+					<div className="py-12 flex flex-col items-center justify-center text-neutral-400 space-y-2">
+						<div className="w-8 h-8 border-3 border-yellow-400 border-t-black rounded-full animate-spin"></div>
+						<p className="text-xs font-bold text-neutral-600">
 							Scanning 10km radius...
 						</p>
 					</div>
@@ -236,10 +236,10 @@ export default function BrowseRidesPanel({
 							<div
 								key={ride.ride_id}
 								onClick={() => onSelectRide(ride)}
-								className={`p-4 rounded-xl border transition-all duration-200 cursor-pointer text-left ${
+								className={`p-4 rounded-2xl border-2 transition-all duration-150 cursor-pointer text-left ${
 									isSelected
-										? "bg-[#00A09D]/5 border-[#00A09D] ring-2 ring-[#00A09D]/20 shadow-sm"
-										: "bg-white border-gray-200/90 hover:border-gray-300 hover:shadow-2xs"
+										? "bg-yellow-50/40 border-yellow-400 ring-2 ring-yellow-400/40 shadow-[0_8px_24px_rgba(250,204,21,0.2)]"
+										: "bg-white border-neutral-200/90 hover:border-yellow-400 hover:shadow-[0_6px_20px_rgba(0,0,0,0.06)] shadow-[0_3px_0_rgba(0,0,0,0.04)]"
 								}`}
 							>
 								{/* Driver & Vehicle Header with Digital ID Company Framed Ring */}
@@ -262,31 +262,31 @@ export default function BrowseRidesPanel({
 													}}
 													title="Click to view full Corporate Digital ID Card"
 												>
-													<div className={`w-11 h-11 rounded-2xl bg-white p-0.5 shadow-xs border-2 ${compInfo.borderRing} flex items-center justify-center`}>
-														<div className="w-full h-full rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-sm tracking-tight">
+													<div className="w-11 h-11 rounded-2xl bg-black p-0.5 shadow-md flex items-center justify-center">
+														<div className="w-full h-full rounded-xl bg-black text-yellow-400 flex items-center justify-center font-black text-sm tracking-tight border border-white/20">
 															{ride.driver_name ? ride.driver_name.charAt(0).toUpperCase() : "D"}
 														</div>
 													</div>
 													{/* Framed Corporate Badge */}
-													<div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-md shadow-xs border border-white bg-white flex items-center justify-center p-0.5">
+													<div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-md shadow-xs border border-black bg-white flex items-center justify-center p-0.5">
 														<DriverLogo />
 													</div>
 												</div>
 
 												<div>
 													<div className="flex items-center gap-1.5 flex-wrap">
-														<span className="font-extrabold text-sm text-slate-900">
+														<span className="font-black text-sm text-black">
 															{ride.driver_name}
 														</span>
-														<ShieldCheck className="w-4 h-4 text-emerald-600" title="Corporate SSO Verified" />
+														<ShieldCheck className="w-4 h-4 text-amber-600" title="Corporate SSO Verified" />
 
 														{/* Trust Badge: Colleague vs Neighboring Campus Peer */}
 														{isDirectColleague ? (
-															<span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+															<span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-yellow-100 text-amber-900 border border-yellow-300">
 																🏢 {compInfo.shortName} Colleague
 															</span>
 														) : (
-															<span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
+															<span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-neutral-100 text-neutral-800 border border-neutral-300">
 																🌐 {compInfo.shortName} Campus Peer
 															</span>
 														)}
@@ -299,13 +299,13 @@ export default function BrowseRidesPanel({
 														)}
 													</div>
 
-													<p className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
-														<span className="font-semibold text-slate-700">
+													<p className="text-[11px] text-neutral-500 flex items-center gap-1.5 mt-0.5">
+														<span className="font-bold text-neutral-700">
 															{ride.driver_dept || ride.driver_designation || "Engineering"}
 														</span>
 														<span>•</span>
-														<span className="text-amber-500 font-bold flex items-center gap-0.5">
-															<Star className="w-3 h-3 fill-amber-400" />
+														<span className="text-amber-600 font-black flex items-center gap-0.5">
+															<Star className="w-3 h-3 fill-amber-400 text-amber-500" />
 															{ride.driver_trust_score ? `${ride.driver_trust_score}% Trust` : "99.4% Trust"}
 														</span>
 													</p>
@@ -314,14 +314,14 @@ export default function BrowseRidesPanel({
 
 											{/* Cost-Share & Target Arrival Time */}
 											<div className="text-right shrink-0">
-												<div className="text-base font-black text-slate-900 tracking-tight font-mono">
+												<div className="inline-block px-2.5 py-1 bg-yellow-400 text-black font-black text-sm font-mono rounded-xl shadow-[0_2px_0_#CA8A04]">
 													₹{ride.fare_per_seat || 45}
 												</div>
-												<span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-100 block mt-0.5">
+												<span className="text-[10px] font-bold text-neutral-700 bg-neutral-100 px-1.5 py-0.5 rounded border border-neutral-200 block mt-1">
 													Arrives at {arrivalTime}
 												</span>
 												{parseFloat(ride.subsidy_per_seat || 0) > 0 && (
-													<span className="text-[9px] text-emerald-600 font-semibold block mt-0.5">
+													<span className="text-[9px] text-emerald-600 font-bold block mt-0.5">
 														-₹{ride.subsidy_per_seat} ESG Subsidy
 													</span>
 												)}
@@ -332,84 +332,83 @@ export default function BrowseRidesPanel({
 
 								{/* En-Route & Corridor Badges */}
 								{ride.en_route_available && (
-									<div className="mb-2 flex items-center justify-between px-2.5 py-1 bg-purple-50 border border-purple-200 rounded-lg text-[#714B67] text-[11px] font-bold animate-in fade-in">
+									<div className="mb-2 flex items-center justify-between px-2.5 py-1 bg-yellow-50 border border-yellow-200 rounded-xl text-black text-[11px] font-bold">
 										<span className="flex items-center gap-1.5">
 											<span className="relative flex h-2 w-2">
-												<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-												<span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+												<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+												<span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
 											</span>
 											<span>⚡ Active Driver on Road • Instant En-Route Hop-In</span>
 										</span>
-										<span className="text-[9px] uppercase tracking-wider bg-[#714B67] text-white px-1.5 py-0.5 rounded font-black">
+										<span className="text-[9px] uppercase tracking-wider bg-black text-yellow-400 px-1.5 py-0.5 rounded font-black">
 											En-Route
 										</span>
 									</div>
 								)}
 
 								{ride.is_h3_matched && (
-									<div className="mb-2 flex items-center gap-1.5 px-2.5 py-1 bg-teal-50 border border-teal-200 rounded-lg text-teal-800 text-[11px] font-semibold">
+									<div className="mb-2 flex items-center gap-1.5 px-2.5 py-1 bg-neutral-50 border border-neutral-200 rounded-xl text-black text-[11px] font-bold">
 										<span>🔷 Uber H3 Corridor Verified (Resolution 8 Hexagonal Match)</span>
 									</div>
 								)}
 
 								{ride.corridor_match && !ride.is_h3_matched && (
-									<div className="mb-2 flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200/80 rounded-lg text-emerald-800 text-[11px] font-semibold">
-										<CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+									<div className="mb-2 flex items-center gap-1.5 px-2.5 py-1 bg-neutral-50 border border-neutral-200 rounded-xl text-black text-[11px] font-bold">
+										<CheckCircle2 className="w-3.5 h-3.5 text-amber-600 shrink-0" />
 										<span>Direct Route Match • ~{ride.total_detour_km ?? 0} km detour</span>
 									</div>
 								)}
-								<div className="mb-2 flex items-center justify-between text-xs py-1.5 px-2.5 bg-gray-50 rounded-lg border border-gray-100">
-									<div className="flex items-center gap-1.5 text-gray-700 font-semibold">
-										<Car className="w-3.5 h-3.5 text-[#714B67]" />
+								<div className="mb-2 flex items-center justify-between text-xs py-1.5 px-2.5 bg-neutral-50 rounded-xl border border-neutral-200/80">
+									<div className="flex items-center gap-1.5 text-black font-bold">
+										<Car className="w-3.5 h-3.5 text-neutral-700" />
 										<span>{ride.vehicle_model || "Swift Dzire"}</span>
 									</div>
-									<span className="font-mono text-[11px] text-gray-500 uppercase font-bold">
+									<span className="font-mono text-[11px] text-neutral-600 uppercase font-black">
 										{ride.veh_no || "WB 02 AB 1234"}
 									</span>
 								</div>
 
 								{/* BlaBlaCar Commute Amenities & Chattiness Badges */}
 								<div className="flex items-center gap-1 flex-wrap mb-2.5">
-									{/* Chattiness Meter Badge */}
 									{ride.preferences?.chattiness && (
-										<span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1">
-											<MessageSquare className="w-2.5 h-2.5 text-purple-600" />
+										<span className="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-neutral-100 text-black border border-neutral-200 flex items-center gap-1">
+											<MessageSquare className="w-2.5 h-2.5 text-neutral-600" />
 											{ride.preferences.chattiness === "bla" ? "Bla (Quiet)" : ride.preferences.chattiness === "blablabla" ? "BlaBlaBla (Chatty)" : "BlaBla"}
 										</span>
 									)}
 									{ride.instant_booking !== false && (
-										<span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-0.5">
-											<Zap className="w-2.5 h-2.5 text-amber-500 fill-amber-500" /> Instant
+										<span className="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-yellow-100 text-amber-900 border border-yellow-300 flex items-center gap-0.5">
+											<Zap className="w-2.5 h-2.5 text-amber-600 fill-amber-500" /> Instant
 										</span>
 									)}
 									{ride.preferences?.ac !== false && (
-										<span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200 flex items-center gap-1">
-											<Wind className="w-2.5 h-2.5 text-sky-500" /> AC
+										<span className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-neutral-100 text-neutral-800 border border-neutral-200 flex items-center gap-1">
+											<Wind className="w-2.5 h-2.5 text-neutral-600" /> AC
 										</span>
 									)}
 									{ride.preferences?.max_two_back !== false && (
-										<span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200 flex items-center gap-1">
-											<Users className="w-2.5 h-2.5 text-teal-600" /> Max 2 in Back
+										<span className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-neutral-100 text-neutral-800 border border-neutral-200 flex items-center gap-1">
+											<Users className="w-2.5 h-2.5 text-neutral-600" /> Max 2 in Back
 										</span>
 									)}
 									{ride.preferences?.smoking === false && (
-										<span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+										<span className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-neutral-100 text-neutral-800 border border-neutral-200">
 											🚭 No Smoking
 										</span>
 									)}
 									{ride.is_recurring && (
-										<span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1">
-											<Repeat className="w-2.5 h-2.5" /> Mon-Fri
+										<span className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-neutral-100 text-neutral-800 border border-neutral-200 flex items-center gap-1">
+											<Repeat className="w-2.5 h-2.5 text-neutral-600" /> Mon-Fri
 										</span>
 									)}
 								</div>
 
 								{/* Intermediate Stopovers if available */}
 								{Array.isArray(ride.stopovers) && ride.stopovers.length > 0 && (
-									<div className="mb-2.5 px-2.5 py-1 bg-slate-50 border border-slate-200/80 rounded-lg text-[10px] text-slate-600 flex items-center gap-1.5 flex-wrap">
-										<span className="font-bold text-teal-700 uppercase">Via Stops:</span>
+									<div className="mb-2.5 px-2.5 py-1 bg-neutral-50 border border-neutral-200 rounded-xl text-[10px] text-neutral-700 flex items-center gap-1.5 flex-wrap">
+										<span className="font-black text-black uppercase">Via Stops:</span>
 										{ride.stopovers.map((s, idx) => (
-											<span key={idx} className="bg-white px-1.5 py-0.5 rounded border border-slate-200 font-semibold text-slate-800">
+											<span key={idx} className="bg-white px-1.5 py-0.5 rounded-md border border-neutral-200 font-bold text-black">
 												📍 {s}
 											</span>
 										))}
@@ -417,30 +416,30 @@ export default function BrowseRidesPanel({
 								)}
 
 								{/* Route Points */}
-								<div className="space-y-1.5 text-xs text-gray-600 mb-3.5">
+								<div className="space-y-1.5 text-xs text-neutral-600 mb-3.5">
 									<div className="flex items-start gap-2">
-										<div className="w-2 h-2 rounded-full bg-[#00A09D] mt-1 shrink-0"></div>
+										<div className="w-2.5 h-2.5 rounded-full bg-yellow-400 ring-2 ring-yellow-200 mt-1 shrink-0"></div>
 										<div className="flex-1 min-w-0">
-											<span className="text-[10px] uppercase font-bold text-gray-400 block">
+											<span className="text-[10px] uppercase font-bold text-neutral-400 block">
 												Pickup (Near You)
 											</span>
-											<p className="font-semibold text-gray-800 truncate">
+											<p className="font-bold text-black truncate">
 												{ride.origin?.name ||
 													"1.2km from your spot"}
 											</p>
 										</div>
-										<span className="text-[11px] font-bold text-[#00A09D] bg-teal-50 px-1.5 py-0.5 rounded border border-teal-100 shrink-0">
+										<span className="text-[11px] font-black text-black bg-yellow-100 px-2 py-0.5 rounded-md border border-yellow-300 shrink-0">
 											{ride.distance_km || 1.2} km away
 										</span>
 									</div>
 
 									<div className="flex items-start gap-2">
-										<div className="w-2 h-2 rounded-full bg-[#EF4444] mt-1 shrink-0"></div>
+										<div className="w-2.5 h-2.5 rounded-full bg-black ring-2 ring-neutral-200 mt-1 shrink-0"></div>
 										<div className="flex-1 min-w-0">
-											<span className="text-[10px] uppercase font-bold text-gray-400 block">
+											<span className="text-[10px] uppercase font-bold text-neutral-400 block">
 												Destination
 											</span>
-											<p className="font-semibold text-gray-800 truncate">
+											<p className="font-bold text-black truncate">
 												{ride.destination?.name ||
 													"Tech Hub Sector V"}
 											</p>
@@ -449,22 +448,22 @@ export default function BrowseRidesPanel({
 								</div>
 
 								{/* Footer Info & Actions */}
-								<div className="pt-2.5 border-t border-gray-100 flex items-center justify-between gap-2">
-									<div className="flex items-center gap-3 text-xs text-gray-500">
-										<span className="flex items-center gap-1 font-semibold text-gray-700">
-											<Clock className="w-3.5 h-3.5 text-gray-400" />
+								<div className="pt-2.5 border-t border-neutral-100 flex items-center justify-between gap-2">
+									<div className="flex items-center gap-3 text-xs text-neutral-500">
+										<span className="flex items-center gap-1 font-bold text-black">
+											<Clock className="w-3.5 h-3.5 text-neutral-500" />
 											{timeStr}
 										</span>
 										{(() => {
 											const seatsLeft = ride.available_seats !== undefined && ride.available_seats !== null ? Number(ride.available_seats) : 3;
 											return seatsLeft <= 0 ? (
-												<span className="flex items-center gap-1 font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+												<span className="flex items-center gap-1 font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-200">
 													<Users className="w-3.5 h-3.5" />
 													Full (0 seats left)
 												</span>
 											) : (
-												<span className="flex items-center gap-1 font-semibold text-[#00A09D]">
-													<Users className="w-3.5 h-3.5" />
+												<span className="flex items-center gap-1 font-bold text-black">
+													<Users className="w-3.5 h-3.5 text-amber-600" />
 													{seatsLeft} {seatsLeft === 1 ? "seat" : "seats"} left
 												</span>
 											);
@@ -477,7 +476,7 @@ export default function BrowseRidesPanel({
 												e.stopPropagation();
 												onSelectRide(ride);
 											}}
-											className="px-2.5 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+											className="px-2.5 py-1.5 text-xs font-bold text-neutral-700 hover:text-black hover:bg-neutral-100 rounded-xl transition-colors cursor-pointer"
 										>
 											Map View
 										</button>
@@ -492,7 +491,7 @@ export default function BrowseRidesPanel({
 															e.stopPropagation();
 															if (onBack) onBack();
 														}}
-														className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-extrabold rounded-lg shadow-xs transition-all flex items-center gap-1 cursor-pointer"
+														className="px-3.5 py-1.5 bg-yellow-400 hover:bg-yellow-300 text-black text-xs font-black rounded-xl shadow-[0_3px_0_#CA8A04] active:translate-y-0.5 active:shadow-none transition-all flex items-center gap-1 cursor-pointer"
 													>
 														⏳ Seat Requested (View Request)
 													</button>
@@ -503,7 +502,7 @@ export default function BrowseRidesPanel({
 												return (
 													<button
 														disabled
-														className="px-3.5 py-1.5 bg-gray-100 border border-gray-200 text-gray-400 text-xs font-bold rounded-lg cursor-not-allowed flex items-center gap-1"
+														className="px-3.5 py-1.5 bg-neutral-100 border border-neutral-200 text-neutral-400 text-xs font-bold rounded-xl cursor-not-allowed flex items-center gap-1"
 														title="You already have an active seat request in this time slot!"
 													>
 														Slot Requested
@@ -515,7 +514,7 @@ export default function BrowseRidesPanel({
 												return (
 													<button
 														disabled
-														className="px-3.5 py-1.5 bg-slate-100 border border-slate-200 text-slate-400 text-xs font-bold rounded-lg cursor-not-allowed select-none"
+														className="px-3.5 py-1.5 bg-neutral-100 border border-neutral-200 text-neutral-400 text-xs font-bold rounded-xl cursor-not-allowed select-none"
 														title="This ride is completely full. No seats available."
 													>
 														Ride Full
@@ -529,7 +528,7 @@ export default function BrowseRidesPanel({
 														e.stopPropagation();
 														setBookingModalRide(ride);
 													}}
-													className="px-3.5 py-1.5 bg-[#00A09D] hover:bg-[#008f8c] text-white text-xs font-bold rounded-lg shadow-xs transition-all flex items-center gap-1 cursor-pointer"
+													className="px-3.5 py-1.5 bg-yellow-400 hover:bg-yellow-300 text-black text-xs font-black rounded-xl shadow-[0_3px_0_#CA8A04] active:translate-y-0.5 active:shadow-none transition-all flex items-center gap-1 cursor-pointer"
 												>
 													Request Seat
 												</button>
@@ -543,35 +542,35 @@ export default function BrowseRidesPanel({
 				) : null}
 
 				{/* ENGINE 2: GUARANTEED COMMERCIAL BACKUP CARD (PITCH DECK ENGINE 2) */}
-				<div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-2xl p-5 border border-slate-800 shadow-md relative overflow-hidden mt-2 select-none">
-					<div className="absolute top-0 right-0 w-44 h-44 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
+				<div className="bg-black text-white rounded-3xl p-5 border border-neutral-800 shadow-[0_12px_28px_rgba(0,0,0,0.35)] relative overflow-hidden mt-2 select-none">
+					<div className="absolute top-0 right-0 w-44 h-44 bg-yellow-400/10 rounded-full blur-2xl pointer-events-none" />
 
 					<div className="relative z-10 space-y-3">
 						<div className="flex items-center justify-between">
-							<div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-teal-400/20 text-teal-300 border border-teal-400/30">
-								<Zap className="w-3 h-3 text-teal-300" />
+							<div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-yellow-400 text-black">
+								<Zap className="w-3 h-3 text-black fill-black" />
 								Engine 2 • Commercial Backup
 							</div>
-							<span className="text-[11px] font-bold text-slate-300 flex items-center gap-1">
-								<Clock className="w-3 h-3 text-teal-400" /> 4 min dispatch
+							<span className="text-[11px] font-bold text-neutral-300 flex items-center gap-1">
+								<Clock className="w-3 h-3 text-yellow-400" /> 4 min dispatch
 							</span>
 						</div>
 
 						<div>
-							<h3 className="text-sm font-extrabold text-white">Guaranteed Commute Dispatch</h3>
-							<p className="text-[11px] text-slate-300 leading-relaxed mt-0.5">
+							<h3 className="text-sm font-black text-white">Guaranteed Commute Dispatch</h3>
+							<p className="text-[11px] text-neutral-300 leading-relaxed mt-0.5">
 								Zero carpool anxiety. If no peer schedule matches or a coworker cancels, Norimono instant priority cabs & bikes are backed by guaranteed commercial reliability.
 							</p>
 						</div>
 
-						<div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
+						<div className="flex items-center justify-between pt-2 border-t border-neutral-800">
 							<div className="flex flex-col">
-								<span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Corporate Capped Fare</span>
-								<span className="text-base font-black text-teal-300 font-mono">₹89.00</span>
+								<span className="text-[9px] uppercase font-bold text-neutral-400 tracking-wider">Corporate Capped Fare</span>
+								<span className="text-base font-black text-yellow-400 font-mono">₹89.00</span>
 							</div>
 
 							{engine2Dispatched ? (
-								<span className="px-3 py-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 rounded-xl text-xs font-bold flex items-center gap-1">
+								<span className="px-3 py-1.5 bg-yellow-400/20 text-yellow-300 border border-yellow-400/40 rounded-xl text-xs font-bold flex items-center gap-1">
 									<CheckCircle2 className="w-3.5 h-3.5" /> Dispatched (ETA 4m)
 								</span>
 							) : (
@@ -580,9 +579,9 @@ export default function BrowseRidesPanel({
 										setEngine2Dispatched(true);
 										showAlert("Engine 2 Guaranteed Commercial Cab dispatched! Driver assigned: Swift Dzire (KA-03-TR-9002), arriving in 4 mins.", "Commercial Backup Dispatched", "success");
 									}}
-									className="px-3.5 py-1.5 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center gap-1"
+									className="px-3.5 py-1.5 bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs rounded-xl shadow-[0_3px_0_#CA8A04] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer flex items-center gap-1"
 								>
-									<Zap className="w-3.5 h-3.5" /> Dispatch Backup
+									<Zap className="w-3.5 h-3.5 fill-black" /> Dispatch Backup
 								</button>
 							)}
 						</div>
@@ -591,9 +590,9 @@ export default function BrowseRidesPanel({
 
 				{/* Empty State when 0 filtered rides */}
 				{!loading && filteredRides.length === 0 && (
-					<div className="py-8 px-6 text-center space-y-2 bg-slate-50/80 rounded-2xl border border-dashed border-slate-200 mt-2">
-						<p className="text-xs font-bold text-slate-700">No colleague carpools found matching this specific filter.</p>
-						<p className="text-[11px] text-slate-500">Use Engine 2 Commercial Backup above or adjust your search.</p>
+					<div className="py-8 px-6 text-center space-y-2 bg-neutral-50 rounded-2xl border border-dashed border-neutral-300 mt-2">
+						<p className="text-xs font-black text-black">No colleague carpools found matching this specific filter.</p>
+						<p className="text-[11px] text-neutral-500 font-medium">Use Engine 2 Commercial Backup above or adjust your search.</p>
 					</div>
 				)}
 			</div>
@@ -609,83 +608,83 @@ export default function BrowseRidesPanel({
 
 			{/* MODAL: CONFIRM BOOKING */}
 			{bookingModalRide && (
-				<div className="fixed inset-0 bg-gray-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-					<div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150 text-left">
-						<div className="flex items-center justify-between p-5 border-b border-gray-100 bg-gray-50/50">
+				<div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+					<div className="bg-white rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.25)] w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150 text-left border border-neutral-200">
+						<div className="h-2 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500"></div>
+						<div className="flex items-center justify-between p-5 border-b border-neutral-100 bg-neutral-50/50">
 							<div className="flex items-center gap-2">
-								<div className="w-8 h-8 bg-[#00A09D]/10 rounded-lg flex items-center justify-center text-[#00A09D]">
-									<Car className="w-4 h-4" />
+								<div className="w-8 h-8 bg-yellow-400 rounded-xl flex items-center justify-center text-black shadow-xs font-bold">
+									<Car className="w-4 h-4 stroke-[2.5]" />
 								</div>
-								<h3 className="text-base font-bold text-gray-900">
+								<h3 className="text-base font-black text-black">
 									Request a Seat
 								</h3>
 							</div>
 							<button
 								onClick={() => setBookingModalRide(null)}
-								className="text-gray-400 hover:text-gray-600 cursor-pointer"
+								className="text-neutral-400 hover:text-black cursor-pointer"
 							>
 								<X className="w-5 h-5" />
 							</button>
 						</div>
 
 						<div className="p-5 space-y-4">
-							<div className="p-3.5 bg-teal-50/60 border border-teal-100 rounded-xl space-y-2 text-xs">
+							<div className="p-4 bg-neutral-50 border border-neutral-200 rounded-2xl space-y-2 text-xs">
 								<div className="flex justify-between items-center">
-									<span className="text-gray-600 font-semibold">
+									<span className="text-neutral-500 font-bold">
 										Driver
 									</span>
-									<span className="font-bold text-gray-900">
+									<span className="font-black text-black">
 										{bookingModalRide.driver_name} (
 										{bookingModalRide.driver_dept})
 									</span>
 								</div>
 								<div className="flex justify-between items-center">
-									<span className="text-gray-600 font-semibold">
+									<span className="text-neutral-500 font-bold">
 										Vehicle
 									</span>
-									<span className="font-bold text-gray-900">
+									<span className="font-black text-black font-mono">
 										{bookingModalRide.vehicle_model} •{" "}
 										{bookingModalRide.veh_no}
 									</span>
 								</div>
 								<div className="flex justify-between items-center">
-									<span className="text-gray-600 font-semibold">
+									<span className="text-neutral-500 font-bold">
 										Destination
 									</span>
-									<span className="font-bold text-gray-900 truncate max-w-[200px]">
+									<span className="font-black text-black truncate max-w-[200px]">
 										{bookingModalRide.destination?.name}
 									</span>
 								</div>
-								<div className="flex justify-between items-center pt-2 border-t border-teal-200">
-									<div className="flex items-center gap-1.5 text-teal-900 font-bold">
-										<Wallet className="w-3.5 h-3.5 text-[#714B67]" />
+								<div className="flex justify-between items-center pt-2 border-t border-neutral-200">
+									<div className="flex items-center gap-1.5 text-black font-black">
+										<Wallet className="w-3.5 h-3.5 text-amber-600" />
 										<span>Commute Contribution</span>
 									</div>
 									<div className="text-right">
-										<span className="text-base font-extrabold text-[#00A09D]">
+										<span className="text-base font-black text-black font-mono">
 											₹{bookingModalRide.fare_per_seat || 45}
 										</span>
-										<span className="block text-[10px] text-gray-500 font-medium">
+										<span className="block text-[10px] text-neutral-500 font-medium">
 											from Norimono Wallet
 										</span>
 									</div>
 								</div>
 
-								{/* Seat Selection — Dynamic based on available seats */}
-								<div className="pt-2 border-t border-teal-100">
-									<label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+								{/* Seat Selection */}
+								<div className="pt-2 border-t border-neutral-200">
+									<label className="block text-xs font-black text-neutral-700 uppercase tracking-wider mb-1.5">
 										Choose Preferred Seat ({bookingModalRide.available_seats} available)
 									</label>
 									<select
 										value={selectedSeatPref}
 										onChange={(e) => setSelectedSeatPref(e.target.value)}
-										className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#00A09D]"
+										className="w-full bg-white border border-neutral-300 rounded-xl px-3 py-2 text-xs font-bold text-black focus:outline-none focus:ring-2 focus:ring-yellow-400"
 									>
 										{(() => {
 											const seatLabels = ["Seat 1 (Front Window)", "Seat 2 (Rear Left Window)", "Seat 3 (Rear Right Window)", "Seat 4 (Rear Middle)"];
 											const totalSeats = bookingModalRide.total_seats || 4;
 											const availableCount = bookingModalRide.available_seats || 0;
-											// Show only as many seat options as are available, capped by total
 											const seatCount = Math.min(availableCount, totalSeats, seatLabels.length);
 											return seatLabels.slice(0, seatCount).map((label, idx) => (
 												<option key={idx} value={label}>{label}</option>
@@ -694,16 +693,16 @@ export default function BrowseRidesPanel({
 									</select>
 								</div>
 
-								{/* En-Route Stopover Selection if driver has stopovers */}
+								{/* Stopovers */}
 								{Array.isArray(bookingModalRide.stopovers) && bookingModalRide.stopovers.length > 0 && (
-									<div className="pt-2 border-t border-teal-100">
-										<label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+									<div className="pt-2 border-t border-neutral-200">
+										<label className="block text-xs font-black text-neutral-700 uppercase tracking-wider mb-1.5">
 											Select Pickup Spot along Corridor
 										</label>
 										<select
 											value={selectedStopover}
 											onChange={(e) => setSelectedStopover(e.target.value)}
-											className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#00A09D]"
+											className="w-full bg-white border border-neutral-300 rounded-xl px-3 py-2 text-xs font-bold text-black focus:outline-none focus:ring-2 focus:ring-yellow-400"
 										>
 											<option value="">Default: Driver's Origin ({bookingModalRide.origin?.name || "Pickup Spot"})</option>
 											{bookingModalRide.stopovers.map((s, idx) => (
@@ -713,9 +712,9 @@ export default function BrowseRidesPanel({
 									</div>
 								)}
 
-								{/* BlaBlaCar Luggage Size */}
-								<div className="pt-2 border-t border-teal-100">
-									<label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+								{/* Luggage Size */}
+								<div className="pt-2 border-t border-neutral-200">
+									<label className="block text-xs font-black text-neutral-700 uppercase tracking-wider mb-1.5">
 										Your Luggage Size
 									</label>
 									<div className="grid grid-cols-3 gap-1.5">
@@ -728,10 +727,10 @@ export default function BrowseRidesPanel({
 												key={lug.id}
 												type="button"
 												onClick={() => setPassengerLuggage(lug.id)}
-												className={`py-1.5 px-2 rounded-lg text-xs font-bold border transition-colors cursor-pointer text-center ${
+												className={`py-1.5 px-2 rounded-xl text-xs font-bold border transition-colors cursor-pointer text-center ${
 													passengerLuggage === lug.id
-														? "bg-teal-600 text-white border-teal-600 shadow-xs"
-														: "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+														? "bg-yellow-400 text-black border-yellow-500 shadow-[0_2px_0_#CA8A04]"
+														: "bg-white text-neutral-700 border-neutral-300 hover:bg-neutral-50"
 												}`}
 											>
 												{lug.label}
@@ -740,9 +739,9 @@ export default function BrowseRidesPanel({
 									</div>
 								</div>
 
-								{/* Optional Pickup Note */}
-								<div className="pt-2 border-t border-teal-100">
-									<label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+								{/* Pickup Note */}
+								<div className="pt-2 border-t border-neutral-200">
+									<label className="block text-xs font-black text-neutral-700 uppercase tracking-wider mb-1.5">
 										Note for Colleague (Optional)
 									</label>
 									<input
@@ -750,20 +749,20 @@ export default function BrowseRidesPanel({
 										value={passengerNotes}
 										onChange={(e) => setPassengerNotes(e.target.value)}
 										placeholder="e.g. Waiting at Gate 1 main lobby"
-										className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#00A09D]"
+										className="w-full bg-white border border-neutral-300 rounded-xl px-3 py-2 text-xs text-black font-medium focus:outline-none focus:ring-2 focus:ring-yellow-400"
 									/>
 								</div>
 							</div>
 
 							{bookingModalRide.instant_booking !== false ? (
-								<div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-xs flex items-center gap-2">
+								<div className="p-2.5 bg-yellow-50 rounded-xl border border-yellow-200 text-amber-900 text-xs flex items-center gap-2">
 									<Zap className="w-4 h-4 text-amber-600 shrink-0 fill-amber-500" />
-									<p className="text-[11px] font-medium leading-tight">
+									<p className="text-[11px] font-bold leading-tight">
 										<strong>Instant Booking Enabled:</strong> Your seat is confirmed immediately!
 									</p>
 								</div>
 							) : (
-								<p className="text-xs text-gray-500">
+								<p className="text-xs text-neutral-500 font-medium">
 									Requesting this seat notifies the driver for approval. Once confirmed by the driver, your seat is locked!
 								</p>
 							)}
@@ -771,7 +770,7 @@ export default function BrowseRidesPanel({
 							<div className="flex items-center gap-3 pt-2">
 								<button
 									onClick={() => setBookingModalRide(null)}
-									className="flex-1 py-2.5 border border-gray-200 text-gray-700 text-xs font-bold rounded-xl hover:bg-gray-50 cursor-pointer transition-colors"
+									className="flex-1 py-3 border-2 border-neutral-200 text-neutral-700 text-xs font-bold rounded-xl hover:bg-neutral-50 cursor-pointer transition-colors"
 								>
 									Cancel
 								</button>
@@ -781,7 +780,7 @@ export default function BrowseRidesPanel({
 										setBookingModalRide(null);
 									}}
 									disabled={bookingLoading}
-									className="flex-1 py-2.5 bg-[#00A09D] hover:bg-[#008f8c] text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+									className="flex-1 py-3 bg-yellow-400 hover:bg-yellow-300 text-black text-xs font-black rounded-xl shadow-[0_3px_0_#CA8A04] active:translate-y-0.5 active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer"
 								>
 									{bookingLoading ? "Sending..." : "Send Seat Request"}
 								</button>
@@ -793,50 +792,50 @@ export default function BrowseRidesPanel({
 
 			{/* MODAL: BOOKING SUCCESS WITH OTP */}
 			{bookingSuccess && (
-				<div className="fixed inset-0 bg-gray-900/40 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-					<div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-center p-6 space-y-4">
-						<div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
-							<CheckCircle2 className="w-8 h-8" />
+				<div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+					<div className="bg-white rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.25)] w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-center p-6 space-y-4 border border-neutral-200">
+						<div className="w-14 h-14 bg-yellow-400 text-black rounded-2xl flex items-center justify-center mx-auto shadow-md">
+							<CheckCircle2 className="w-8 h-8 stroke-[2.5]" />
 						</div>
 
 						<div>
-							<h3 className="text-lg font-extrabold text-gray-900">
+							<h3 className="text-lg font-black text-black">
 								Ride Booked Successfully!
 							</h3>
-							<p className="text-xs text-gray-500 mt-1">
+							<p className="text-xs text-neutral-500 mt-1 font-medium">
 								Share this 4-digit OTP with your driver at pickup.
 							</p>
 						</div>
 
 						{/* Large OTP Display */}
-						<div className="bg-gray-50 border-2 border-dashed border-[#00A09D] rounded-2xl p-4 my-2">
-							<span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">
+						<div className="bg-neutral-50 border-2 border-dashed border-yellow-400 rounded-2xl p-4 my-2">
+							<span className="text-xs font-bold text-neutral-400 uppercase tracking-widest block mb-1">
 								Pickup Verification OTP
 							</span>
-							<div className="text-3xl font-mono font-black text-[#00A09D] tracking-widest">
+							<div className="text-4xl font-mono font-black text-black tracking-widest">
 								{bookingSuccess.otp}
 							</div>
-							<span className="text-[11px] text-gray-500 mt-1 block">
+							<span className="text-[11px] text-neutral-500 mt-1 block font-mono">
 								Booking ID: {bookingSuccess.booking_id}
 							</span>
-							<div className="mt-2 inline-block px-3 py-1 bg-teal-50 border border-teal-200 text-[#00A09D] text-xs font-extrabold rounded-lg">
+							<div className="mt-2 inline-block px-3 py-1 bg-yellow-100 border border-yellow-300 text-black text-xs font-black rounded-lg">
 								💺 {bookingSuccess.seat_no || "Seat #2 (Front Left)"}
 							</div>
 						</div>
 
 						{/* Wallet Payment confirmation tag */}
-						<div className="p-2.5 bg-purple-50 rounded-xl border border-purple-100 flex items-center justify-between text-xs">
-							<span className="text-gray-600 font-medium flex items-center gap-1.5">
-								<Wallet className="w-3.5 h-3.5 text-[#714B67]" /> Norimono Wallet
+						<div className="p-2.5 bg-neutral-100 rounded-xl border border-neutral-200 flex items-center justify-between text-xs">
+							<span className="text-neutral-700 font-bold flex items-center gap-1.5">
+								<Wallet className="w-3.5 h-3.5 text-amber-600" /> Norimono Wallet
 							</span>
-							<span className="font-bold text-[#714B67]">
+							<span className="font-black text-black">
 								-₹{bookingSuccess.fare || 45}.00 Deducted
 							</span>
 						</div>
 
 						<button
 							onClick={() => setBookingSuccess(null)}
-							className="w-full py-2.5 bg-[#714B67] hover:bg-[#5c3c54] text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer"
+							className="w-full py-3 bg-yellow-400 hover:bg-yellow-300 text-black text-xs font-black rounded-xl shadow-[0_3px_0_#CA8A04] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
 						>
 							Great, Got It!
 						</button>

@@ -102,27 +102,27 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xl animate-in fade-in duration-300">
 			<div className="bg-white w-full max-w-md rounded-3xl shadow-2xl flex flex-col transform transition-all h-[600px] border border-gray-100 overflow-hidden">
 				
-				{/* Elaborate Header - Odoo Theme */}
-				<div className="p-5 flex items-center justify-between bg-gradient-to-r from-[#00A09D] to-[#017E84] relative overflow-hidden">
-					{/* Abstract Background Design */}
-					<div className="absolute right-0 top-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-					<div className="absolute left-0 bottom-0 w-32 h-32 bg-black/10 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none"></div>
-					
-					<div className="flex items-center gap-4 relative z-10">
-						<div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-[#00A09D] font-bold text-xl uppercase shadow-md">
+				{/* Header - Tactile 3D Yellow / Obsidian */}
+				<div className="h-1.5 w-full bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-500" />
+				<div className="p-5 flex items-center justify-between bg-black text-white relative">
+					<div className="flex items-center gap-3.5 relative z-10">
+						<div className="w-11 h-11 rounded-xl bg-yellow-400 text-black flex items-center justify-center font-black text-lg uppercase shadow-sm border border-yellow-300">
 							{targetName.charAt(0)}
 						</div>
 						<div>
-							<h3 className="text-white font-bold text-lg leading-tight">{targetName}</h3>
-							<div className="flex items-center gap-1.5 text-white/80 text-[10px] font-bold uppercase tracking-wider mt-0.5">
-								<Lock className="w-3 h-3" /> E2EE Secured Chat
+							<h3 className="text-white font-bold text-base leading-tight flex items-center gap-2">
+								{targetName}
+								<span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+							</h3>
+							<div className="flex items-center gap-1.5 text-yellow-400/90 text-[10px] font-bold uppercase tracking-wider mt-0.5">
+								<Lock className="w-3 h-3" /> E2EE Verified Commute Chat
 							</div>
 						</div>
 					</div>
 					
 					<button 
 						onClick={onClose}
-						className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors relative z-10 cursor-pointer"
+						className="w-8 h-8 flex items-center justify-center rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors cursor-pointer border border-zinc-700"
 					>
 						<X className="w-4 h-4" />
 					</button>
@@ -147,14 +147,14 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 						return (
 							<div key={idx} className={`flex ${isMe ? "justify-end" : "justify-start"} items-end gap-2`}>
 								{!isMe && (
-									<div className="w-6 h-6 rounded-full bg-[#714B67] text-white flex items-center justify-center text-[10px] font-bold shrink-0 shadow-sm">
+									<div className="w-6 h-6 rounded-full bg-zinc-800 text-yellow-400 border border-zinc-700 flex items-center justify-center text-[10px] font-black shrink-0 shadow-sm">
 										{msg.sender_name?.charAt(0) || "U"}
 									</div>
 								)}
 								<div className={`max-w-[75%] px-4 py-2.5 shadow-sm ${
 									isMe 
-										? "bg-gradient-to-br from-[#714B67] to-[#8C5D80] text-white rounded-2xl rounded-br-sm" 
-										: "bg-white text-gray-800 border border-gray-100 rounded-2xl rounded-bl-sm"
+										? "bg-black text-white font-medium rounded-2xl rounded-br-xs border border-zinc-800" 
+										: "bg-white text-zinc-900 border border-zinc-200 rounded-2xl rounded-bl-xs font-normal"
 								}`}>
 									<p className="text-sm">{msg.text}</p>
 									<p className={`text-[9px] mt-1 text-right font-medium ${isMe ? "text-white/70" : "text-gray-400"}`}>
@@ -176,12 +176,12 @@ export default function ChatModal({ isOpen, onClose, socket, activeTrip, user })
 							onChange={(e) => setMessageInput(e.target.value)}
 							onKeyDown={handleKeyDown}
 							placeholder="Type an encrypted message..."
-							className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#00A09D]/20 focus:border-[#00A09D] transition-all"
+							className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all"
 						/>
 						<button 
 							onClick={handleSend}
 							disabled={!messageInput.trim()}
-							className="w-12 rounded-xl bg-[#00A09D] hover:bg-[#008f8c] disabled:opacity-50 text-white flex items-center justify-center transition-colors cursor-pointer shadow-sm shadow-[#00A09D]/20"
+							className="w-12 rounded-xl bg-yellow-400 text-black font-bold hover:bg-yellow-300 shadow-[0_2px_0_#CA8A04] active:translate-y-0.5 active:shadow-none disabled:opacity-40 disabled:bg-zinc-200 disabled:text-zinc-400 flex items-center justify-center transition-all cursor-pointer"
 						>
 							<Send className="w-5 h-5 ml-1" />
 						</button>

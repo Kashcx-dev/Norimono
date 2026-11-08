@@ -154,17 +154,18 @@ export default function WalletModal({ isOpen, onClose }) {
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-			<div className="bg-white rounded-3xl shadow-2xl border border-gray-100 w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] text-left transform transition-all">
+			<div className="bg-white rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.25)] border border-neutral-200 w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] text-left transform transition-all">
+				<div className="h-2 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500"></div>
 				{/* Modal Top Bar */}
-				<div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-[#714B67]/10 via-white to-[#00A09D]/10">
+				<div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-neutral-50 border-b border-neutral-100">
 					<div className="flex items-center gap-3">
-						<div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#714B67] to-[#5c3c54] flex items-center justify-center shadow-md shadow-[#714B67]/20 text-white">
+						<div className="w-10 h-10 rounded-2xl bg-yellow-400 text-black flex items-center justify-center shadow-xs font-bold">
 							<Wallet className="w-5 h-5" />
 						</div>
 						<div>
 							<h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
 								Norimono Commute Wallet
-								<span className="text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full bg-[#00A09D]/15 text-[#00A09D] border border-[#00A09D]/30">
+								<span className="text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full bg-yellow-100 text-amber-900 border border-yellow-300 font-black">
 									Active
 								</span>
 							</h3>
@@ -203,13 +204,13 @@ export default function WalletModal({ isOpen, onClose }) {
 						onClick={() => setActiveTab("overview")}
 						className={`pb-2.5 text-xs font-bold transition-all relative cursor-pointer ${
 							activeTab === "overview"
-								? "text-[#714B67]"
+								? "text-black font-black"
 								: "text-gray-500 hover:text-gray-800"
 						}`}
 					>
 						Balance
 						{activeTab === "overview" && (
-							<span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#714B67] rounded-full"></span>
+							<span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-400 rounded-full"></span>
 						)}
 					</button>
 
@@ -217,14 +218,14 @@ export default function WalletModal({ isOpen, onClose }) {
 						onClick={() => setActiveTab("add_money")}
 						className={`pb-2.5 text-xs font-bold transition-all relative cursor-pointer flex items-center gap-1 ${
 							activeTab === "add_money"
-								? "text-[#714B67]"
+								? "text-black font-black"
 								: "text-gray-500 hover:text-gray-800"
 						}`}
 					>
 						<Plus className="w-3.5 h-3.5" />
 						Add Money
 						{activeTab === "add_money" && (
-							<span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#714B67] rounded-full"></span>
+							<span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-400 rounded-full"></span>
 						)}
 					</button>
 
@@ -232,14 +233,14 @@ export default function WalletModal({ isOpen, onClose }) {
 						onClick={() => setActiveTab("qr_code")}
 						className={`pb-2.5 text-xs font-bold transition-all relative cursor-pointer flex items-center gap-1 ${
 							activeTab === "qr_code"
-								? "text-[#714B67]"
+								? "text-black font-black"
 								: "text-gray-500 hover:text-gray-800"
 						}`}
 					>
 						<QrCode className="w-3.5 h-3.5" />
 						My Commute QR
 						{activeTab === "qr_code" && (
-							<span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#714B67] rounded-full"></span>
+							<span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-400 rounded-full"></span>
 						)}
 					</button>
 
@@ -247,14 +248,14 @@ export default function WalletModal({ isOpen, onClose }) {
 						onClick={() => setActiveTab("history")}
 						className={`pb-2.5 text-xs font-bold transition-all relative cursor-pointer flex items-center gap-1 ${
 							activeTab === "history"
-								? "text-[#714B67]"
+								? "text-black font-black"
 								: "text-gray-500 hover:text-gray-800"
 						}`}
 					>
 						<History className="w-3.5 h-3.5" />
 						Ledger
 						{activeTab === "history" && (
-							<span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#714B67] rounded-full"></span>
+							<span className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-400 rounded-full"></span>
 						)}
 					</button>
 				</div>
@@ -266,7 +267,7 @@ export default function WalletModal({ isOpen, onClose }) {
 				>
 					{loading ? (
 						<div className="py-16 text-center">
-							<RefreshCw className="w-8 h-8 text-[#714B67] animate-spin mx-auto mb-3" />
+							<RefreshCw className="w-8 h-8 text-black font-black animate-spin mx-auto mb-3" />
 							<p className="text-sm font-semibold text-gray-600">
 								Loading wallet information...
 							</p>
@@ -274,19 +275,16 @@ export default function WalletModal({ isOpen, onClose }) {
 					) : activeTab === "overview" ? (
 						<>
 							{/* Hero Balance Card */}
-							<div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#714B67] via-[#5c3c54] to-[#392433] text-white p-6 shadow-xl shadow-[#714B67]/25">
-								{/* Background Pattern Deco */}
-								<div className="absolute -right-8 -bottom-8 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-								{/* <div className="absolute top-0 right-0 w-32 h-32 bg-[#00A09D]/20 rounded-full blur-xl pointer-events-none"></div> */}
-
+							<div className="relative overflow-hidden rounded-3xl bg-black border border-zinc-800 text-white p-6 shadow-2xl">
+								<div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-500" />
 								<div className="relative z-10 flex flex-col justify-between h-full">
 									<div className="flex items-start justify-between">
 										<div>
-											<span className="text-[11px] font-semibold uppercase tracking-widest text-purple-200/90">
-												Available Balance
+											<span className="text-[11px] font-bold uppercase tracking-widest text-zinc-400">
+												Available Norimono Balance
 											</span>
 											<div className="flex items-baseline gap-1 mt-1">
-												<span className="text-2xl font-bold text-teal-300">
+												<span className="text-2xl font-black text-yellow-400">
 													₹
 												</span>
 												<span className="text-4xl font-extrabold tracking-tight text-white">
@@ -333,7 +331,7 @@ export default function WalletModal({ isOpen, onClose }) {
 							<div className="grid grid-cols-3 gap-2">
 								<button
 									onClick={() => setActiveTab("add_money")}
-									className="py-2.5 px-2 bg-[#714B67] hover:bg-[#5c3c54] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+									className="py-2.5 px-2 bg-yellow-400 hover:bg-yellow-300 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
 								>
 									<Plus className="w-3.5 h-3.5" />
 									<span>Add Money</span>
@@ -375,7 +373,7 @@ export default function WalletModal({ isOpen, onClose }) {
 									</h4>
 									<button
 										onClick={() => setActiveTab("history")}
-										className="text-xs font-bold text-[#714B67] hover:underline flex items-center gap-0.5 cursor-pointer"
+										className="text-xs font-bold text-black font-black hover:underline flex items-center gap-0.5 cursor-pointer"
 									>
 										View All <ChevronRight className="w-3 h-3" />
 									</button>
@@ -394,7 +392,7 @@ export default function WalletModal({ isOpen, onClose }) {
 														className={`w-9 h-9 rounded-xl flex items-center justify-center ${
 															tx.type === "credit"
 																? "bg-emerald-100 text-emerald-700"
-																: "bg-purple-100 text-[#714B67]"
+																: "bg-purple-100 text-black font-black"
 														}`}
 													>
 														{tx.type === "credit" ? (
@@ -442,7 +440,7 @@ export default function WalletModal({ isOpen, onClose }) {
 
 							{/* Security Tag */}
 							<div className="p-3.5 bg-teal-50/60 border border-teal-100 rounded-2xl flex items-center gap-3 text-xs text-teal-800">
-								<ShieldCheck className="w-4 h-4 text-[#00A09D] shrink-0" />
+								<ShieldCheck className="w-4 h-4 text-yellow-600 shrink-0" />
 								<span>
 									Norimono uses 256-bit encrypted corporate banking
 									routes. Fares are automatically synced with drivers
@@ -461,7 +459,7 @@ export default function WalletModal({ isOpen, onClose }) {
 									</span>
 									<span className="text-xs text-purple-700 font-medium">Available Balance</span>
 								</div>
-								<span className="text-base font-extrabold text-[#714B67]">
+								<span className="text-base font-extrabold text-black font-black">
 									₹
 									{(wallet?.balance || 0).toLocaleString("en-IN", {
 										minimumFractionDigits: 2,
@@ -499,7 +497,7 @@ export default function WalletModal({ isOpen, onClose }) {
 										placeholder="500"
 										value={addAmount}
 										onChange={(e) => setAddAmount(e.target.value)}
-										className="w-full pl-10 pr-4 py-3 text-2xl font-extrabold text-gray-900 bg-gray-50 focus:bg-white border-2 border-gray-200 focus:border-[#714B67] rounded-2xl outline-none transition-all"
+										className="w-full pl-10 pr-4 py-3 text-2xl font-extrabold text-gray-900 bg-gray-50 focus:bg-white border-2 border-gray-200 focus:border-yellow-400 rounded-2xl outline-none transition-all"
 										required
 										autoFocus
 									/>
@@ -514,7 +512,7 @@ export default function WalletModal({ isOpen, onClose }) {
 											onClick={() => setAddAmount(amt.toString())}
 											className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
 												addAmount === amt.toString()
-													? "bg-[#714B67] text-white border-[#714B67] shadow-xs"
+													? "bg-black text-yellow-400 border-black shadow-xs font-black"
 													: "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200"
 											}`}
 										>
@@ -539,7 +537,7 @@ export default function WalletModal({ isOpen, onClose }) {
 												onClick={() => setPaymentMethod(method.id)}
 												className={`flex items-center justify-between p-3.5 rounded-2xl border-2 transition-all cursor-pointer ${
 													isSelected
-														? "border-[#714B67] bg-purple-50/30 shadow-2xs"
+														? "border-yellow-400 bg-yellow-50/40 shadow-2xs"
 														: "border-gray-200 hover:border-gray-300 bg-white"
 												}`}
 											>
@@ -547,7 +545,7 @@ export default function WalletModal({ isOpen, onClose }) {
 													<div
 														className={`w-9 h-9 rounded-xl flex items-center justify-center ${
 															isSelected
-																? "bg-[#714B67] text-white"
+																? "bg-yellow-400 text-white"
 																: "bg-gray-100 text-gray-600"
 														}`}
 													>
@@ -577,7 +575,7 @@ export default function WalletModal({ isOpen, onClose }) {
 													onChange={() =>
 														setPaymentMethod(method.id)
 													}
-													className="w-4 h-4 accent-[#714B67] cursor-pointer"
+													className="w-4 h-4 accent-black cursor-pointer"
 												/>
 											</label>
 										);
@@ -597,7 +595,7 @@ export default function WalletModal({ isOpen, onClose }) {
 								<button
 									type="submit"
 									disabled={processingPayment}
-									className="flex-2 py-3 px-4 bg-[#714B67] hover:bg-[#5c3c54] text-white font-bold text-xs rounded-2xl shadow-md shadow-[#714B67]/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+									className="flex-2 py-3 px-4 bg-yellow-400 hover:bg-yellow-300 text-white font-bold text-xs rounded-2xl shadow-md shadow-yellow-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
 								>
 									{processingPayment ? (
 										<>
@@ -711,7 +709,7 @@ export default function WalletModal({ isOpen, onClose }) {
 											onClick={() => setHistoryFilter(type)}
 											className={`px-3 py-1 rounded-xl text-xs font-bold capitalize transition-all cursor-pointer ${
 												historyFilter === type
-													? "bg-[#714B67] text-white shadow-xs"
+													? "bg-yellow-400 text-white shadow-xs"
 													: "bg-gray-100 text-gray-600 hover:bg-gray-200"
 											}`}
 										>
@@ -748,7 +746,7 @@ export default function WalletModal({ isOpen, onClose }) {
 													className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
 														tx.type === "credit"
 															? "bg-emerald-100 text-emerald-700"
-															: "bg-purple-100 text-[#714B67]"
+															: "bg-purple-100 text-black font-black"
 													}`}
 												>
 													{tx.type === "credit" ? (
@@ -805,7 +803,7 @@ export default function WalletModal({ isOpen, onClose }) {
 				{/* Modal Footer */}
 				<div className="px-6 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
 					<div className="flex items-center gap-1.5">
-						<ShieldCheck className="w-4 h-4 text-[#00A09D]" />
+						<ShieldCheck className="w-4 h-4 text-yellow-600" />
 						<span>100% Secure Commute Billing</span>
 					</div>
 					<button

@@ -504,7 +504,7 @@ function Dashboard() {
 
 			{/* Uber-Style Bottom Sheet / Floating Drawer */}
 			<div className="fixed z-30 bottom-0 left-0 right-0 md:left-6 md:bottom-6 md:w-[440px] max-h-[85vh] flex flex-col pointer-events-none">
-				<div className="bg-white/95 backdrop-blur-2xl rounded-t-3xl md:rounded-3xl border border-slate-200/90 shadow-[0_-12px_40px_rgba(0,0,0,0.18)] md:shadow-2xl overflow-hidden flex flex-col max-h-[85vh] pointer-events-auto transition-all duration-300">
+				<div className="bg-white/95 backdrop-blur-2xl rounded-t-3xl md:rounded-3xl border border-black/10 shadow-[0_-12px_40px_rgba(0,0,0,0.22)] md:shadow-[0_24px_60px_rgba(0,0,0,0.25),0_4px_16px_rgba(0,0,0,0.08)] overflow-hidden flex flex-col max-h-[85vh] pointer-events-auto transition-all duration-300">
 					{/* Mobile drag handle */}
 					<div className="w-10 h-1.5 bg-slate-300 rounded-full mx-auto mt-2.5 mb-1 md:hidden shrink-0" />
 

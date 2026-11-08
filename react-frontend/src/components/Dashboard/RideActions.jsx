@@ -210,26 +210,26 @@ function RideActions({
 			{/* Minimal Uber-Style Greeting */}
 			<div className="flex items-center justify-between pb-1">
 				<div>
-					<h3 className="text-base font-black text-slate-900 tracking-tight">
+					<h3 className="text-base font-black text-black tracking-tight">
 						Where to, {firstName}?
 					</h3>
-					<p className="text-[11px] text-slate-500 font-medium">
+					<p className="text-[11px] text-neutral-500 font-medium">
 						Ride with verified colleagues & tech park peers
 					</p>
 				</div>
-				<span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200 uppercase tracking-wider">
+				<span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-yellow-100 text-amber-900 border border-yellow-300 uppercase tracking-wider">
 					Cost-Share
 				</span>
 			</div>
 
-			{/* Uber-Style Route Inputs Box */}
-			<div className="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-2.5 relative space-y-2">
-				{/* Connecting Line Between Inputs */}
-				<div className="absolute left-5.5 top-6.5 bottom-6.5 w-0.5 bg-slate-300 pointer-events-none" />
+			{/* Uber-Style Route Inputs Box with Tactile Depth */}
+			<div className="bg-neutral-50 border border-neutral-200 rounded-2xl p-3 relative space-y-2 shadow-[inset_0_1px_3px_rgba(0,0,0,0.04)]">
+				{/* Connecting Line Between Inputs in Electric Yellow */}
+				<div className="absolute left-[23px] top-[26px] bottom-[26px] w-[2px] bg-yellow-400 pointer-events-none" />
 
 				{/* Pickup Input */}
 				<div className="relative pl-7" ref={sourceRef}>
-					<div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-teal-500 ring-4 ring-teal-100" />
+					<div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-yellow-400 ring-4 ring-yellow-200" />
 					<div className="flex items-center justify-between gap-1">
 						<input
 							type="text"
@@ -243,21 +243,21 @@ function RideActions({
 								if (sourceSuggestions.length > 0) setShowSourceDropdown(true);
 							}}
 							placeholder="Current Location"
-							className="w-full py-1.5 bg-transparent text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none"
+							className="w-full py-1.5 bg-transparent text-xs font-bold text-black placeholder:text-neutral-400 focus:outline-none"
 						/>
 						<button
 							type="button"
 							onClick={handleUseCurrentLocation}
-							className="p-1 text-slate-400 hover:text-teal-600 transition-colors cursor-pointer shrink-0"
+							className="p-1 text-neutral-400 hover:text-black transition-colors cursor-pointer shrink-0"
 							title="Re-center GPS"
 						>
-							<LocateFixed className="w-3.5 h-3.5" />
+							<LocateFixed className="w-4 h-4 text-amber-600" />
 						</button>
 					</div>
 
 					{/* Source Dropdown */}
 					{showSourceDropdown && (
-						<div className="absolute top-full left-0 right-0 z-[1000] bg-white border border-slate-200 rounded-xl shadow-xl mt-1 max-h-44 overflow-y-auto divide-y divide-slate-100">
+						<div className="absolute top-full left-0 right-0 z-[1000] bg-white border border-neutral-200 rounded-2xl shadow-[0_16px_36px_rgba(0,0,0,0.15)] mt-1 max-h-44 overflow-y-auto divide-y divide-neutral-100">
 							{sourceSuggestions.map((item, idx) => (
 								<div
 									key={idx}
@@ -265,12 +265,12 @@ function RideActions({
 										e.preventDefault();
 										handleSelectSource(item);
 									}}
-									className="p-2 hover:bg-slate-50 cursor-pointer flex items-start gap-2 text-left"
+									className="p-2.5 hover:bg-yellow-50 cursor-pointer flex items-start gap-2 text-left transition-colors"
 								>
-									<MapPin className="w-3.5 h-3.5 text-teal-600 shrink-0 mt-0.5" />
+									<MapPin className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
 									<div className="min-w-0">
-										<p className="text-xs font-semibold text-slate-900 truncate">{item.title}</p>
-										{item.subtitle && <p className="text-[10px] text-slate-500 truncate">{item.subtitle}</p>}
+										<p className="text-xs font-bold text-black truncate">{item.title}</p>
+										{item.subtitle && <p className="text-[10px] text-neutral-500 truncate">{item.subtitle}</p>}
 									</div>
 								</div>
 							))}
@@ -278,11 +278,11 @@ function RideActions({
 					)}
 				</div>
 
-				<div className="h-px bg-slate-200/80 ml-7" />
+				<div className="h-px bg-neutral-200 ml-7" />
 
 				{/* Destination Input */}
 				<div className="relative pl-7" ref={destRef}>
-					<div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-slate-900 ring-4 ring-slate-200" />
+					<div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-black ring-4 ring-neutral-200" />
 					<div className="flex items-center justify-between gap-1">
 						<input
 							type="text"
@@ -296,14 +296,14 @@ function RideActions({
 								if (destSuggestions.length > 0) setShowDestDropdown(true);
 							}}
 							placeholder="Search destination tech park or office..."
-							className="w-full py-1.5 bg-transparent text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none"
+							className="w-full py-1.5 bg-transparent text-xs font-black text-black placeholder:text-neutral-400 focus:outline-none"
 						/>
-						{loadingDest && <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-400 shrink-0" />}
+						{loadingDest && <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-500 shrink-0" />}
 					</div>
 
 					{/* Destination Dropdown */}
 					{showDestDropdown && (
-						<div className="absolute top-full left-0 right-0 z-[1000] bg-white border border-slate-200 rounded-xl shadow-xl mt-1 max-h-48 overflow-y-auto divide-y divide-slate-100">
+						<div className="absolute top-full left-0 right-0 z-[1000] bg-white border border-neutral-200 rounded-2xl shadow-[0_16px_36px_rgba(0,0,0,0.15)] mt-1 max-h-48 overflow-y-auto divide-y divide-neutral-100">
 							{destSuggestions.map((item, idx) => (
 								<div
 									key={idx}
@@ -311,12 +311,12 @@ function RideActions({
 										e.preventDefault();
 										handleSelectDest(item);
 									}}
-									className="p-2 hover:bg-slate-50 cursor-pointer flex items-start gap-2 text-left"
+									className="p-2.5 hover:bg-yellow-50 cursor-pointer flex items-start gap-2 text-left transition-colors"
 								>
 									<MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
 									<div className="min-w-0">
-										<p className="text-xs font-semibold text-slate-900 truncate">{item.title}</p>
-										{item.subtitle && <p className="text-[10px] text-slate-500 truncate">{item.subtitle}</p>}
+										<p className="text-xs font-bold text-black truncate">{item.title}</p>
+										{item.subtitle && <p className="text-[10px] text-neutral-500 truncate">{item.subtitle}</p>}
 									</div>
 								</div>
 							))}
@@ -325,11 +325,11 @@ function RideActions({
 				</div>
 			</div>
 
-			{/* Quick Tech Hub Chips (Uber Destination Shortcuts) */}
+			{/* Quick Tech Hub Chips (Tactile 3D Destination Shortcuts) */}
 			<div className="space-y-1">
-				<div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+				<div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-neutral-400">
 					<span>Popular Tech Hubs</span>
-					<span className="text-teal-600 lowercase font-medium">one-tap</span>
+					<span className="text-amber-700 font-bold lowercase">1-tap</span>
 				</div>
 				<div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
 					{POPULAR_TECH_PARKS.slice(0, 5).map((park) => (
@@ -337,7 +337,7 @@ function RideActions({
 							key={park.id}
 							type="button"
 							onClick={() => handleSelectDest(park)}
-							className="px-2.5 py-1 bg-slate-100 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-300 border border-slate-200/80 rounded-xl text-[11px] font-bold text-slate-700 whitespace-nowrap transition-all cursor-pointer shrink-0 active:scale-95"
+							className="px-2.5 py-1 bg-white hover:bg-yellow-100 hover:border-yellow-400 border border-neutral-200 rounded-xl text-[11px] font-bold text-neutral-800 whitespace-nowrap transition-all cursor-pointer shrink-0 shadow-[0_2px_0_rgba(0,0,0,0.06)] active:translate-y-0.5 active:shadow-none"
 						>
 							🏢 {park.name.split(" ")[0]}
 						</button>
@@ -347,38 +347,38 @@ function RideActions({
 
 			{/* Trip Distance & Duration Summary (If route computed) */}
 			{tripSummary && (
-				<div className="bg-teal-50 border border-teal-200/80 rounded-xl p-2.5 flex items-center justify-between text-xs animate-in fade-in">
+				<div className="bg-yellow-50 border border-yellow-300 rounded-2xl p-2.5 flex items-center justify-between text-xs animate-in fade-in shadow-xs">
 					<div className="flex items-center gap-2">
-						<div className="w-6 h-6 rounded-lg bg-teal-600 text-white flex items-center justify-center">
+						<div className="w-6 h-6 rounded-lg bg-yellow-400 text-black flex items-center justify-center font-bold">
 							<Clock className="w-3.5 h-3.5" />
 						</div>
 						<div>
-							<p className="text-[10px] uppercase font-bold text-teal-800">Route Calculated</p>
-							<p className="font-extrabold text-teal-950 font-mono">{tripSummary.duration} mins • {tripSummary.distance} km</p>
+							<p className="text-[10px] uppercase font-bold text-amber-800">Route Calculated</p>
+							<p className="font-black text-black font-mono">{tripSummary.duration} mins • {tripSummary.distance} km</p>
 						</div>
 					</div>
-					<span className="text-[10px] font-bold text-teal-700 bg-teal-100 px-2 py-0.5 rounded-full">
+					<span className="text-[10px] font-extrabold text-black bg-yellow-200/80 px-2 py-0.5 rounded-full border border-yellow-400">
 						OSRM Road
 					</span>
 				</div>
 			)}
 
-			{/* Uber-Style Primary CTA Button */}
+			{/* Tactile 3D Yellow Primary CTA Button */}
 			<button
 				onClick={handleFindRides}
 				disabled={searchingRoute}
-				className="w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white font-black text-xs rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75"
+				className="w-full py-3.5 px-4 bg-yellow-400 hover:bg-yellow-300 active:translate-y-0.5 text-black font-black text-xs rounded-2xl shadow-[0_4px_0_#CA8A04] active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75"
 			>
 				{searchingRoute ? (
 					<>
-						<Loader2 className="w-4 h-4 animate-spin text-teal-400" />
+						<Loader2 className="w-4 h-4 animate-spin text-black" />
 						<span>Routing Road Commute...</span>
 					</>
 				) : (
 					<>
-						<Search className="w-4 h-4 text-teal-400" />
+						<Search className="w-4 h-4 stroke-[2.5]" />
 						<span>Find Colleague Rides</span>
-						<ArrowRight className="w-3.5 h-3.5 text-slate-400 ml-1" />
+						<ArrowRight className="w-3.5 h-3.5 stroke-[2.5] ml-1" />
 					</>
 				)}
 			</button>

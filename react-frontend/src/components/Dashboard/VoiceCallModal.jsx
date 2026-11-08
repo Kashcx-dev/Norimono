@@ -92,8 +92,9 @@ export default function VoiceCallModal({ isOpen, onClose, socket, activeTrip, us
 		<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xl animate-in fade-in duration-300">
 			<div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl flex flex-col transform transition-all relative overflow-hidden border border-gray-100">
 				
-				{/* Header - Elaborate Odoo Branding */}
-				<div className={`p-10 flex flex-col items-center justify-center relative overflow-hidden transition-colors duration-500 ${callState === "failed" ? "bg-red-500" : "bg-gradient-to-br from-[#714B67] to-[#8C5D80]"}`}>
+				{/* Header - Obsidian Black & Taxi Yellow */}
+				<div className="h-1.5 w-full bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-500" />
+				<div className={`p-10 flex flex-col items-center justify-center relative overflow-hidden transition-colors duration-500 ${callState === "failed" ? "bg-red-600" : "bg-black"}`}>
 					{/* Abstract Background Design */}
 					<div className="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
 					<div className="absolute left-0 bottom-0 w-40 h-40 bg-black/10 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none"></div>
@@ -106,7 +107,7 @@ export default function VoiceCallModal({ isOpen, onClose, socket, activeTrip, us
 
 					{/* Avatar Profile */}
 					<div className="relative mb-6 z-10">
-						<div className={`w-28 h-28 rounded-full bg-white flex items-center justify-center text-[#714B67] shadow-2xl text-5xl font-black uppercase border-4 border-white/20 ${callState === "connecting" ? "animate-pulse" : ""}`}>
+						<div className={`w-28 h-28 rounded-full bg-yellow-400 flex items-center justify-center text-black shadow-2xl text-5xl font-black uppercase border-4 border-yellow-300 ${callState === "connecting" ? "animate-pulse" : ""}`}>
 							{targetName.charAt(0)}
 						</div>
 						{/* Animated Ring for Calling */}
@@ -142,7 +143,7 @@ export default function VoiceCallModal({ isOpen, onClose, socket, activeTrip, us
 						disabled={callState !== "connected"}
 						className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all cursor-pointer ${
 							callState !== "connected" ? "opacity-50 cursor-not-allowed bg-gray-200 text-gray-400" :
-							isMuted ? "bg-white text-gray-800 border-2 border-gray-200" : "bg-[#00A09D] text-white hover:bg-[#008f8c]"
+							isMuted ? "bg-white text-gray-800 border-2 border-gray-200" : "bg-black text-yellow-400 hover:bg-zinc-900 border border-yellow-400/50"
 						}`}
 					>
 						{isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}

@@ -52,25 +52,22 @@ export default function FeedbackModal({ isOpen, onClose }) {
 		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xl animate-in fade-in duration-300">
 			<div className="bg-white w-full max-w-md rounded-3xl shadow-2xl flex flex-col transform transition-all overflow-hidden border border-gray-100">
 				
-				{/* Header - Odoo Theme */}
-				<div className="p-6 bg-gradient-to-br from-[#00A09D] to-[#017E84] relative overflow-hidden">
-					{/* Abstract Background Design */}
-					<div className="absolute right-0 top-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-					<div className="absolute left-0 bottom-0 w-32 h-32 bg-black/10 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none"></div>
-					
+				{/* Header - Tactile 3D Yellow / Obsidian */}
+				<div className="h-1.5 w-full bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-500" />
+				<div className="p-6 bg-black relative">
 					<div className="flex justify-between items-start relative z-10">
-						<div className="flex items-center gap-4">
-							<div className="w-12 h-12 rounded-2xl bg-white text-[#00A09D] flex items-center justify-center shadow-lg transform rotate-3">
+						<div className="flex items-center gap-3.5">
+							<div className="w-12 h-12 rounded-2xl bg-yellow-400 text-black flex items-center justify-center shadow-lg transform rotate-2 border border-yellow-300">
 								<MessageSquareHeart className="w-6 h-6" />
 							</div>
 							<div>
-								<h2 className="text-xl font-bold text-white leading-tight drop-shadow-md">Share Feedback</h2>
-								<p className="text-white/80 text-xs font-semibold uppercase tracking-wider mt-1">Help us improve Norimono</p>
+								<h2 className="text-xl font-black text-white leading-tight">Share Commute Feedback</h2>
+								<p className="text-yellow-400/90 text-xs font-bold uppercase tracking-wider mt-0.5">Help us elevate Norimono</p>
 							</div>
 						</div>
 						<button 
 							onClick={onClose}
-							className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer border border-white/10 hover:scale-105"
+							className="w-8 h-8 flex items-center justify-center rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors cursor-pointer border border-zinc-700"
 						>
 							<X className="w-4 h-4" />
 						</button>
@@ -125,14 +122,14 @@ export default function FeedbackModal({ isOpen, onClose }) {
 									value={feedback}
 									onChange={(e) => setFeedback(e.target.value)}
 									placeholder="Tell us about the ride, coworker punctuality, or carpool improvements..."
-									className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#00A09D]/20 focus:border-[#00A09D] transition-all min-h-[100px] resize-none"
+									className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all min-h-[100px] resize-none"
 								></textarea>
 							</div>
 
 							<button 
 								onClick={handleSubmit}
 								disabled={rating === 0 || !feedback.trim()}
-								className="w-full bg-[#714B67] hover:bg-[#5c3c54] disabled:opacity-50 text-white rounded-xl py-3.5 font-bold text-sm shadow-lg shadow-[#714B67]/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+								className="w-full bg-yellow-400 hover:bg-yellow-300 disabled:opacity-40 disabled:bg-zinc-200 disabled:text-zinc-400 text-black rounded-xl py-3.5 font-black text-sm shadow-[0_4px_0_#CA8A04] active:translate-y-0.5 active:shadow-none transition-all flex items-center justify-center gap-2 cursor-pointer"
 							>
 								Submit Feedback <Send className="w-4 h-4" />
 							</button>

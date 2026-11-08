@@ -38,10 +38,11 @@ function VehicleRegistrationModal({ onClose, onRegister }) {
 
 	return (
 		<div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-			<div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+			<div className="bg-white rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.25)] border border-neutral-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+				<div className="h-2 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500"></div>
 				<div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50 shrink-0">
 					<div className="flex items-center gap-3">
-						<div className="w-10 h-10 bg-[#714B67]/10 rounded-full flex items-center justify-center text-[#714B67]">
+						<div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center text-black font-bold shadow-xs">
 							<Car className="w-5 h-5" />
 						</div>
 						<div>
@@ -71,7 +72,7 @@ function VehicleRegistrationModal({ onClose, onRegister }) {
 								required
 								value={vehicle_model}
 								onChange={handleModelChange}
-								className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
+								className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all"
 							>
 								<option value="" disabled>Select vehicle model (2,000+ certified models)</option>
 								{vehicleCatalog.map((v) => (
@@ -122,7 +123,7 @@ function VehicleRegistrationModal({ onClose, onRegister }) {
 										setVehicleNo(cleaned);
 									}}
 									placeholder="KA-01-AB-1234"
-									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all uppercase"
+									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all uppercase"
 								/>
 							</div>
 
@@ -137,7 +138,7 @@ function VehicleRegistrationModal({ onClose, onRegister }) {
 									max="7"
 									value={max_seating_cap}
 									onChange={(e) => setCapacity(parseInt(e.target.value, 10) || 1)}
-									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all font-semibold"
+									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all font-semibold"
 								/>
 							</div>
 
@@ -156,7 +157,7 @@ function VehicleRegistrationModal({ onClose, onRegister }) {
 										setDlNo(cleaned);
 									}}
 									placeholder="DL-0420110012345"
-									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all uppercase"
+									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all uppercase"
 								/>
 							</div>
 
@@ -171,7 +172,7 @@ function VehicleRegistrationModal({ onClose, onRegister }) {
 									value={insurance_no}
 									onChange={(e) => setInsuranceNo(e.target.value.toUpperCase().replace(/[^A-Z0-9 -]/g, ''))}
 									placeholder="INS-9876543210"
-									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all uppercase"
+									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all uppercase"
 								/>
 							</div>
 
@@ -188,7 +189,7 @@ function VehicleRegistrationModal({ onClose, onRegister }) {
 									value={fuel_consumption_ratio}
 									onChange={(e) => setFuelConsumption(e.target.value)}
 									placeholder="1.0"
-									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
+									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition-all"
 								/>
 								<p className="text-[11px] text-gray-400">
 									Standard ratio is 1.0. Efficient cars (20+ kmpl) are ~0.75, larger SUVs are ~1.30. Used for corporate fuel reimbursement.
@@ -199,7 +200,7 @@ function VehicleRegistrationModal({ onClose, onRegister }) {
 						<div className="pt-4">
 							<button
 								type="submit"
-								className="w-full py-3.5 px-4 bg-[#714B67] hover:bg-[#5c3c54] text-white font-semibold rounded-xl transition-all shadow-sm cursor-pointer"
+								className="w-full py-3.5 px-4 bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm rounded-xl transition-all shadow-[0_4px_0_#CA8A04] active:translate-y-0.5 active:shadow-none cursor-pointer"
 							>
 								Submit Vehicle For Admin Approval
 							</button>

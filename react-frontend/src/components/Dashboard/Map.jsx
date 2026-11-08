@@ -88,7 +88,9 @@ async function fetchOsrmPolyline(start, end) {
 
 // Custom stylish HTML markers
 const createCarIcon = (isSelected, name, fare) => {
-	const bg = isSelected ? "#00A09D" : "#714B67";
+	const bg = isSelected ? "#FACC15" : "#09090B";
+	const textCol = isSelected ? "#000000" : "#FFFFFF";
+	const borderCol = isSelected ? "#000000" : "#FACC15";
 	const scale = isSelected ? "scale(1.15)" : "scale(1)";
 	return L.divIcon({
 		className: "custom-car-marker",
@@ -103,21 +105,21 @@ const createCarIcon = (isSelected, name, fare) => {
       ">
         <div style="
           background: ${bg};
-          color: white;
-          padding: 4px 8px;
-          border-radius: 12px;
+          color: ${textCol};
+          padding: 5px 10px;
+          border-radius: 14px;
           font-size: 11px;
-          font-weight: 700;
+          font-weight: 900;
           white-space: nowrap;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-          border: 2px solid white;
+          box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+          border: 2px solid ${borderCol};
           display: flex;
           align-items: center;
-          gap: 4px;
+          gap: 5px;
         ">
           <span>🚗</span>
           <span>${name || "Carpool"}</span>
-          <span style="background: rgba(255,255,255,0.25); padding: 1px 4px; border-radius: 6px; font-size: 10px;">₹${fare || 45}</span>
+          <span style="background: ${isSelected ? '#000000' : '#FACC15'}; color: ${isSelected ? '#FACC15' : '#000000'}; padding: 1px 5px; border-radius: 6px; font-size: 10px; font-weight: 900;">₹${fare || 45}</span>
         </div>
         <div style="
           width: 0;
@@ -145,12 +147,12 @@ const createUserLocationIcon = () => {
       ">
         <div style="
           position: relative;
-          width: 20px;
-          height: 20px;
-          background: #00A09D;
-          border: 3px solid white;
+          width: 22px;
+          height: 22px;
+          background: #FACC15;
+          border: 3px solid #000000;
           border-radius: 50%;
-          box-shadow: 0 0 0 4px rgba(0,160,157,0.35), 0 4px 10px rgba(0,0,0,0.3);
+          box-shadow: 0 0 0 5px rgba(250,204,21,0.45), 0 6px 16px rgba(0,0,0,0.4);
         "></div>
       </div>
     `,
@@ -448,8 +450,8 @@ export default function Map({
 						key={`h3-poly-${i}`}
 						positions={boundary}
 						pathOptions={{
-							color: "#00A09D",
-							fillColor: "#00A09D",
+							color: "#EAB308",
+							fillColor: "#EAB308",
 							weight: 1.5,
 							fillOpacity: 0.12,
 							dashArray: "4, 4"
@@ -463,15 +465,15 @@ export default function Map({
 						center={userLocation}
 						radius={10000} // 10,000 meters = 10km
 						pathOptions={{
-							color: "#00A09D",
-							fillColor: "#00A09D",
+							color: "#EAB308",
+							fillColor: "#EAB308",
 							fillOpacity: 0.08,
 							weight: 2,
 							dashArray: "6, 8",
 						}}
 					>
 						<Popup>
-							<div className="text-xs font-bold text-[#00A09D]">
+							<div className="text-xs font-bold text-black font-extrabold">
 								📍 10km Radius Carpool Zone
 							</div>
 						</Popup>
@@ -482,7 +484,7 @@ export default function Map({
 				{userLocation && (
 					<Marker position={userLocation} icon={createUserLocationIcon()}>
 						<Popup>
-							<div className="font-bold text-xs text-[#00A09D] p-1">
+							<div className="font-bold text-xs text-black font-extrabold p-1">
 								📍 You are here
 							</div>
 						</Popup>
@@ -515,7 +517,7 @@ export default function Map({
 											<span className="font-bold text-gray-900">
 												{ride.driver_name}
 											</span>
-											<span className="text-[#00A09D] font-extrabold">
+											<span className="text-black font-extrabold font-extrabold">
 												₹{ride.fare_per_seat}
 											</span>
 										</div>
@@ -526,7 +528,7 @@ export default function Map({
 											<strong>Destination:</strong>{" "}
 											{ride.destination?.name || (typeof ride.destination === "string" ? ride.destination : "Destination")}
 										</p>
-										<p className="text-[#00A09D] font-semibold">
+										<p className="text-black font-extrabold font-semibold">
 											{ride.distance_km || 1.2} km away •{" "}
 											{ride.available_seats} seats left
 										</p>
@@ -534,7 +536,7 @@ export default function Map({
 											onClick={() =>
 												onSelectRide && onSelectRide(ride)
 											}
-											className="w-full mt-1.5 py-1.5 px-2 bg-[#00A09D] hover:bg-[#008f8c] text-white font-bold rounded-lg text-xs cursor-pointer shadow-xs transition-colors"
+											className="w-full mt-1.5 py-1.5 px-2 bg-yellow-400 hover:bg-yellow-300 text-black font-bold shadow-sm text-white font-bold rounded-lg text-xs cursor-pointer shadow-xs transition-colors"
 										>
 											Select Carpool
 										</button>
@@ -566,7 +568,7 @@ export default function Map({
 								<Polyline
 									positions={selectedRidePolyline}
 									pathOptions={{
-										color: "#00F5D4",
+										color: "#FACC15",
 										weight: 14,
 										opacity: 0.28,
 										lineCap: "round",
@@ -577,7 +579,7 @@ export default function Map({
 								<Polyline
 									positions={selectedRidePolyline}
 									pathOptions={{
-										color: "#06B6D4",
+										color: "#EAB308",
 										weight: 7,
 										opacity: 0.85,
 										lineCap: "round",
@@ -602,9 +604,9 @@ export default function Map({
 
 				{/* Search Pickup Marker (Source) */}
 				{pickupCoords && (
-					<Marker position={pickupCoords} icon={createLocationPinIcon("#00A09D", "🟢 Pickup")}>
+					<Marker position={pickupCoords} icon={createLocationPinIcon("#EAB308", "🟢 Pickup")}>
 						<Popup>
-							<div className="font-semibold text-sm text-[#00A09D]">
+							<div className="font-semibold text-sm text-black font-extrabold">
 								🟢 Pickup Location (Source)
 							</div>
 						</Popup>
@@ -633,7 +635,7 @@ export default function Map({
 								zIndexOffset={1000}
 							>
 								<Popup>
-									<div className="font-semibold text-xs text-[#00A09D]">
+									<div className="font-semibold text-xs text-black font-extrabold">
 										🚗 Commute Navigation in Progress
 									</div>
 								</Popup>
@@ -642,9 +644,9 @@ export default function Map({
 
 						{/* Active Origin Marker */}
 						{activeOriginCoords && (
-							<Marker position={activeOriginCoords} icon={createLocationPinIcon("#00A09D", "🟢 Pickup")}>
+							<Marker position={activeOriginCoords} icon={createLocationPinIcon("#EAB308", "🟢 Pickup")}>
 								<Popup>
-									<div className="font-semibold text-sm text-[#00A09D]">
+									<div className="font-semibold text-sm text-black font-extrabold">
 										🟢 Pickup: {typeof activeOrigin === "string" ? activeOrigin : activeOrigin?.name || activeOrigin?.address || "Pickup Point"}
 									</div>
 								</Popup>
@@ -666,7 +668,7 @@ export default function Map({
 								<Polyline
 									positions={activePolyline}
 									pathOptions={{
-										color: "#00F5D4",
+										color: "#FACC15",
 										weight: 14,
 										opacity: 0.35,
 										lineCap: "round",
@@ -676,7 +678,7 @@ export default function Map({
 								<Polyline
 									positions={activePolyline}
 									pathOptions={{
-										color: "#06B6D4",
+										color: "#EAB308",
 										weight: 7,
 										opacity: 0.85,
 										lineCap: "round",
@@ -703,11 +705,11 @@ export default function Map({
 					<>
 						<Polyline
 							positions={normalizedSearchPolyline}
-							pathOptions={{ color: "#00F5D4", weight: 12, opacity: 0.28, lineCap: "round", lineJoin: "round" }}
+							pathOptions={{ color: "#FACC15", weight: 12, opacity: 0.28, lineCap: "round", lineJoin: "round" }}
 						/>
 						<Polyline
 							positions={normalizedSearchPolyline}
-							pathOptions={{ color: "#06B6D4", weight: 6, opacity: 0.85, lineCap: "round", lineJoin: "round" }}
+							pathOptions={{ color: "#EAB308", weight: 6, opacity: 0.85, lineCap: "round", lineJoin: "round" }}
 						/>
 						<Polyline
 							positions={normalizedSearchPolyline}
@@ -718,7 +720,7 @@ export default function Map({
 
 				{/* Default fallback marker if no GPS permission and no points */}
 				{!userLocation && !pickupCoords && !dropoffCoords && !activeTrip && (
-					<Marker position={defaultPosition} icon={createLocationPinIcon("#714B67", "🏢 Hub")}>
+					<Marker position={defaultPosition} icon={createLocationPinIcon("#09090B", "🏢 Hub")}>
 						<Popup>Norimono Hub</Popup>
 					</Marker>
 				)}

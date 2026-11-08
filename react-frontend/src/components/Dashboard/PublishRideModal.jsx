@@ -288,15 +288,17 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 	};
 
 	return (
-		<div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-			<div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+		<div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-[100] p-4">
+			<div className="bg-white rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.25)] border border-neutral-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+				{/* Top Yellow Accent Bar */}
+				<div className="h-2 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500"></div>
 				{/* Header */}
-				<div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50 shrink-0">
+				<div className="flex items-center justify-between p-5 border-b border-neutral-100 bg-neutral-50/50 shrink-0">
 					<div className="flex items-center gap-3">
-						<div className="w-10 h-10 bg-[#714B67]/10 rounded-full flex items-center justify-center text-[#714B67]">
-							<Compass className="w-5 h-5" />
+						<div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center text-black shadow-xs font-bold">
+							<Compass className="w-5 h-5 stroke-[2.5]" />
 						</div>
-						<h2 className="text-xl font-bold text-gray-900">
+						<h2 className="text-xl font-black text-black">
 							Publish a Ride
 						</h2>
 					</div>
@@ -333,7 +335,7 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 										if (originData) setOriginData(null);
 									}}
 									placeholder="Search departure location..."
-									className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
+									className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all"
 								/>
 								{loadingOrigin && (
 									<div className="absolute right-3.5 top-3.5">
@@ -429,7 +431,7 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 										if (destData) setDestData(null);
 									}}
 									placeholder="Search drop-off location..."
-									className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
+									className="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all"
 								/>
 								{loadingDest && (
 									<div className="absolute right-3.5 top-3.5">
@@ -485,7 +487,7 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 									type="datetime-local"
 									value={departureTime}
 									onChange={(e) => setDepartureTime(e.target.value)}
-									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
+									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all"
 								/>
 							</div>
 
@@ -498,7 +500,7 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 								<select
 									value={targetArrivalTime}
 									onChange={(e) => setTargetArrivalTime(e.target.value)}
-									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
+									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all"
 								>
 									<option value="08:30 AM">08:30 AM (Early Shift)</option>
 									<option value="08:45 AM">08:45 AM (Standard Shift)</option>
@@ -597,7 +599,7 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 											onClick={() => setChattiness(item.id)}
 											className={`p-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
 												chattiness === item.id
-													? "bg-[#714B67] text-white border-[#714B67] shadow-xs"
+													? "bg-black text-yellow-400 border-black shadow-xs"
 													: "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
 											}`}
 										>
@@ -821,7 +823,7 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 									max={driverVehicle?.seating_capacity || 8}
 									value={seats}
 									onChange={(e) => setSeats(Math.min(driverVehicle?.seating_capacity || 8, Math.max(1, parseInt(e.target.value) || 1)))}
-									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#714B67]/20 focus:border-[#714B67] transition-all"
+									className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 transition-all"
 								/>
 							</div>
 
@@ -919,7 +921,7 @@ function PublishRideModal({ onClose, onPublish, userLocation }) {
 							<button
 								type="submit"
 								disabled={submitting}
-								className="w-full py-3 px-4 bg-[#714B67] hover:bg-[#5c3c54] text-white font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+								className="w-full py-3.5 px-4 bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm rounded-xl transition-all shadow-[0_4px_0_#CA8A04] active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
 							>
 								{submitting ? (
 									<>

@@ -63,11 +63,12 @@ export default function RegisteredVehiclesModal({
 
 	return (
 		<div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200">
-			<div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] text-left">
+			<div className="bg-white w-full max-w-lg rounded-3xl shadow-[0_24px_60px_rgba(0,0,0,0.25)] border border-neutral-200 overflow-hidden flex flex-col max-h-[90vh] text-left">
+				<div className="h-2 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500"></div>
 				{/* Header */}
 				<div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
 					<div className="flex items-center gap-3">
-						<div className="w-10 h-10 rounded-2xl bg-purple-50 border border-purple-200 text-[#714B67] flex items-center justify-center font-bold">
+						<div className="w-10 h-10 rounded-xl bg-yellow-400 text-black flex items-center justify-center font-bold shadow-xs">
 							<Car className="w-5 h-5" />
 						</div>
 						<div>
@@ -91,7 +92,7 @@ export default function RegisteredVehiclesModal({
 				<div className="p-6 overflow-y-auto space-y-4">
 					{loading ? (
 						<div className="py-12 flex flex-col items-center justify-center text-slate-400 space-y-2">
-							<div className="w-7 h-7 border-2 border-[#714B67] border-t-transparent rounded-full animate-spin"></div>
+							<div className="w-7 h-7 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
 							<p className="text-xs font-semibold">Loading vehicle credentials...</p>
 						</div>
 					) : vehicleData ? (
@@ -198,7 +199,7 @@ export default function RegisteredVehiclesModal({
 											onClose();
 											onPublishRide();
 										}}
-										className="flex-1 py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+										className="flex-1 py-3 px-4 bg-yellow-400 hover:bg-yellow-300 text-black font-black shadow-[0_3px_0_#CA8A04] active:translate-y-0.5 active:shadow-none text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
 									>
 										<span>Publish Commute Ride</span>
 										<ArrowRight className="w-4 h-4" />
